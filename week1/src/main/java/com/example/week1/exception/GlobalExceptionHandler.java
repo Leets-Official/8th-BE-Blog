@@ -1,4 +1,4 @@
-package com.example.week1.exeption;
+package com.example.week1.exception;
 
 import com.example.week1.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
