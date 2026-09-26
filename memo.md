@@ -1,0 +1,1 @@
+src/main/resources/application.properties에서 spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration 추가 (mysql 서버 부재로 인해 빌드 실패 방지)
