@@ -1,0 +1,7 @@
+// 문자열 반복 API 테스트
+POST http://localhost:8080/string/repeat
+Content-Type: application/json
+
+{
+  "value": "hello"
+}
