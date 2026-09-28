@@ -22,3 +22,7 @@ target/
 
 # OS generated files
 Thumbs.db
+
+# Agent
+.claude/
+.cursor/
