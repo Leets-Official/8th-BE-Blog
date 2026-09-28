@@ -27,6 +27,6 @@ public class AssignmentController {
     public RepeatStringResponse repeatString(
             @Valid @RequestBody RepeatStringRequest request
     ) {
-        return assignmentService.repeatString(request);
+        return assignmentService.repeatString(request.getValue());
     }
 }
