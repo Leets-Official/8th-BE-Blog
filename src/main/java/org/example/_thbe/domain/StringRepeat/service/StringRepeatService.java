@@ -8,6 +8,6 @@ import org.springframework.stereotype.Service;
 public class StringRepeatService {
 
     public StringRepeatResponse repeatString(StringRepeatRequest request) {
-        return StringRepeatResponse.of(request.getValue(), request.getValue());
+        return new StringRepeatResponse(request.value(), request.value());
     }
 }
