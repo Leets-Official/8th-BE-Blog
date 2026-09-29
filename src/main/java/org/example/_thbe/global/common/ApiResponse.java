@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example._thbe.global.code.BaseCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;import org.springframework.http.ResponseEntity;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -21,26 +21,29 @@ public class ApiResponse<T> {
     private final T data;
 
     public static <T> ResponseEntity<ApiResponse<T>> success(BaseCode baseCode,T data) {
-        return ResponseEntity
-                .status(baseCode.getStatus())
-                .body(new ApiResponse<>(true, baseCode.getCode(), baseCode.getMessage(), data));
+        return of(true,baseCode,data);
     }
 
     public static ResponseEntity<ApiResponse<Void>> success(BaseCode baseCode) {
-        return ResponseEntity
-                .status(baseCode.getStatus())
-                .body(new ApiResponse<>(true, baseCode.getCode(), baseCode.getMessage(), null));
+        return of(true,baseCode,null);
     }
 
     public static <T> ResponseEntity<ApiResponse<T>> failure(BaseCode baseCode,T data) {
-        return ResponseEntity
-                .status(baseCode.getStatus())
-                .body(new ApiResponse<>(false, baseCode.getCode(), baseCode.getMessage(), data));
+        return of(false, baseCode, data);
     }
 
     public static ResponseEntity<ApiResponse<Void>> failure(BaseCode baseCode) {
+        return of(false, baseCode, null);
+    }
+
+
+    private static <T> ResponseEntity<ApiResponse<T>> of(
+            boolean success,
+            BaseCode baseCode,
+            T data
+    ) {
         return ResponseEntity
                 .status(baseCode.getStatus())
-                .body(new ApiResponse<>(false, baseCode.getCode(), baseCode.getMessage(), null));
+                .body(new ApiResponse<>(success, baseCode.getCode(), baseCode.getMessage(), data));
     }
 }
