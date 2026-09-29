@@ -1,8 +1,8 @@
-package com.example.demo.controller;
+package com.leets.blog.controller;
 
-import com.example.demo.dto.RepeatStringRequest;
-import com.example.demo.dto.RepeatStringResponse;
-import com.example.demo.service.AssignmentService;
+import com.leets.blog.dto.RepeatStringRequest;
+import com.leets.blog.dto.RepeatStringResponse;
+import com.leets.blog.service.AssignmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

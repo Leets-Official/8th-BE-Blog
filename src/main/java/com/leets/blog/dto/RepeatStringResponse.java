@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.leets.blog.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

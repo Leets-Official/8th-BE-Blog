@@ -1,6 +1,6 @@
-package com.example.demo.service;
+package com.leets.blog.service;
 
-import com.example.demo.dto.RepeatStringResponse;
+import com.leets.blog.dto.RepeatStringResponse;
 import org.springframework.stereotype.Service;
 
 @Service
