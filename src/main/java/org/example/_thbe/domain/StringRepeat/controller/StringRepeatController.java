@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/repeat")
+@RequestMapping("/string")
 @RestController
 @RequiredArgsConstructor
 public class StringRepeatController {
     private final StringRepeatService stringRepeatService;
 
-    @PostMapping("/string")
+    @PostMapping("/repeat")
     public ResponseEntity<ApiResponse<StringRepeatResponse>> repeatString(@RequestBody StringRepeatRequest request) {
         return ApiResponse.success(SuccessCode.COMMON_OK,stringRepeatService.repeatString(request));
     }
