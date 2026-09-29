@@ -1,94 +1,28 @@
-# General
 .DS_Store
-.localized
-__MACOSX/
-.AppleDouble
-.LSOverride
-Icon[]
 
-# Resource forks
-._*
+# IDE
+.idea/
+.vscode/
+*.iml
 
-# Files and directories that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.com.apple.timemachine.supported
-.PKInstallSandboxManager
-.PKInstallSandboxManager-SystemSoftware
-.hotfiles.btree
-.vol
-.file
-.disk_label*
-lost+found
-.HFS+ Private Directory Data[]
+# Java/Gradle build outputs
+.gradle/
+build/
+out/
 
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
+# Maven build outputs
+target/
 
-# Mac OS 6 to 9
-Desktop DB
-Desktop DF
-TheFindByContentFolder
-TheVolumeSettingsFolder
-.FBCIndex
-.FBCSemaphoreFile
-.FBCLockFolder
-
-# Quota system
-.quota.group
-.quota.user
-.quota.ops.group
-.quota.ops.user
-
-# TimeMachine
-Backups.backupdb
-.MobileBackups
-.MobileBackups.trash
-MobileBackups.trash
-tmbootpicker.efi
-
-# Compiled class file
-*.class
-
-# Log file
+# Logs
 *.log
 
-# BlueJ files
-*.ctxt
+# Environment files
+.env
+.env.*
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# OS generated files
+Thumbs.db
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
-
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
-!*.code-workspace
-
-# Built Visual Studio Code Extensions
-*.vsix
+# Agent
+.claude/
+.cursor/
