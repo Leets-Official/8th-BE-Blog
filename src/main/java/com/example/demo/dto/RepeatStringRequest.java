@@ -1,14 +1,12 @@
 package com.example.demo.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class RepeatStringRequest {
 
     private String value;
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
+    
 }

@@ -1,20 +1,19 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
+@Getter
 public class RepeatStringResponse {
 
-    private String string_one;
-    private String string_two;
+    @JsonProperty("string_one")
+    private String stringOne;
 
-    public RepeatStringResponse(String string_one, String string_two) {
-        this.string_one = string_one;
-        this.string_two = string_two;
-    }
+    @JsonProperty("string_two")
+    private String stringTwo;
 
-    public String getString_one() {
-        return string_one;
-    }
-
-    public String getString_two() {
-        return string_two;
+    public RepeatStringResponse(String stringOne, String stringTwo) {
+        this.stringOne = stringOne;
+        this.stringTwo = stringTwo;
     }
 }
