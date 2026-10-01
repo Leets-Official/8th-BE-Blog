@@ -134,6 +134,7 @@ class CommentTest {
         // then
         Comment maskedParent = commentRepository.findById(parent.getId()).orElseThrow();
         assertThat(maskedParent.isDeleted()).isTrue();
+        assertThat(maskedParent.getContent()).isEqualTo("삭제된 댓글입니다.");
         assertThat(maskedParent.getChildren()).hasSize(1);
         assertThat(maskedParent.getChildren().get(0).getContent()).isEqualTo("남겨질 대댓글");
     }

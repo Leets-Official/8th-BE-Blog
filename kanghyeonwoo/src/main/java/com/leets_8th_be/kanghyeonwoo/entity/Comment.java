@@ -58,7 +58,7 @@ public class Comment extends BaseTimeEntity {
                 .build();
     }
 
-    public void assignPost(Post post) {
+    void assignPost(Post post) {
         this.post = post;
     }
 
@@ -68,6 +68,7 @@ public class Comment extends BaseTimeEntity {
 
     public void delete() {
         this.isDeleted = true;
+        this.content = "삭제된 댓글입니다.";
     }
 
     public void addChildComment(Comment child) {
@@ -75,6 +76,9 @@ public class Comment extends BaseTimeEntity {
         child.assignParent(this);
         if (this.post != null && child.getPost() == null) {
             child.assignPost(this.post);
+            if (!this.post.getComments().contains(child)) {
+                this.post.getComments().add(child);
+            }
         }
     }
 
