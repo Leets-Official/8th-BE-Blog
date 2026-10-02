@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "String Repeat API", description = "문자열 2개 반환 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
 public class StringController {
     private final StringService stringService;
     @Operation(summary = "문자열 2개 반환 API", description = "입력한 문자열을 2개 반환합니다.")
