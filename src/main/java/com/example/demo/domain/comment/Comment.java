@@ -16,11 +16,22 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @Table(name = "comment")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends BaseTimeEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Comment parent;
+
+    @OneToMany(mappedBy = "parent")
+    private List<Comment> replies = new ArrayList<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,15 +49,33 @@ public class Comment extends BaseTimeEntity {
     private String content;
 
     public Comment(Member member, Post post, String content) {
+        this(member, post, null, content);
+    }
+
+    public Comment(
+        Member member,
+        Post post,
+        Comment parent,
+        String content
+    ) {
         this.member = member;
         this.post = post;
+        this.parent = parent;
         this.content = content;
 
         member.addComment(this);
         post.addComment(this);
+        
+        if (parent != null) {
+            parent.addReply(this);
+        }
     }
 
     public void update(String content) {
         this.content = content;
+    }
+
+    public void addReply(Comment reply) {
+        this.replies.add(reply);
     }
 }
