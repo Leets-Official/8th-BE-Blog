@@ -19,37 +19,37 @@ classDiagram
         +LocalDateTime updatedAt
     }
     class User {
-        +Long id (PK, IDENTITY)
+        +Long id
         +String username
-        +String email (Unique)
+        +String email
     }
     class Post {
-        +Long id (PK, IDENTITY)
+        +Long id
         +String title
-        +String content (@Lob)
-        +User user (N:1, LAZY)
-        +List~Comment~ comments (1:N, Cascade.ALL)
+        +String content
+        +User user
+        +List~Comment~ comments
         +update(title, content)
         +addComment(comment)
     }
     class Comment {
-        +Long id (PK, IDENTITY)
-        +String content (@Lob)
+        +Long id
+        +String content
         +boolean isDeleted
-        +User user (N:1, LAZY)
-        +Post post (N:1, LAZY)
-        +Comment parent (N:1, LAZY)
-        +List~Comment~ children (1:N)
+        +User user
+        +Post post
+        +Comment parent
+        +List~Comment~ children
         +update(content)
-        +delete() "마스킹 처리"
+        +delete()
         +addChildComment(child)
     }
     class Report {
-        +Long id (PK, IDENTITY)
+        +Long id
         +String reason
-        +User reporter (N:1, LAZY)
-        +Post post (N:1, LAZY, Nullable)
-        +Comment comment (N:1, LAZY, Nullable)
+        +User reporter
+        +Post post
+        +Comment comment
         +ofPost(reporter, post, reason)
         +ofComment(reporter, comment, reason)
     }
@@ -59,27 +59,27 @@ classDiagram
     BaseTimeEntity <|-- Comment
     BaseTimeEntity <|-- Report
 
-    Post --> User : N:1 (LAZY, 단방향)
-    Comment --> User : N:1 (LAZY, 단방향)
-    Comment --> Post : N:1 (LAZY)
-    Post "1" *-- "many" Comment : 1:N (Cascade.ALL, orphanRemoval, 양방향)
-    Comment "1" o-- "many" Comment : parent / children (계층형 자기참조)
-    Report --> User : reporter (LAZY, 단방향)
-    Report --> Post : target post (LAZY, Nullable)
-    Report --> Comment : target comment (LAZY, Nullable)
+    Post --> User : ManyToOne (LAZY 단방향)
+    Comment --> User : ManyToOne (LAZY 단방향)
+    Comment --> Post : ManyToOne (LAZY)
+    Post "1" *-- "*" Comment : OneToMany (Cascade.ALL 양방향)
+    Comment "1" o-- "*" Comment : Self-Reference (parent/children)
+    Report --> User : reporter (LAZY)
+    Report --> Post : target_post (LAZY Nullable)
+    Report --> Comment : target_comment (LAZY Nullable)
 ```
 
 ### 2) 데이터베이스 테이블 ERD (외래키 제약조건 구조)
 
 ```mermaid
 erDiagram
-    USERS ||--o{ POSTS : "1:N (단방향)"
-    USERS ||--o{ COMMENTS : "1:N (단방향)"
-    POSTS ||--o{ COMMENTS : "1:N (양방향, Cascade)"
-    COMMENTS ||--o{ COMMENTS : "1:N (자기참조 parent_id)"
-    USERS ||--o{ REPORTS : "1:N (신고자)"
-    POSTS |o--o{ REPORTS : "1:N (대상글, Nullable)"
-    COMMENTS |o--o{ REPORTS : "1:N (대상댓글, Nullable)"
+    USERS ||--o{ POSTS : "writes"
+    USERS ||--o{ COMMENTS : "writes"
+    POSTS ||--o{ COMMENTS : "has"
+    COMMENTS ||--o{ COMMENTS : "replies"
+    USERS ||--o{ REPORTS : "reports"
+    POSTS |o--o{ REPORTS : "reported"
+    COMMENTS |o--o{ REPORTS : "reported"
 
     USERS {
         bigint id PK
@@ -110,8 +110,8 @@ erDiagram
         bigint id PK
         varchar reason
         bigint reporter_id FK
-        bigint post_id FK "Nullable"
-        bigint comment_id FK "Nullable"
+        bigint post_id FK
+        bigint comment_id FK
         timestamp created_at
         timestamp updated_at
     }
