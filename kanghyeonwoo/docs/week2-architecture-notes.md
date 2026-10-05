@@ -4,6 +4,121 @@
 
 ---
 
+## 📊 엔티티 및 테이블 매핑 관계도 (Entity & ERD Diagrams)
+
+> **💡 VS Code에서 바로 보는 법**: 이 파일을 VS Code에서 열고 단축키 **`Cmd + K V`** (나란히 미리보기) 또는 **`Cmd + Shift + V`** (전체 미리보기)를 누르면, 아래 다이어그램이 화살표가 연결된 그래픽으로 렌더링되어 한눈에 확인하실 수 있습니다.
+
+### 1) JPA 도메인 엔티티 클래스 다이어그램 (객체 참조 관계)
+
+```mermaid
+classDiagram
+    direction TB
+    class BaseTimeEntity {
+        <<abstract>>
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+    }
+    class User {
+        +Long id (PK, IDENTITY)
+        +String username
+        +String email (Unique)
+    }
+    class Post {
+        +Long id (PK, IDENTITY)
+        +String title
+        +String content (@Lob)
+        +User user (N:1, LAZY)
+        +List~Comment~ comments (1:N, Cascade.ALL)
+        +update(title, content)
+        +addComment(comment)
+    }
+    class Comment {
+        +Long id (PK, IDENTITY)
+        +String content (@Lob)
+        +boolean isDeleted
+        +User user (N:1, LAZY)
+        +Post post (N:1, LAZY)
+        +Comment parent (N:1, LAZY)
+        +List~Comment~ children (1:N)
+        +update(content)
+        +delete() "마스킹 처리"
+        +addChildComment(child)
+    }
+    class Report {
+        +Long id (PK, IDENTITY)
+        +String reason
+        +User reporter (N:1, LAZY)
+        +Post post (N:1, LAZY, Nullable)
+        +Comment comment (N:1, LAZY, Nullable)
+        +ofPost(reporter, post, reason)
+        +ofComment(reporter, comment, reason)
+    }
+
+    BaseTimeEntity <|-- User
+    BaseTimeEntity <|-- Post
+    BaseTimeEntity <|-- Comment
+    BaseTimeEntity <|-- Report
+
+    Post --> User : N:1 (LAZY, 단방향)
+    Comment --> User : N:1 (LAZY, 단방향)
+    Comment --> Post : N:1 (LAZY)
+    Post "1" *-- "many" Comment : 1:N (Cascade.ALL, orphanRemoval, 양방향)
+    Comment "1" o-- "many" Comment : parent / children (계층형 자기참조)
+    Report --> User : reporter (LAZY, 단방향)
+    Report --> Post : target post (LAZY, Nullable)
+    Report --> Comment : target comment (LAZY, Nullable)
+```
+
+### 2) 데이터베이스 테이블 ERD (외래키 제약조건 구조)
+
+```mermaid
+erDiagram
+    USERS ||--o{ POSTS : "1:N (단방향)"
+    USERS ||--o{ COMMENTS : "1:N (단방향)"
+    POSTS ||--o{ COMMENTS : "1:N (양방향, Cascade)"
+    COMMENTS ||--o{ COMMENTS : "1:N (자기참조 parent_id)"
+    USERS ||--o{ REPORTS : "1:N (신고자)"
+    POSTS |o--o{ REPORTS : "1:N (대상글, Nullable)"
+    COMMENTS |o--o{ REPORTS : "1:N (대상댓글, Nullable)"
+
+    USERS {
+        bigint id PK
+        varchar username
+        varchar email UK
+        timestamp created_at
+        timestamp updated_at
+    }
+    POSTS {
+        bigint id PK
+        varchar title
+        text content
+        bigint user_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+    COMMENTS {
+        bigint id PK
+        text content
+        boolean is_deleted
+        bigint user_id FK
+        bigint post_id FK
+        bigint parent_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+    REPORTS {
+        bigint id PK
+        varchar reason
+        bigint reporter_id FK
+        bigint post_id FK "Nullable"
+        bigint comment_id FK "Nullable"
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+---
+
 ## 🔑 Keyword (주요 개념 및 애노테이션 정리)
 
 ### 1. JPA 엔티티 및 스키마 매핑
