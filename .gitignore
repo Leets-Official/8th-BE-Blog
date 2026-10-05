@@ -1,27 +1,35 @@
-.DS_Store
-
 # IDE
 .idea/
 .vscode/
 *.iml
+*.ipr
+*.iws
 
 # Java/Gradle build outputs
 .gradle/
 build/
 out/
+*.class
 
 # Maven build outputs
 target/
 
 # Logs
 *.log
+*.hprof
+hs_err_pid*
+replay_pid*
 
 # Environment files
 .env
 .env.*
+!.env.example
+!.env.sample
 
 # OS generated files
+.DS_Store
 Thumbs.db
+Desktop.ini
 
 # Agent
 .claude/
