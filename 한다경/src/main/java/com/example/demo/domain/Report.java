@@ -35,8 +35,9 @@ public class Report {
     private String reason;
 
     @ColumnDefault("'PENDING'")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "PENDING";
+    private ReportStatus status = ReportStatus.PENDING;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
