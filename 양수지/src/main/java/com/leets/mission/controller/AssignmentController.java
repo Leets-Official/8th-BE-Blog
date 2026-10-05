@@ -1,0 +1,26 @@
+package com.leets.mission.controller;
+
+import com.leets.mission.dto.RepeatStringRequest;
+import com.leets.mission.dto.RepeatStringResponse;
+import com.leets.mission.service.AssignmentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class AssignmentController {
+    private final AssignmentService assignmentService;
+
+    @GetMapping("/health")
+    public String health(){
+        return "ok";
+    }
+
+    @PostMapping("/string/repeat")
+    public RepeatStringResponse repeat(@RequestBody RepeatStringRequest request){
+        return assignmentService.repeat(request.value());
+    }
+}
