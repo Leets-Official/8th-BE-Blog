@@ -1,4 +1,4 @@
-package com.example.week1.repository;
+package com.example.demo.repository;
 
 public class AssignmentRepository {
 }

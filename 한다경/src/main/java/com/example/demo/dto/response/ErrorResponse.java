@@ -1,4 +1,4 @@
-package com.example.week1.dto.response;
+package com.example.demo.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

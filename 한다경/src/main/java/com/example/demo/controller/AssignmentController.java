@@ -1,8 +1,8 @@
-package com.example.week1.controller;
+package com.example.demo.controller;
 
-import com.example.week1.dto.request.RepeatStringRequest;
-import com.example.week1.dto.response.RepeatStringResponse;
-import com.example.week1.service.AssignmentService;
+import com.example.demo.dto.request.RepeatStringRequest;
+import com.example.demo.dto.response.RepeatStringResponse;
+import com.example.demo.service.AssignmentService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
