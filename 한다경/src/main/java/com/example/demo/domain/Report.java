@@ -4,20 +4,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "report")
 @Getter
 @NoArgsConstructor
-public class Report {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Report extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
@@ -39,11 +31,25 @@ public class Report {
     @Column(nullable = false, length = 20)
     private ReportStatus status = ReportStatus.PENDING;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @PrePersist
+    @PreUpdate
+    private void validateReportTarget() {
+        if (getReportTargetCount() != 1) {
+            throw new IllegalArgumentException("신고 대상은 게시글 또는 댓글 중 하나만 존재해야 합니다.");
+        }
+    }
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private int getReportTargetCount() {
+        int targetCount = 0;
+
+        if (post != null) {
+            targetCount++;
+        }
+
+        if (comment != null) {
+            targetCount++;
+        }
+
+        return targetCount;
+    }
 }

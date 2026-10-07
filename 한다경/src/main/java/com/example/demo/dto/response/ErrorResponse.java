@@ -1,9 +1,13 @@
 package com.example.demo.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
+@AllArgsConstructor
 public class ErrorResponse {
 
     private final String message;
@@ -15,35 +19,11 @@ public class ErrorResponse {
         this(message, List.of());
     }
 
-    public ErrorResponse(String message, List<ValidationError> errors) {
-        this.message = message;
-        this.errors = errors;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public List<ValidationError> getErrors() {
-        return errors;
-    }
-
+    @Getter
+    @AllArgsConstructor
     public static class ValidationError {
 
         private final String field;
         private final String message;
-
-        public ValidationError(String field, String message) {
-            this.field = field;
-            this.message = message;
-        }
-
-        public String getField() {
-            return field;
-        }
-
-        public String getMessage() {
-            return message;
-        }
     }
 }
