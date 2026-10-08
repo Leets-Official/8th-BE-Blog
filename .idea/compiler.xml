@@ -11,12 +11,9 @@
         <module name="8th-BE.main" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="21" />
   </component>
   <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="8th-BE" options="-parameters" />
-      <module name="8th-BE.main" options="-parameters" />
-      <module name="8th-BE.test" options="-parameters" />
-    </option>
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
   </component>
 </project>
