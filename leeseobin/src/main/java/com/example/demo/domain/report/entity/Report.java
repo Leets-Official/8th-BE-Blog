@@ -7,7 +7,6 @@ import com.example.demo.global.common.entity.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -25,7 +24,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
@@ -40,7 +38,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     name = "CK_REPORT_ONE_TARGET",
     constraints = "(post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL)"
 )
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Report extends BaseTimeEntity {
 
