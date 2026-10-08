@@ -14,6 +14,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "comment")
 @Getter
@@ -35,6 +37,8 @@ public class Comment extends BaseTimeEntity {
 
     @Column(nullable = false, length = 300)
     private String content;
+
+    private LocalDateTime deletedAt;
 
     @Builder
     private Comment(Post post, Member member, String content) {
