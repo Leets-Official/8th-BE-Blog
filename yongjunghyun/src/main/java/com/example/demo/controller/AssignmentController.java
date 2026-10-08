@@ -18,6 +18,6 @@ public class AssignmentController {
 
     @PostMapping("/string/repeat")
     public RepeatResponse repeatString(@RequestBody RepeatRequest request) {
-        return assignmentService.repeatString(request);
+        return new RepeatResponse(assignmentService.repeatMessage(request));
     }
 }
