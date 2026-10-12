@@ -1,0 +1,28 @@
+package com.leets.blog.controller;
+
+import com.leets.blog.dto.post.*;
+import com.leets.blog.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URI;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@Profile("mysql")
+@RequestMapping("/post")
+@RequiredArgsConstructor
+@Tag(name = "게시글", description = "userId는 인증 대신 사용하는 과제용 사용자 식별값입니다.")
+public class PostController {
+    private final PostService postService;
+
+    @PostMapping
+    @Operation(summary = "게시글 작성", description = "기존 사용자의 userId를 입력합니다. isPrivate 생략 시 공개 글로 작성합니다.")
+    public ResponseEntity<PostResponse> create(@RequestBody CreatePostRequest request) {
+        PostResponse response = postService.create(request);
+        return ResponseEntity.created(URI.create("/post/" + response.id())).body(response);
+    }
+}
