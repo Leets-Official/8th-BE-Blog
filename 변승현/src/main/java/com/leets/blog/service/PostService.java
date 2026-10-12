@@ -26,6 +26,15 @@ public class PostService {
                 .map(PostResponse::from).toList());
     }
 
+    public PostResponse detail(Long postId, Long userId) {
+        if (userId != null) validateUserId(userId);
+        Post post = findActivePost(postId);
+        if (post.isPrivate() && !Objects.equals(post.getUser().getId(), userId)) {
+            throw new PostApiException(403, "POST_ACCESS_DENIED", "해당 게시글에 접근할 권한이 없습니다.");
+        }
+        return PostResponse.from(post);
+    }
+
     @Transactional
     public PostResponse create(CreatePostRequest request) {
         if (request.title() == null || request.title().isBlank()
@@ -41,6 +50,18 @@ public class PostService {
         Post post = new Post(user, request.title(), request.content(),
                 Boolean.TRUE.equals(request.isPrivate()));
         return PostResponse.from(postRepository.saveAndFlush(post));
+    }
+
+    private Post findActivePost(Long postId) {
+        if (postId == null || postId <= 0) {
+            throw new PostApiException(400, "INVALID_POST_ID", "올바르지 않은 게시글 ID입니다.");
+        }
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostApiException(404, "POST_NOT_FOUND", "존재하지 않는 게시글입니다."));
+        if (post.getDeletedAt() != null) {
+            throw new PostApiException(404, "POST_DELETED", "삭제된 게시글입니다.");
+        }
+        return post;
     }
 
     private void validateUserId(Long userId) {

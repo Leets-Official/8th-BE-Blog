@@ -26,6 +26,13 @@ public class PostController {
         return postService.list(userId);
     }
 
+    @GetMapping("/{postId}")
+    @Operation(summary = "게시글 상세 조회", description = "비공개 글은 작성자의 userId가 필요합니다.")
+    public PostResponse detail(@PathVariable Long postId,
+                               @RequestParam(required = false) Long userId) {
+        return postService.detail(postId, userId);
+    }
+
     @PostMapping
     @Operation(summary = "게시글 작성", description = "기존 사용자의 userId를 입력합니다. isPrivate 생략 시 공개 글로 작성합니다.")
     public ResponseEntity<PostResponse> create(@RequestBody CreatePostRequest request) {
