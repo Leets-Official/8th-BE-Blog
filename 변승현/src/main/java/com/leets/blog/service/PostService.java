@@ -52,6 +52,19 @@ public class PostService {
         return PostResponse.from(postRepository.saveAndFlush(post));
     }
 
+    @Transactional
+    public UpdatePostResponse update(Long postId, UpdatePostRequest request) {
+        if (request.title() == null || request.title().isBlank()) {
+            throw new PostApiException(400, "TITLE_REQUIRED", "게시글 제목은 필수 입력 항목입니다.");
+        }
+        validateUserId(request.userId());
+        Post post = findActivePost(postId);
+        checkOwner(post, request.userId(), "수정");
+        post.update(request.title(), request.content());
+        postRepository.flush();
+        return new UpdatePostResponse(post.getId(), post.getTitle(), post.getContent());
+    }
+
     private Post findActivePost(Long postId) {
         if (postId == null || postId <= 0) {
             throw new PostApiException(400, "INVALID_POST_ID", "올바르지 않은 게시글 ID입니다.");
@@ -62,6 +75,12 @@ public class PostService {
             throw new PostApiException(404, "POST_DELETED", "삭제된 게시글입니다.");
         }
         return post;
+    }
+
+    private void checkOwner(Post post, Long userId, String action) {
+        if (!Objects.equals(post.getUser().getId(), userId)) {
+            throw new PostApiException(403, "POST_ACCESS_DENIED", "본인이 작성한 게시글만 " + action + "할 수 있습니다.");
+        }
     }
 
     private void validateUserId(Long userId) {

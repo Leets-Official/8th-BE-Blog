@@ -39,4 +39,10 @@ public class PostController {
         PostResponse response = postService.create(request);
         return ResponseEntity.created(URI.create("/post/" + response.id())).body(response);
     }
+
+    @PutMapping("/{postId}")
+    @Operation(summary = "게시글 수정", description = "작성자만 수정할 수 있습니다. 공개 여부는 유지하며 content 생략 시 기존 내용을 유지합니다.")
+    public UpdatePostResponse update(@PathVariable Long postId, @RequestBody UpdatePostRequest request) {
+        return postService.update(postId, request);
+    }
 }
