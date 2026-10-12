@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,5 +45,14 @@ public class PostController {
     @GetMapping("/{postId}")
     public ApiResponse<PostResponseDTO.DetailDTO> getPost(@PathVariable Long postId) {
         return ApiResponse.onSuccess(postService.getPost(postId));
+    }
+
+    // 게시글 전체 수정
+    @PutMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DetailDTO> updatePost(
+            @PathVariable Long postId,  //url에
+            @RequestBody @Valid PostRequestDTO.UpdateDTO request //본문에
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.updatePost(postId, request));
     }
 }

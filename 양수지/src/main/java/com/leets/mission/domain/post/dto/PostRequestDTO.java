@@ -20,4 +20,18 @@ public class PostRequestDTO {
             String content
     ) {
     }
+
+    // 게시글 전체 수정 요청 (PUT: 제목과 본문 모두 필수)
+    public record UpdateDTO(
+            @NotNull(message = "사용자 ID를 입력해주세요.")
+            Long userId,
+
+            @NotBlank(message = "제목을 입력해주세요.")
+            @Size(max = 100, message = "제목은 100자 이하로 입력해주세요.")
+            String title,
+
+            @NotBlank(message = "본문을 입력해주세요.")
+            String content
+    ) {
+    }
 }

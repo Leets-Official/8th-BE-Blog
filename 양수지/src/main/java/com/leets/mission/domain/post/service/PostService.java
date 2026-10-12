@@ -48,6 +48,22 @@ public class PostService {
         return PostConverter.toDetailDTO(findPost(postId));
     }
 
+    // 게시글 전체 수정 (제목과 본문을 한번에 모두교체)
+    @Transactional
+    public PostResponseDTO.DetailDTO updatePost(Long postId, PostRequestDTO.UpdateDTO request) {
+        Post post = findPost(postId);
+        //없으면 404
+        if (!post.isWrittenBy(request.userId())) {
+            //작성자 아니면 403
+            throw new GeneralException(ErrorStatus.POST_403_1);
+        }
+        post.update(request.title(), request.content()); //엔티티에게 수정 시킴
+
+
+        postRepository.flush();  //버그 수정
+        return PostConverter.toDetailDTO(post);
+    }
+
     private Post findPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_404_1));
