@@ -20,6 +20,12 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
+    public PostListResponse list(Long userId) {
+        if (userId != null) validateUserId(userId);
+        return new PostListResponse(postRepository.findVisiblePosts(userId).stream()
+                .map(PostResponse::from).toList());
+    }
+
     @Transactional
     public PostResponse create(CreatePostRequest request) {
         if (request.title() == null || request.title().isBlank()
