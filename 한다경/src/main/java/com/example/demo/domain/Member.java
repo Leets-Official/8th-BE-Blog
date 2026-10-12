@@ -16,10 +16,6 @@ public class Member extends SoftDeletableEntity {
     @Column(nullable = false, length = 50)
     private String name;
 
-    public Member(String name) {
-        this.name = name;
-    }
-
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();
 
