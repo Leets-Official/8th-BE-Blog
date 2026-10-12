@@ -38,9 +38,14 @@ public class Post extends BaseEntity {
     private boolean isPrivate = false;
 
     public Post(User user, String title, String content) {
+        this(user, title, content, false);
+    }
+
+    public Post(User user, String title, String content, boolean isPrivate) {
         this.user = Objects.requireNonNull(user, "작성자는 필수입니다.");
         this.title = Objects.requireNonNull(title, "제목은 필수입니다.");
         this.content = Objects.requireNonNull(content, "내용은 필수입니다.");
+        this.isPrivate = isPrivate;
     }
 
     public void changeVisibility(boolean isPrivate) {
