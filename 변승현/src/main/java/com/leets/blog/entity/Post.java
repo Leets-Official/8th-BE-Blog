@@ -48,6 +48,13 @@ public class Post extends BaseEntity {
         this.isPrivate = isPrivate;
     }
 
+    public void update(String title, String content) {
+        this.title = title;
+        if (content != null) {
+            this.content = content;
+        }
+    }
+
     public void changeVisibility(boolean isPrivate) {
         this.isPrivate = isPrivate;
     }
