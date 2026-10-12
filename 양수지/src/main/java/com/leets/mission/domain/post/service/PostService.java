@@ -64,6 +64,22 @@ public class PostService {
         return PostConverter.toDetailDTO(post);
     }
 
+    // 게시글 부분 수정 (보낸 필드만 변경)
+    @Transactional
+    public PostResponseDTO.DetailDTO patchPost(Long postId, PostRequestDTO.PatchDTO request) {
+        if (request.title() == null && request.content() == null) {
+            throw new GeneralException(ErrorStatus.POST_400_1);
+        }
+        Post post = findPost(postId);
+        if (!post.isWrittenBy(request.userId())) {
+            throw new GeneralException(ErrorStatus.POST_403_1);
+        }
+        post.patch(request.title(), request.content());
+        // 변경 내용을 DB에 즉시 반영해 응답에 갱신된 updatedAt이 담기도록 한다
+        postRepository.flush();
+        return PostConverter.toDetailDTO(post);
+    }
+
     private Post findPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_404_1));

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,5 +55,14 @@ public class PostController {
             @RequestBody @Valid PostRequestDTO.UpdateDTO request //본문에
     ) {
         return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.updatePost(postId, request));
+    }
+
+    // 게시글 부분 수정
+    @PatchMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DetailDTO> patchPost(
+            @PathVariable Long postId,
+            @RequestBody @Valid PostRequestDTO.PatchDTO request
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.patchPost(postId, request));
     }
 }
