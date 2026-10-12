@@ -21,7 +21,7 @@ public class Post extends SoftDeletableEntity {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ColumnDefault("false")
@@ -37,4 +37,20 @@ public class Post extends SoftDeletableEntity {
 
     @OneToMany(mappedBy = "post")
     private List<Report> reports = new ArrayList<>();
+
+    public Post(String title, String content, Member member, boolean isPrivate) {
+        this.title = title;
+        this.content = content;
+        this.member = member;
+        this.isPrivate = isPrivate;
+    }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+    public boolean isOwnedBy(Long memberId) {
+        return member == null || !member.getId().equals(memberId);
+    }
 }
