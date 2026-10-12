@@ -4,6 +4,7 @@ import com.leets.mission.domain.post.dto.PostRequestDTO;
 import com.leets.mission.domain.post.dto.PostResponseDTO;
 import com.leets.mission.domain.post.entity.Post;
 import com.leets.mission.domain.user.entity.User;
+import org.springframework.data.domain.Page;
 
 // 게시글 Entity ↔ DTO 변환
 public class PostConverter {
@@ -29,6 +30,30 @@ public class PostConverter {
                 .writer(post.getUser().getNickname())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
+                .build();
+    }
+
+    // Post 엔티티 → 목록 항목 DTO
+    public static PostResponseDTO.PreviewDTO toPreviewDTO(Post post) {
+        return PostResponseDTO.PreviewDTO.builder()
+                .postId(post.getId())
+                .title(post.getTitle())
+                .writer(post.getUser().getNickname())
+                .createdAt(post.getCreatedAt())
+                .build();
+    }
+
+    // 게시글 페이지 → 목록 응답 DTO
+    public static PostResponseDTO.PreviewListDTO toPreviewListDTO(Page<Post> postPage) {
+        return PostResponseDTO.PreviewListDTO.builder()
+                .posts(postPage.getContent().stream()
+                        .map(PostConverter::toPreviewDTO)
+                        .toList())
+                .page(postPage.getNumber())
+                .size(postPage.getSize())
+                .totalElements(postPage.getTotalElements())
+                .totalPages(postPage.getTotalPages())
+                .hasNext(postPage.hasNext())
                 .build();
     }
 }

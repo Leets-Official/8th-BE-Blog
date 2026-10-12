@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +29,15 @@ public class PostController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<PostResponseDTO.DetailDTO> createPost(@RequestBody @Valid PostRequestDTO.CreateDTO request) {
         return ApiResponse.of(SuccessStatus.POST_CREATED, postService.createPost(request));
+    }
+
+    // 게시글 목록 조회
+    @GetMapping
+    public ApiResponse<PostResponseDTO.PreviewListDTO> getPostList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.onSuccess(postService.getPostList(page, size));
     }
 
     // 게시글 단일 조회
