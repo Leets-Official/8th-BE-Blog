@@ -80,6 +80,17 @@ public class PostService {
         return PostConverter.toDetailDTO(post);
     }
 
+    // 게시글 삭제
+    @Transactional
+    public PostResponseDTO.DeleteDTO deletePost(Long postId, Long userId) {
+        Post post = findPost(postId); //404
+        if (!post.isWrittenBy(userId)) {
+            throw new GeneralException(ErrorStatus.POST_403_2);
+        }
+        postRepository.delete(post);
+        return PostConverter.toDeleteDTO(postId);
+    }
+
     private Post findPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_404_1));

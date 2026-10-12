@@ -56,4 +56,11 @@ public class PostConverter {
                 .hasNext(postPage.hasNext())
                 .build();
     }
+
+    // 삭제된 게시글 ID → 삭제 응답 DTO
+    public static PostResponseDTO.DeleteDTO toDeleteDTO(Long postId) {
+        return PostResponseDTO.DeleteDTO.builder()
+                .postId(postId)
+                .build();
+    }
 }

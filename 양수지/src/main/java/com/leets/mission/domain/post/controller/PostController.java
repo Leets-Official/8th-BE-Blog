@@ -8,6 +8,7 @@ import com.leets.mission.global.apiPayload.code.SuccessStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,5 +65,14 @@ public class PostController {
             @RequestBody @Valid PostRequestDTO.PatchDTO request
     ) {
         return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.patchPost(postId, request));
+    }
+
+    // 게시글 삭제 (userId -> 쿼리 파라미터로)
+    @DeleteMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DeleteDTO> deletePost(
+            @PathVariable Long postId,
+            @RequestParam Long userId
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_DELETED, postService.deletePost(postId, userId));
     }
 }

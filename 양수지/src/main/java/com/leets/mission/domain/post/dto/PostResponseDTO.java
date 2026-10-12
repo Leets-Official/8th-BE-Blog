@@ -41,4 +41,11 @@ public class PostResponseDTO {
             boolean hasNext
     ) {
     }
+
+    // 게시글 삭제 결과
+    @Builder
+    public record DeleteDTO(
+            Long postId
+    ) {
+    }
 }
