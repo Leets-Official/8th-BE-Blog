@@ -45,4 +45,11 @@ public class PostController {
     public UpdatePostResponse update(@PathVariable Long postId, @RequestBody UpdatePostRequest request) {
         return postService.update(postId, request);
     }
+
+    @DeleteMapping("/{postId}")
+    @Operation(summary = "게시글 삭제", description = "요청 본문의 userId로 작성자를 확인하고 삭제 시각을 기록합니다.")
+    public ResponseEntity<Void> delete(@PathVariable Long postId, @RequestBody DeletePostRequest request) {
+        postService.delete(postId, request.userId());
+        return ResponseEntity.noContent().build();
+    }
 }

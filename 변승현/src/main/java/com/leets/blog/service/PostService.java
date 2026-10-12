@@ -65,6 +65,14 @@ public class PostService {
         return new UpdatePostResponse(post.getId(), post.getTitle(), post.getContent());
     }
 
+    @Transactional
+    public void delete(Long postId, Long userId) {
+        validateUserId(userId);
+        Post post = findActivePost(postId);
+        checkOwner(post, userId, "삭제");
+        post.markDeleted();
+    }
+
     private Post findActivePost(Long postId) {
         if (postId == null || postId <= 0) {
             throw new PostApiException(400, "INVALID_POST_ID", "올바르지 않은 게시글 ID입니다.");
