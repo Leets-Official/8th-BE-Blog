@@ -22,14 +22,6 @@ public class ErrorResponse {
         this(status, code, message, List.of());
     }
 
-    public ErrorResponse(String message, List<ValidationError> errors) {
-        this(null, null, message, errors);
-    }
-
-    public ErrorResponse(String message) {
-        this(message, List.of());
-    }
-
     @Getter
     @AllArgsConstructor
     public static class ValidationError {
