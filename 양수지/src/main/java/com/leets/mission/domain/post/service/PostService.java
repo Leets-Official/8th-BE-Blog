@@ -29,6 +29,16 @@ public class PostService {
         return PostConverter.toDetailDTO(post);
     }
 
+    // 게시글 단일 조회
+    public PostResponseDTO.DetailDTO getPost(Long postId) {
+        return PostConverter.toDetailDTO(findPost(postId));
+    }
+
+    private Post findPost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_404_1));
+    }
+
     private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_404_1));
