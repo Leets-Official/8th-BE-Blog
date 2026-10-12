@@ -25,7 +25,7 @@ public class Report extends BaseEntity {
     @JoinColumn(name = "comment_id")
     private Comment comment;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String reason;
 
     @ColumnDefault("'PENDING'")
