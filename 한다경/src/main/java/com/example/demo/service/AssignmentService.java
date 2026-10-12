@@ -1,6 +1,6 @@
-package com.example.week1.service;
+package com.example.demo.service;
 
-import com.example.week1.dto.response.RepeatStringResponse;
+import com.example.demo.dto.response.RepeatStringResponse;
 import org.springframework.stereotype.Service;
 
 @Service

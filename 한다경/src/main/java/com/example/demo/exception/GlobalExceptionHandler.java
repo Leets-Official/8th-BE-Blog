@@ -1,6 +1,6 @@
-package com.example.week1.exception;
+package com.example.demo.exception;
 
-import com.example.week1.dto.response.ErrorResponse;
+import com.example.demo.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;

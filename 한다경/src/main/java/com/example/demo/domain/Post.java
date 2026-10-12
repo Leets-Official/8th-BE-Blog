@@ -1,0 +1,40 @@
+package com.example.demo.domain;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "post")
+@Getter
+@NoArgsConstructor
+public class Post extends SoftDeletableEntity {
+
+    @Column(nullable = false, length = 50)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Member member;
+
+    @ColumnDefault("false")
+    @Column(name = "is_private", nullable = false)
+    private boolean isPrivate = false;
+
+    @ColumnDefault("false")
+    @Column(name = "is_hidden", nullable = false)
+    private boolean isHidden = false;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post")
+    private List<Report> reports = new ArrayList<>();
+}
