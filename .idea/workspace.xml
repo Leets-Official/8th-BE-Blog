@@ -5,16 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="30984d7a-1148-4180-9629-2a64c43e5a34" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/comment/entity/Comment.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/member/entity/Member.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/entity/Post.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/global/config/JpaAuditingConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/global/entity/BaseTimeEntity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/Application.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/member/error/MemberErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/member/repository/MemberRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/controller/PostController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/dto/PostCreateRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/dto/PostCreateResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/dto/PostListResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/dto/PostResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/dto/PostUpdateRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/dto/PostUpdateResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/error/PostErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/repository/PostRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/service/PostService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/global/code/ErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/global/exception/CustomException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/global/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/resources/application-local.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/namyeongjun/src/main/resources/data.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/namyeongjun/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/namyeongjun/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/entity/Post.java" beforeDir="false" afterPath="$PROJECT_DIR$/namyeongjun/src/main/java/org/example/_thbe/domain/post/entity/Post.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/namyeongjun/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/namyeongjun/src/main/resources/application.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,6 +67,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Class" />
+        <option value="Exception" />
+        <option value="Interface" />
+        <option value="Enum" />
       </list>
     </option>
   </component>
@@ -87,8 +102,11 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.Application.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "나명준/2주차",
-    "kotlin-language-version-configured": "true"
+    "git-widget-placeholder": "나명준/3주차",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.jshint": "",
+    "nodejs_package_manager_path": "npm"
   }
 }]]></component>
   <component name="RunManager">
