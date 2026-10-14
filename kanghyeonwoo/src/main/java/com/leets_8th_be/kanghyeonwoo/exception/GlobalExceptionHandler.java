@@ -23,7 +23,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        ApiResponse<Void> response = ApiResponse.fail(HttpStatus.BAD_REQUEST, "요청 본문(Body)이 누락되었거나 JSON 형식이 올바르지 않습니다.");
+        ApiResponse<Void> response = ApiResponse.fail(HttpStatus.BAD_REQUEST,
+                "요청 본문(Body)이 누락되었거나 JSON 형식이 올바르지 않습니다.");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
