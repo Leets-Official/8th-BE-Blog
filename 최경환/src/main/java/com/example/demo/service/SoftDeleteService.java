@@ -7,8 +7,10 @@ import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class SoftDeleteService {
         this.commentRepository = commentRepository;
     }
 
+    // 사용자와 사용자 소유 게시글·댓글을 함께 Soft Delete
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
@@ -53,9 +56,17 @@ public class SoftDeleteService {
         userRepository.save(user);
     }
 
-    public void deletePost(Long postId) {
+    // 작성자 권한을 확인하고 게시글과 댓글을 Soft Delete
+    public void deletePost(Long postId, Long requesterId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Post not found: " + postId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글이 존재하지 않거나 삭제되었습니다."
+                ));
+
+        if (!post.getUser().getId().equals(requesterId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 작성자만 삭제할 수 있습니다.");
+        }
 
         List<Comment> comments = commentRepository.findAllByPost(post);
         for (Comment comment : comments) {

@@ -1,6 +1,8 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "post")
 @SQLRestriction("deleted_at IS NULL")
+@Getter
 public class Post extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,5 +48,4 @@ public class Post extends BaseTimeEntity {
         this.content = content;
         this.isPrivate = isPrivate;
     }
-
 }
