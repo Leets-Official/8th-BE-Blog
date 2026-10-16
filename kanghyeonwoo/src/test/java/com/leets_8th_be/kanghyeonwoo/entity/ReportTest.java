@@ -34,7 +34,7 @@ class ReportTest {
     private TestEntityManager em;
 
     @Test
-    @DisplayName("게시글 신고(Report.ofPost)가 정상적으로 생성되고 대상 Post와 Reporter가 매핑된다.")
+    @DisplayName("게시글 신고(Report.ofPost) 시 논리 참조(targetType=POST, targetId)와 제목/본문 스냅샷이 정상 보존된다.")
     void reportPostSuccess() {
         // given
         User reporter = userRepository.save(User.builder().username("reporter").email("reporter@example.com").build());
@@ -51,13 +51,15 @@ class ReportTest {
         Report foundReport = reportRepository.findById(savedReport.getId()).orElseThrow();
         assertThat(foundReport.getReason()).isEqualTo("스팸 및 광고 게시글입니다.");
         assertThat(foundReport.getReporter().getId()).isEqualTo(reporter.getId());
-        assertThat(foundReport.getPost().getId()).isEqualTo(post.getId());
-        assertThat(foundReport.getComment()).isNull();
+        assertThat(foundReport.getTargetType()).isEqualTo(ReportTargetType.POST);
+        assertThat(foundReport.getTargetId()).isEqualTo(post.getId());
+        assertThat(foundReport.getTargetTitleSnapshot()).isEqualTo("부적절한 글");
+        assertThat(foundReport.getTargetContentSnapshot()).isEqualTo("광고 스팸");
         assertThat(foundReport.getCreatedAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("댓글 신고(Report.ofComment)가 정상적으로 생성되고 대상 Comment와 Reporter가 매핑된다.")
+    @DisplayName("댓글 신고(Report.ofComment) 시 논리 참조(targetType=COMMENT, targetId)와 댓글 본문 스냅샷이 정상 보존된다.")
     void reportCommentSuccess() {
         // given
         User reporter = userRepository.save(User.builder().username("reporter2").email("reporter2@example.com").build());
@@ -75,7 +77,9 @@ class ReportTest {
         Report foundReport = reportRepository.findById(savedReport.getId()).orElseThrow();
         assertThat(foundReport.getReason()).isEqualTo("부적절한 언어 사용");
         assertThat(foundReport.getReporter().getId()).isEqualTo(reporter.getId());
-        assertThat(foundReport.getComment().getId()).isEqualTo(comment.getId());
-        assertThat(foundReport.getPost()).isNull();
+        assertThat(foundReport.getTargetType()).isEqualTo(ReportTargetType.COMMENT);
+        assertThat(foundReport.getTargetId()).isEqualTo(comment.getId());
+        assertThat(foundReport.getTargetTitleSnapshot()).isNull();
+        assertThat(foundReport.getTargetContentSnapshot()).isEqualTo("욕설 댓글");
     }
 }

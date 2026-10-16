@@ -23,26 +23,38 @@ public class Report extends BaseTimeEntity {
     @JoinColumn(name = "reporter_id", nullable = false)
     private User reporter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_type", nullable = false, length = 20)
+    private ReportTargetType targetType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
+    @Column(name = "target_id", nullable = false)
+    private Long targetId;
+
+    @Column(name = "target_title_snapshot", length = 150)
+    private String targetTitleSnapshot;
+
+    @Lob
+    @Column(name = "target_content_snapshot")
+    private String targetContentSnapshot;
 
     @Builder
-    public Report(String reason, User reporter, Post post, Comment comment) {
+    public Report(String reason, User reporter, ReportTargetType targetType, Long targetId,
+                  String targetTitleSnapshot, String targetContentSnapshot) {
         this.reason = reason;
         this.reporter = reporter;
-        this.post = post;
-        this.comment = comment;
+        this.targetType = targetType;
+        this.targetId = targetId;
+        this.targetTitleSnapshot = targetTitleSnapshot;
+        this.targetContentSnapshot = targetContentSnapshot;
     }
 
     public static Report ofPost(User reporter, Post post, String reason) {
         return Report.builder()
                 .reporter(reporter)
-                .post(post)
+                .targetType(ReportTargetType.POST)
+                .targetId(post.getId())
+                .targetTitleSnapshot(post.getTitle())
+                .targetContentSnapshot(post.getContent())
                 .reason(reason)
                 .build();
     }
@@ -50,7 +62,10 @@ public class Report extends BaseTimeEntity {
     public static Report ofComment(User reporter, Comment comment, String reason) {
         return Report.builder()
                 .reporter(reporter)
-                .comment(comment)
+                .targetType(ReportTargetType.COMMENT)
+                .targetId(comment.getId())
+                .targetTitleSnapshot(null)
+                .targetContentSnapshot(comment.getContent())
                 .reason(reason)
                 .build();
     }
