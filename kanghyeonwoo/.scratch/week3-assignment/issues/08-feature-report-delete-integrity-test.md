@@ -5,8 +5,8 @@
 
 **Blocked by:** 07: [Refactor] Report 엔티티의 Post/Comment 물리 FK를 논리적 targetId/targetType 참조로 전환
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] PostControllerTest에 신고가 접수된 게시글 삭제 시 200 OK 성공 및 FK 에러 미발생 검증 테스트 추가
-- [ ] 삭제 후 ReportRepository를 통해 신고 내역(targetType=POST, targetId, 스냅샷)이 DB에 온전히 남아있는지 검증
-- [ ] 신고가 접수된 댓글을 포함한 게시글 삭제 시 댓글 및 게시글은 삭제되고 댓글 신고 내역은 보존되는지 검증
+- [x] PostControllerTest에 신고가 접수된 게시글 삭제 시 200 OK 성공 및 FK 에러 미발생 검증 테스트 추가
+- [x] 삭제 후 ReportRepository를 통해 신고 내역(targetType=POST, targetId, 스냅샷)이 DB에 온전히 남아있는지 검증
+- [x] 신고가 접수된 댓글을 포함한 게시글 삭제 시 댓글 및 게시글은 삭제되고 댓글 신고 내역은 보존되는지 검증

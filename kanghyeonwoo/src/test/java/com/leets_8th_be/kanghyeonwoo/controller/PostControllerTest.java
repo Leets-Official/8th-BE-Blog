@@ -38,6 +38,12 @@ class PostControllerTest {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private com.leets_8th_be.kanghyeonwoo.repository.CommentRepository commentRepository;
+
+    @Autowired
+    private com.leets_8th_be.kanghyeonwoo.repository.ReportRepository reportRepository;
+
     private User testUser;
 
     @BeforeEach
@@ -281,5 +287,67 @@ class PostControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST4001"));
+    }
+
+    @Test
+    @DisplayName("신고(Report)가 달린 게시글을 삭제해도 외래키 에러 없이 정상 삭제되고 신고 이력은 보존된다.")
+    void deletePostWithReportIntegritySuccess() throws Exception {
+        // given: 게시글 등록 및 해당 게시글에 대한 신고 접수
+        com.leets_8th_be.kanghyeonwoo.entity.Post post = postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("신고 대상 글", "유해 콘텐츠", testUser)
+        );
+
+        User reporter = userRepository.save(User.builder().username("신고자").email("reporter@test.com").build());
+        com.leets_8th_be.kanghyeonwoo.entity.Report report = reportRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Report.ofPost(reporter, post, "부적절한 게시글 신고")
+        );
+
+        // when: 게시글 삭제 요청
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+                        .param("authorId", String.valueOf(testUser.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.data.deletedPostId").value(post.getId()));
+
+        // then: 게시글은 DB에서 삭제되었지만, 신고 내역은 스냅샷과 함께 안전하게 보존됨
+        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId())).isEmpty();
+
+        java.util.List<com.leets_8th_be.kanghyeonwoo.entity.Report> reports =
+                reportRepository.findByTargetTypeAndTargetId(com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType.POST, post.getId());
+        org.assertj.core.api.Assertions.assertThat(reports).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(reports.get(0).getTargetTitleSnapshot()).isEqualTo("신고 대상 글");
+        org.assertj.core.api.Assertions.assertThat(reports.get(0).getTargetContentSnapshot()).isEqualTo("유해 콘텐츠");
+        org.assertj.core.api.Assertions.assertThat(reports.get(0).getReason()).isEqualTo("부적절한 게시글 신고");
+    }
+
+    @Test
+    @DisplayName("신고가 달린 댓글이 포함된 게시글 삭제 시 게시글과 댓글은 삭제되고 댓글 신고 내역은 보존된다.")
+    void deletePostWithCommentReportIntegritySuccess() throws Exception {
+        com.leets_8th_be.kanghyeonwoo.entity.Post post = com.leets_8th_be.kanghyeonwoo.entity.Post.create("게시글", "본문", testUser);
+        com.leets_8th_be.kanghyeonwoo.entity.Comment comment = com.leets_8th_be.kanghyeonwoo.entity.Comment.create("신고 대상 욕설 댓글", testUser, post);
+        post.addComment(comment);
+        post = postRepository.save(post);
+        Long commentId = post.getComments().get(0).getId();
+
+        User reporter = userRepository.save(User.builder().username("신고자2").email("reporter2@test.com").build());
+        com.leets_8th_be.kanghyeonwoo.entity.Report report = reportRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Report.ofComment(reporter, post.getComments().get(0), "욕설 신고")
+        );
+
+        // when: 게시글 삭제 요청 (연쇄적으로 댓글까지 삭제됨)
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+                        .param("authorId", String.valueOf(testUser.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        // then: 게시글과 댓글은 삭제되었지만, 댓글 신고 이력은 보존됨
+        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId())).isEmpty();
+        org.assertj.core.api.Assertions.assertThat(commentRepository.findById(commentId)).isEmpty();
+
+        java.util.List<com.leets_8th_be.kanghyeonwoo.entity.Report> commentReports =
+                reportRepository.findByTargetTypeAndTargetId(com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType.COMMENT, commentId);
+        org.assertj.core.api.Assertions.assertThat(commentReports).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(commentReports.get(0).getTargetContentSnapshot()).isEqualTo("신고 대상 욕설 댓글");
     }
 }
