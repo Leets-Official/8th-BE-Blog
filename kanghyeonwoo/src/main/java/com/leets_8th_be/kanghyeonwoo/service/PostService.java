@@ -59,4 +59,17 @@ public class PostService {
                 .map(PostSummaryResponse::from)
                 .toList();
     }
+
+    @Transactional
+    public PostDetailResponse updatePost(Long postId, com.leets_8th_be.kanghyeonwoo.dto.PostUpdateRequest request) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if (!post.getUser().getId().equals(request.getAuthorId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN_POST_ACCESS);
+        }
+
+        post.update(request.getTitle(), request.getContent());
+        return PostDetailResponse.from(post);
+    }
 }

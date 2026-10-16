@@ -38,4 +38,12 @@ public class PostController {
         List<PostSummaryResponse> responses = postService.getPosts(page, size, keyword);
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글 목록 조회가 완료되었습니다.", responses));
     }
+
+    @PatchMapping("/{postId}")
+    public ResponseEntity<ApiResponse<PostDetailResponse>> updatePost(
+            @PathVariable("postId") Long postId,
+            @Valid @RequestBody PostUpdateRequest request) {
+        PostDetailResponse response = postService.updatePost(postId, request);
+        return ResponseEntity.ok(ApiResponse.success("S200", "게시글이 성공적으로 수정되었습니다.", response));
+    }
 }

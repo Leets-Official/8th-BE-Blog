@@ -7,7 +7,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] PostUpdateRequest DTO 정의 (authorId 필수, 수정할 title/content 검증)
-- [ ] PostService.updatePost 구현 (작성자 불일치 시 ErrorCode.FORBIDDEN_POST_UPDATE 예외 발생)
-- [ ] PostController에 @PatchMapping("/posts/{postId}") 구현
-- [ ] 정상 수정(200 OK), 권한 없음(403 Forbidden), 미존재 글(404 Not Found) MockMvc 테스트 작성 및 통과 검증
+- [x] PostUpdateRequest DTO 정의 (authorId 필수, 수정할 title/content 검증)
+- [x] PostService.updatePost 구현 (작성자 불일치 시 ErrorCode.FORBIDDEN_POST_UPDATE 예외 발생)
+- [x] PostController에 @PatchMapping("/posts/{postId}") 구현
+- [x] 정상 수정(200 OK), 권한 없음(403 Forbidden), 미존재 글(404 Not Found) MockMvc 테스트 작성 및 통과 검증
