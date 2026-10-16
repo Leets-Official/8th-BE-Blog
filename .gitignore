@@ -21,6 +21,7 @@ hs_err_pid*
 replay_pid*
 
 # Environment files
+data/
 .env
 .env.*
 !.env.example
