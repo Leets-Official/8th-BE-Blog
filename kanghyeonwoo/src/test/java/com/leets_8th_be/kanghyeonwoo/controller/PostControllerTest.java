@@ -140,4 +140,38 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("COMMON400_TYPE"));
     }
+
+    @Test
+    @DisplayName("게시글 목록 조회 시 200 OK와 최신순 정렬된 요약 목록 배열을 반환한다.")
+    void getPostsSuccess() throws Exception {
+        postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("첫 번째 글", "본문 1", testUser));
+        postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("두 번째 글", "본문 2", testUser));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.message").value("게시글 목록 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].title").value("두 번째 글"))
+                .andExpect(jsonPath("$.data[1].title").value("첫 번째 글"));
+    }
+
+    @Test
+    @DisplayName("키워드로 게시글 목록을 검색하면 일치하는 게시글만 반환한다.")
+    void searchPostsByKeyword() throws Exception {
+        postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("Spring REST API", "RESTful 설계", testUser));
+        postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("JPA Study", "엔티티 매핑", testUser));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+                        .param("keyword", "REST"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].title").value("Spring REST API"));
+    }
 }

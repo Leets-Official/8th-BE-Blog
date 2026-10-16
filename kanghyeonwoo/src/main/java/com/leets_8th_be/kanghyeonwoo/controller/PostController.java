@@ -1,15 +1,14 @@
 package com.leets_8th_be.kanghyeonwoo.controller;
 
-import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
-import com.leets_8th_be.kanghyeonwoo.dto.PostCreateRequest;
-import com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse;
-import com.leets_8th_be.kanghyeonwoo.dto.PostResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.*;
 import com.leets_8th_be.kanghyeonwoo.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,5 +28,14 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostById(@PathVariable("postId") Long postId) {
         PostDetailResponse response = postService.getPostById(postId);
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글 조회가 완료되었습니다.", response));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PostSummaryResponse>>> getPosts(
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "keyword", required = false) String keyword) {
+        List<PostSummaryResponse> responses = postService.getPosts(page, size, keyword);
+        return ResponseEntity.ok(ApiResponse.success("S200", "게시글 목록 조회가 완료되었습니다.", responses));
     }
 }

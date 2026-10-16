@@ -7,8 +7,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] PostSummaryResponse DTO 정의 (id, title, authorId, createdAt)
-- [ ] PostRepository에 페이징 및 키워드(title 또는 content) 검색 쿼리 메서드 정의
-- [ ] PostService.getPosts(pageable, keyword) 구현 (Spring Data의 Page index 0-based를 고려하여 요청 page 1-based 매핑)
-- [ ] PostController에 @GetMapping("/posts") 구현
-- [ ] 페이징 및 검색 조건별 MockMvc 테스트 작성 및 통과 검증
+- [x] PostSummaryResponse DTO 정의 (id, title, authorId, createdAt)
+- [x] PostRepository에 페이징 및 키워드(title 또는 content) 검색 쿼리 메서드 정의
+- [x] PostService.getPosts(pageable, keyword) 구현 (Spring Data의 Page index 0-based를 고려하여 요청 page 1-based 매핑)
+- [x] PostController에 @GetMapping("/posts") 구현
+- [x] 페이징 및 검색 조건별 MockMvc 테스트 작성 및 통과 검증
