@@ -7,7 +7,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] PostDetailResponse DTO 정의 (id, title, content, authorId, createdAt, updatedAt)
-- [ ] PostService.getPostById 구현 (없을 경우 CustomException(ErrorCode.POST_NOT_FOUND) 발생)
-- [ ] PostController에 @GetMapping("/posts/{postId}") 구현
-- [ ] 정상 조회(200 OK) 및 404 Not Found 예외 응답 MockMvc 테스트 작성 및 통과 검증
+- [x] PostDetailResponse DTO 정의 (id, title, content, authorId, createdAt, updatedAt)
+- [x] PostService.getPostById 구현 (없을 경우 CustomException(ErrorCode.POST_NOT_FOUND) 발생)
+- [x] PostController에 @GetMapping("/posts/{postId}") 구현
+- [x] 정상 조회(200 OK) 및 404 Not Found 예외 응답 MockMvc 테스트 작성 및 통과 검증

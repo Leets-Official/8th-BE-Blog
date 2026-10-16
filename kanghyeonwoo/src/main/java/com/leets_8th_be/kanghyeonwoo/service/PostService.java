@@ -29,4 +29,10 @@ public class PostService {
         Post savedPost = postRepository.save(post);
         return PostResponse.from(savedPost);
     }
+
+    public com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse getPostById(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        return com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse.from(post);
+    }
 }

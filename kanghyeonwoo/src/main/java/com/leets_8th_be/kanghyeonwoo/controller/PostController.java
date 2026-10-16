@@ -2,16 +2,14 @@ package com.leets_8th_be.kanghyeonwoo.controller;
 
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostCreateRequest;
+import com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostResponse;
 import com.leets_8th_be.kanghyeonwoo.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,5 +23,11 @@ public class PostController {
         PostResponse response = postService.createPost(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("S201", "게시글이 성공적으로 등록되었습니다.", response));
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostById(@PathVariable("postId") Long postId) {
+        PostDetailResponse response = postService.getPostById(postId);
+        return ResponseEntity.ok(ApiResponse.success("S200", "게시글 조회가 완료되었습니다.", response));
     }
 }

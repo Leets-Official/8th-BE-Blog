@@ -101,4 +101,43 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("USER4001"));
     }
+
+    @Test
+    @DisplayName("게시글 상세 조회 성공 시 200 OK와 상세 정보(updatedAt 포함)를 반환한다.")
+    void getPostDetailSuccess() throws Exception {
+        com.leets_8th_be.kanghyeonwoo.entity.Post post = postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("상세 제목", "상세 본문", testUser)
+        );
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts/" + post.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.message").value("게시글 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.id").value(post.getId()))
+                .andExpect(jsonPath("$.data.title").value("상세 제목"))
+                .andExpect(jsonPath("$.data.content").value("상세 본문"))
+                .andExpect(jsonPath("$.data.authorId").value(testUser.getId()))
+                .andExpect(jsonPath("$.data.createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글 ID로 상세 조회 시 404 Not Found와 POST4001을 반환한다.")
+    void getPostDetailNotFound() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts/999999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("POST4001"))
+                .andExpect(jsonPath("$.message").value("해당 ID의 게시글을 찾을 수 없습니다."));
+    }
+
+    @Test
+    @DisplayName("게시글 ID에 문자가 전달되면 400 Bad Request와 COMMON400_TYPE을 반환한다.")
+    void getPostDetailTypeMismatch() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts/invalid-id"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("COMMON400_TYPE"));
+    }
 }
