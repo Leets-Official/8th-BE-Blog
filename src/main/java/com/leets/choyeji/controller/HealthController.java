@@ -1,4 +1,4 @@
-package com.leets.blog.controller;
+package com.leets.choyeji.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.MediaType;

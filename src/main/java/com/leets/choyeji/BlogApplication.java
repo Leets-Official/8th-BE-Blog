@@ -1,4 +1,4 @@
-package com.leets.blog;
+package com.leets.choyeji;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

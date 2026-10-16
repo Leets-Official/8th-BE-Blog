@@ -1,8 +1,8 @@
-package com.leets.blog.controller;
+package com.leets.choyeji.controller;
 
-import com.leets.blog.dto.StringRepeatRequest;
-import com.leets.blog.dto.StringRepeatResponse;
-import com.leets.blog.service.StringService;
+import com.leets.choyeji.dto.StringRepeatRequest;
+import com.leets.choyeji.dto.StringRepeatResponse;
+import com.leets.choyeji.service.StringService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
