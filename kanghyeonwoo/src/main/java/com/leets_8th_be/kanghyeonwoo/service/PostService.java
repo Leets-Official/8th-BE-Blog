@@ -72,4 +72,17 @@ public class PostService {
         post.update(request.getTitle(), request.getContent());
         return PostDetailResponse.from(post);
     }
+
+    @Transactional
+    public com.leets_8th_be.kanghyeonwoo.dto.PostDeleteResponse deletePost(Long postId, Long authorId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if (!post.getUser().getId().equals(authorId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN_POST_ACCESS);
+        }
+
+        postRepository.delete(post);
+        return new com.leets_8th_be.kanghyeonwoo.dto.PostDeleteResponse(postId);
+    }
 }

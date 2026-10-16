@@ -239,4 +239,47 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST4001"));
     }
+
+    @Test
+    @DisplayName("작성자 본인이 게시글 삭제를 요청하면 200 OK와 삭제된 ID를 반환한다.")
+    void deletePostSuccess() throws Exception {
+        com.leets_8th_be.kanghyeonwoo.entity.Post post = postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("삭제할 글", "삭제할 본문", testUser)
+        );
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+                        .param("authorId", String.valueOf(testUser.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.message").value("게시글이 성공적으로 삭제되었습니다."))
+                .andExpect(jsonPath("$.data.deletedPostId").value(post.getId()));
+    }
+
+    @Test
+    @DisplayName("타인이 작성한 게시글 삭제를 시도하면 403 Forbidden과 POST4003을 반환한다.")
+    void deletePostForbidden() throws Exception {
+        com.leets_8th_be.kanghyeonwoo.entity.Post post = postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("삭제할 글", "삭제할 본문", testUser)
+        );
+
+        User anotherUser = userRepository.save(User.builder().username("타인2").email("other2@example.com").build());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+                        .param("authorId", String.valueOf(anotherUser.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("POST4003"))
+                .andExpect(jsonPath("$.message").value("작성자 본인만 수정 및 삭제할 수 있습니다."));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글 삭제를 시도하면 404 Not Found와 POST4001을 반환한다.")
+    void deletePostNotFound() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/999999")
+                        .param("authorId", String.valueOf(testUser.getId())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("POST4001"));
+    }
 }

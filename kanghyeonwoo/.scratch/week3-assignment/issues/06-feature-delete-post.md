@@ -7,7 +7,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] PostDeleteResponse DTO 정의 (deletedPostId)
-- [ ] PostService.deletePost 구현 (작성자 불일치 검증 및 삭제)
-- [ ] PostController에 @DeleteMapping("/posts/{postId}") 구현
-- [ ] 정상 삭제(200 OK), 권한 없음(403), 미존재 글(404) MockMvc 테스트 작성 및 통과 검증
+- [x] PostDeleteResponse DTO 정의 (deletedPostId)
+- [x] PostService.deletePost 구현 (작성자 불일치 검증 및 삭제)
+- [x] PostController에 @DeleteMapping("/posts/{postId}") 구현
+- [x] 정상 삭제(200 OK), 권한 없음(403), 미존재 글(404) MockMvc 테스트 작성 및 통과 검증
