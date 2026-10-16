@@ -70,7 +70,7 @@ class AssignmentControllerTest {
                         .content(emptyJson))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON400_VALIDATION"))
                 .andExpect(jsonPath("$.data").isEmpty());
 
         String blankJson = "{\"value\":\"   \"}";
@@ -79,7 +79,7 @@ class AssignmentControllerTest {
                         .content(blankJson))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON400_VALIDATION"))
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 
@@ -90,7 +90,7 @@ class AssignmentControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.code").value("COMMON400_BODY"))
                 .andExpect(jsonPath("$.data").isEmpty());
     }
 }

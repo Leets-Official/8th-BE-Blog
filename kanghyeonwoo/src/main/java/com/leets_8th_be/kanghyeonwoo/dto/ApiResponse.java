@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public class ApiResponse<T> {
     private boolean success;
-    private int code;
+    private Object code;
     private String message;
     private T data;
 
@@ -22,11 +22,23 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, HttpStatus.OK.value(), message, data);
     }
 
+    public static <T> ApiResponse<T> success(String code, String message, T data) {
+        return new ApiResponse<>(true, code, message, data);
+    }
+
     public static <T> ApiResponse<T> fail(HttpStatus status, String message) {
         return new ApiResponse<>(false, status.value(), message, null);
     }
 
     public static <T> ApiResponse<T> fail(int code, String message) {
         return new ApiResponse<>(false, code, message, null);
+    }
+
+    public static <T> ApiResponse<T> fail(String code, String message) {
+        return new ApiResponse<>(false, code, message, null);
+    }
+
+    public static <T> ApiResponse<T> fail(String code, String message, T data) {
+        return new ApiResponse<>(false, code, message, data);
     }
 }
