@@ -1,4 +1,4 @@
-package com.leets.blog.dto;
+package com.leets.choyeji.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

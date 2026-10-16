@@ -1,4 +1,4 @@
-package com.leets.blog.entity;
+package com.leets.choyeji.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;

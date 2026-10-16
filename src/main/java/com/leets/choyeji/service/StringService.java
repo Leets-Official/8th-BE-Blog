@@ -1,6 +1,6 @@
-package com.leets.blog.service;
+package com.leets.choyeji.service;
 
-import com.leets.blog.dto.StringRepeatResponse;
+import com.leets.choyeji.dto.StringRepeatResponse;
 import org.springframework.stereotype.Service;
 
 @Service
