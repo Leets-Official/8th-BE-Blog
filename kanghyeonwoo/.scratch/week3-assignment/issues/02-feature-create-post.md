@@ -7,8 +7,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] PostCreateRequest DTO 정의 (title, content, authorId 필수값 검증)
-- [ ] PostResponse DTO 정의 (id, title, content, authorId, createdAt)
-- [ ] PostService.createPost 구현 (User 조회 및 Post 영속화)
-- [ ] PostController에 @PostMapping("/posts") 구현 및 201 Created 응답 반환
-- [ ] MockMvc 컨트롤러 슬라이스 및 통합 테스트 작성 및 통과 검증
+- [x] PostCreateRequest DTO 정의 (title, content, authorId 필수값 검증)
+- [x] PostResponse DTO 정의 (id, title, content, authorId, createdAt)
+- [x] PostService.createPost 구현 (User 조회 및 Post 영속화)
+- [x] PostController에 @PostMapping("/posts") 구현 및 201 Created 응답 반환
+- [x] MockMvc 컨트롤러 슬라이스 및 통합 테스트 작성 및 통과 검증
