@@ -39,8 +39,12 @@ public class Post extends BaseTimeEntity {
     }
 
     public void update(String title, String content) {
-        this.title = title;
-        this.content = content;
+        if (title != null) {
+            this.title = title;
+        }
+        if (content != null) {
+            this.content = content;
+        }
     }
 
     void addComment(Comment comment) {
