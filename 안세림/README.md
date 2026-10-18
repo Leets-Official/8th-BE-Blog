@@ -30,3 +30,30 @@
 - adminKey 제외 (참조 테이블 없음, 인증/권한은 과제 범위 아님)
 - rdate, mdate → created_at, updated_at (DATETIME)
 - 컬럼명 스네이크 케이스로 통일
+
+---
+
+# 3주차 과제 - 안세림
+
+## 구현 API
+| 기능 | Method | URI |
+|---|---|---|
+| 목록 조회 | GET | /posts?page=&size=&keyword= |
+| 상세 조회 | GET | /posts/{postId} |
+| 작성 | POST | /posts |
+| 수정 (부분 수정) | PATCH | /posts/{postId} |
+| 삭제 | DELETE | /posts/{postId}?authorId= |
+
+## 구조
+- controller : PostController (요청/응답)
+- service : PostService (비즈니스 로직, 예외 발생)
+- repository : PostRepository, MemberRepository (Spring Data JPA)
+- dto/post : 요청/응답 DTO (record)
+- converter : PostConverter (Entity → DTO 변환)
+- global/response : ApiResponse (공통 응답 형식)
+- global/exception : ErrorCode, CustomException, GlobalExceptionHandler (전역 예외 처리)
+- config : DataInitializer (테스트용 회원 2명 생성)
+
+## 참고
+- DB는 설치 없이 테스트할 수 있도록 H2(메모리 DB)를 사용했습니다.
+- 팀 설계에 없던 MEMBER4001(존재하지 않는 회원), COMMON404(존재하지 않는 경로) 에러 코드를 추가했습니다.
