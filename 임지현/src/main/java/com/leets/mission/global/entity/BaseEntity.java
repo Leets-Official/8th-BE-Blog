@@ -29,7 +29,7 @@ public abstract class BaseEntity {
      * - 추후 구현: Entity 상단에 @SQLDelete 및 @SQLRestriction 어노테이션을 부착하여 자동 삭제/조회 필터링 적용 예정.
      */
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    protected LocalDateTime deletedAt;
 
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
