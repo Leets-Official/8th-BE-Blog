@@ -34,10 +34,15 @@ public class PostService {
 
     @Transactional
     public PostResponse getPost(Long postId) {
+
+        int updatedCount = postRepository.increaseViewCount(postId);
+        if (updatedCount == 0) {
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
+
         Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        post.increaseViewCount();
         return PostResponse.from(post);
     }
 
@@ -50,10 +55,11 @@ public class PostService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
 
-        boolean existsRecentPost = postRepository.existsByMemberIdAndTitleAndCreatedAtAfter(
+        LocalDateTime threeSecondsAgo = LocalDateTime.now().minusSeconds(3);
+        boolean existsRecentPost = postRepository.existsByMemberIdAndTitleAndCreatedAtAfterAndDeletedAtIsNull(
                 memberId,
                 request.title(),
-                LocalDateTime.now().minusSeconds(3)
+                threeSecondsAgo
         );
 
         if (existsRecentPost) {
