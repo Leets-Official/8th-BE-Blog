@@ -6,6 +6,7 @@ import com.example.demo.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,9 +26,14 @@ public class Post extends BaseEntity {
     private String content;
 
     @OneToMany(mappedBy = "post" , fetch = FetchType.LAZY)
-    private List<Comment> comments;
+    private List<Comment> comments= new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id",nullable=false)
     private Member member;
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

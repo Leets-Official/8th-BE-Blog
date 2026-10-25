@@ -1,6 +1,6 @@
 package com.example.demo.global.enums;
 
-public enum Visibility {
+public enum IsPrivate {
     PUBLIC,
     PRIVATE
 }

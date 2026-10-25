@@ -1,6 +1,6 @@
 package com.example.demo.global.entity;
 
-import com.example.demo.global.enums.Visibility;
+import com.example.demo.global.enums.IsPrivate;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
@@ -23,10 +23,10 @@ public abstract class BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Visibility visibility = Visibility.PUBLIC;
+    private IsPrivate isPrivate = IsPrivate.PUBLIC;
 
-    public void changeVisibility(Visibility visibility) {
-        this.visibility = visibility;
+    public void changeVisibility(IsPrivate isPrivate) {
+        this.isPrivate = isPrivate;
     }
 
     public void delete() {
