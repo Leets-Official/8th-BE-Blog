@@ -87,7 +87,7 @@ public class PostService {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
-        return memberRepository.findById(userId)
+        return memberRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
