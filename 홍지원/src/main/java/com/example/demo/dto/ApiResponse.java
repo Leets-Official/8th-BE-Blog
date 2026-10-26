@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public record ApiResponse<T>(@JsonProperty("isSuccess") boolean isSuccess,
-                             Object code, T data, Error error) {
-    public static <T> ApiResponse<T> success(Object code, T data) {
+                             String code, T data, Error error) {
+    public static <T> ApiResponse<T> success(String code, T data) {
         return new ApiResponse<>(true, code, data, null);
     }
 
