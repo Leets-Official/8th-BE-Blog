@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "post")
 @Getter
@@ -41,5 +43,17 @@ public class Post extends BaseEntity {
         this.title = title;
         this.content = content;
         this.viewCount = viewCount != null ? viewCount : 0;
+    }
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
     }
 }
