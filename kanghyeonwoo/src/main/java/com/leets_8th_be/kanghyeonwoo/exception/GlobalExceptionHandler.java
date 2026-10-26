@@ -13,6 +13,7 @@ import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportR
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportQuery;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReportNotFound;
+import com.leets_8th_be.kanghyeonwoo.search.application.exception.SearchKeywordNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedReportTarget;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAlreadyResolved;
 import lombok.extern.slf4j.Slf4j;
@@ -105,6 +106,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReportNotFound.class)
     public ResponseEntity<ApiResponse<Void>> handleReportNotFound(ReportNotFound ex) {
         return errorResponse(ErrorCode.REPORT_NOT_FOUND);
+    }
+
+    @ExceptionHandler(SearchKeywordNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleSearchKeywordNotFound(SearchKeywordNotFound ex) {
+        return errorResponse(ErrorCode.SEARCH_KEYWORD_NOT_FOUND);
     }
 
     @ExceptionHandler(ReportAlreadyResolved.class)

@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.config;
 
-import com.leets_8th_be.kanghyeonwoo.service.SearchSession;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.UUID;

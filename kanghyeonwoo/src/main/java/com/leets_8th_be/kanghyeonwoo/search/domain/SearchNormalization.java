@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.util;
+package com.leets_8th_be.kanghyeonwoo.search.domain;
 
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;

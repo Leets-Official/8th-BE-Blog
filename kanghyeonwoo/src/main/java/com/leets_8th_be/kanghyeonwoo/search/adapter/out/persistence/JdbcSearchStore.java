@@ -1,6 +1,7 @@
-package com.leets_8th_be.kanghyeonwoo.repository;
+package com.leets_8th_be.kanghyeonwoo.search.adapter.out.persistence;
 
-import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,18 +28,14 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class SearchRepository {
-    public record Keyword(long id, String keyword, boolean suggestible) {}
-    public record DemoKeyword(long sourceId, String keyword, boolean suggestible, Instant createdAt) {}
-    public record DemoEvent(long sourceKeywordId, Instant searchedAt) {}
-    public record DemoDedupState(long sourceKeywordId, String sessionKey, Instant lastCountedAt) {}
+public class JdbcSearchStore implements SearchStore {
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transactions;
     private final AtomicLong dictionaryVersion = new AtomicLong();
     private final ReentrantLock writes = new ReentrantLock();
 
-    public SearchRepository(JdbcTemplate jdbc, PlatformTransactionManager manager) {
+    public JdbcSearchStore(JdbcTemplate jdbc, PlatformTransactionManager manager) {
         this.jdbc = jdbc;
         this.transactions = new TransactionTemplate(manager);
         this.transactions.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);

@@ -20,7 +20,7 @@ import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostUpdateRequest;
 import com.leets_8th_be.kanghyeonwoo.service.PostSearchService;
 import com.leets_8th_be.kanghyeonwoo.service.PostService;
-import com.leets_8th_be.kanghyeonwoo.service.SearchSession;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchSession;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

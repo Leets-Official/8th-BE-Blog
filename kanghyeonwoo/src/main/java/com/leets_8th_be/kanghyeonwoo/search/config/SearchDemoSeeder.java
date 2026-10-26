@@ -1,7 +1,7 @@
-package com.leets_8th_be.kanghyeonwoo.config;
+package com.leets_8th_be.kanghyeonwoo.search.config;
 
-import com.leets_8th_be.kanghyeonwoo.service.SearchSuggestionService;
-import com.leets_8th_be.kanghyeonwoo.repository.SearchRepository;
+import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SearchDemoSeeder implements ApplicationRunner {
     private static final String DEMO_EMAIL = "search-demo@blog.example";
-    private final SearchRepository store;
+    private final SearchStore store;
     private final SearchSuggestionService suggestions;
     private final UserRepository users;
     private final PostRepository posts;
@@ -44,19 +44,19 @@ public class SearchDemoSeeder implements ApplicationRunner {
         }
         Instant anchor = clock.instant().truncatedTo(ChronoUnit.MINUTES);
         Duration shift = Duration.between(Instant.parse(example.get("reference_time").asText()), anchor);
-        var keywords = new ArrayList<SearchRepository.DemoKeyword>();
+        var keywords = new ArrayList<SearchStore.DemoKeyword>();
         for (JsonNode row : example.get("search_keywords")) {
-            keywords.add(new SearchRepository.DemoKeyword(row.get("id").asLong(),
+            keywords.add(new SearchStore.DemoKeyword(row.get("id").asLong(),
                     row.get("normalized_keyword").asText(), row.get("suggestible").asBoolean(),
                     shifted(row.get("created_at"), shift)));
         }
-        var events = new ArrayList<SearchRepository.DemoEvent>();
+        var events = new ArrayList<SearchStore.DemoEvent>();
         for (JsonNode row : example.get("search_events")) {
-            events.add(new SearchRepository.DemoEvent(row.get("keyword_id").asLong(), shifted(row.get("searched_at"), shift)));
+            events.add(new SearchStore.DemoEvent(row.get("keyword_id").asLong(), shifted(row.get("searched_at"), shift)));
         }
-        var states = new ArrayList<SearchRepository.DemoDedupState>();
+        var states = new ArrayList<SearchStore.DemoDedupState>();
         for (JsonNode row : example.get("search_dedup_states")) {
-            states.add(new SearchRepository.DemoDedupState(row.get("keyword_id").asLong(),
+            states.add(new SearchStore.DemoDedupState(row.get("keyword_id").asLong(),
                     row.get("session_key").asText(), shifted(row.get("last_counted_at"), shift)));
         }
         store.importDemo(keywords, events, states, () -> {

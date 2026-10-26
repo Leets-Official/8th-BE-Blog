@@ -33,7 +33,7 @@ class SearchAnalyticsTest {
     @Autowired MockMvc mvc;
     @Autowired MutableClock clock;
     @Autowired JdbcTemplate jdbc;
-    @Autowired com.leets_8th_be.kanghyeonwoo.repository.SearchRepository searchStore;
+    @Autowired com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore searchStore;
 
     @BeforeEach
     void resetSearches() {

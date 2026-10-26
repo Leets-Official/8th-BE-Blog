@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.util;
+package com.leets_8th_be.kanghyeonwoo.search.domain;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

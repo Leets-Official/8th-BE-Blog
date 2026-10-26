@@ -1,10 +1,9 @@
 package com.leets_8th_be.kanghyeonwoo.controller;
 
-import com.leets_8th_be.kanghyeonwoo.dto.SearchTrendResponse;
-
 import com.leets_8th_be.kanghyeonwoo.KanghyeonwooApplication;
-import com.leets_8th_be.kanghyeonwoo.service.SearchSuggestionService;
-import com.leets_8th_be.kanghyeonwoo.service.SearchTrendService;
+import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
+import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchTrendService;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchTrend;
 import com.leets_8th_be.kanghyeonwoo.service.PostService;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ class SearchPersistenceTest {
                     "--spring.main.web-application-type=none", "--spring.profiles.active=demo",
                     "--spring.datasource.url=jdbc:h2:file:" + directory.resolve("blog"),
                     "--spring.jpa.hibernate.ddl-auto=update", "--spring.jpa.show-sql=false")) {
-                assertThat(context.getBean(SearchTrendService.class).trends()).extracting(SearchTrendResponse::keyword)
+                assertThat(context.getBean(SearchTrendService.class).trends()).extracting(SearchTrend::keyword)
                         .containsExactly("spring", "jpa", "java");
                 assertThat(context.getBean(SearchTrendService.class).trends().getFirst().currentCount()).isEqualTo(10);
                 assertThat(context.getBean(SearchSuggestionService.class).suggest("sprng").getFirst().keyword()).isEqualTo("spring");

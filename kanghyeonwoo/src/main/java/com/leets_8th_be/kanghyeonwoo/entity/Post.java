@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
-import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

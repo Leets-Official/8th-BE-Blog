@@ -6,7 +6,7 @@ import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
 import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import com.leets_8th_be.kanghyeonwoo.entity.PostStatus;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
-import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

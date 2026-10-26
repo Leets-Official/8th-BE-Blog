@@ -1,10 +1,9 @@
-package com.leets_8th_be.kanghyeonwoo.service;
+package com.leets_8th_be.kanghyeonwoo.search.application.usecase;
 
-import com.leets_8th_be.kanghyeonwoo.dto.SearchSuggestionResponse;
-
-import com.leets_8th_be.kanghyeonwoo.repository.SearchRepository;
-import com.leets_8th_be.kanghyeonwoo.util.BkTree;
-import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchSuggestion;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.domain.BkTree;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -15,18 +14,16 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
-import org.springframework.stereotype.Service;
 
-@Service
 public class SearchSuggestionService {
-    private final SearchRepository store;
+    private final SearchStore store;
     private final Clock clock;
     private BkTree tree = new BkTree();
     private long version = -1;
     private final Set<Long> indexedIds = new HashSet<>();
     private final ReentrantLock indexLock = new ReentrantLock();
 
-    public SearchSuggestionService(SearchRepository store, Clock clock) { this.store = store; this.clock = clock; }
+    public SearchSuggestionService(SearchStore store, Clock clock) { this.store = store; this.clock = clock; }
 
     public void rebuild() {
         indexLock.lock();
@@ -66,15 +63,15 @@ public class SearchSuggestionService {
         }
     }
 
-    public List<SearchSuggestionResponse> suggest(String input) {
+    public List<SearchSuggestion> suggest(String input) {
         String keyword = SearchNormalization.requireKeyword(input);
         Instant now = clock.instant();
         List<BkTree.Match> matches = candidates(keyword);
         Map<Long, Long> counts = store.counts(now.minus(1, ChronoUnit.HOURS), now);
-        return matches.stream().map(m -> new SearchSuggestionResponse(m.keywordId(), m.keyword(), m.distance(),
+        return matches.stream().map(m -> new SearchSuggestion(m.keywordId(), m.keyword(), m.distance(),
                         counts.getOrDefault(m.keywordId(), 0L)))
-                .sorted(Comparator.comparingInt(SearchSuggestionResponse::distance)
-                        .thenComparing(Comparator.comparingLong(SearchSuggestionResponse::recentSearchCount).reversed())
-                        .thenComparing(SearchSuggestionResponse::keyword)).limit(5).toList();
+                .sorted(Comparator.comparingInt(SearchSuggestion::distance)
+                        .thenComparing(Comparator.comparingLong(SearchSuggestion::recentSearchCount).reversed())
+                        .thenComparing(SearchSuggestion::keyword)).limit(5).toList();
     }
 }

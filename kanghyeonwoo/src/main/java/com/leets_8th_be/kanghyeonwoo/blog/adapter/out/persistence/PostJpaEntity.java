@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.out.persistence;
 
-import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;

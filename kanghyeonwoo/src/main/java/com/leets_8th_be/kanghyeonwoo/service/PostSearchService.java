@@ -3,7 +3,9 @@ package com.leets_8th_be.kanghyeonwoo.service;
 import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
-import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchSession;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RecordSearchUseCase;
 import com.leets_8th_be.kanghyeonwoo.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PostSearchService {
     private final PostService posts;
-    private final SearchTrackingService tracking;
+    private final RecordSearchUseCase tracking;
 
     // PostService finishes its read transaction before tracking begins, so a waiting
     // search writer never holds a second connection from the post lookup.
