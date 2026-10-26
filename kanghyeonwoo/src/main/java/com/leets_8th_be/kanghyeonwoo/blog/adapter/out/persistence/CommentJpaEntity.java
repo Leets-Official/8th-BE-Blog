@@ -64,6 +64,7 @@ class CommentJpaEntity {
     String getContent() { return content; }
     boolean isDeleted() { return isDeleted; }
     Long getUserId() { return userId; }
+    Long getPostId() { return post == null ? null : post.getId(); }
     Long getParentId() { return parent == null ? null : parent.getId(); }
     LocalDateTime getCreatedAt() { return createdAt; }
 

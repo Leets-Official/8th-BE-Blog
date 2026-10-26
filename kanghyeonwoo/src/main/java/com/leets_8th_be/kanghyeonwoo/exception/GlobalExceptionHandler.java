@@ -5,10 +5,12 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.InvalidCommentQuery;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.CommentNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -61,6 +63,11 @@ public class GlobalExceptionHandler {
         return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
     }
 
+    @ExceptionHandler(CommentNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleCommentNotFound(CommentNotFound ex) {
+        return errorResponse(ErrorCode.COMMENT_NOT_FOUND);
+    }
+
     @ExceptionHandler(ReporterNotFound.class)
     public ResponseEntity<ApiResponse<Void>> handleReporterNotFound(ReporterNotFound ex) {
         return errorResponse(ErrorCode.USER_NOT_FOUND);
@@ -79,6 +86,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidReportRequest.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidReportRequest(InvalidReportRequest ex) {
         return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(DeletedCommentReport.class)
+    public ResponseEntity<ApiResponse<Void>> handleDeletedCommentReport(DeletedCommentReport ex) {
+        return errorResponse(ErrorCode.DELETED_COMMENT_REPORT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

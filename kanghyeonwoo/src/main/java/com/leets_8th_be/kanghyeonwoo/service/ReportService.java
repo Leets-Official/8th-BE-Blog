@@ -29,24 +29,6 @@ public class ReportService {
     private final CommentRepository comments;
     private final Clock clock;
 
-    @Transactional
-    public ReportCreateResponse reportComment(Long commentId, ReportCreateRequest request) {
-        requirePositiveId(commentId);
-        User reporter = users.findById(request.reporterId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Long postId = comments.findPostId(commentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        // All content writers lock the post before its comment, including post deletion.
-        posts.findForUpdate(postId).filter(post -> post.getStatus() == PostStatus.ACTIVE)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        Comment comment = comments.findForUpdate(commentId)
-                .filter(c -> c.getStatus() == CommentStatus.ACTIVE)
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        if (comment.isDeleted()) throw new CustomException(ErrorCode.DELETED_COMMENT_REPORT);
-        validateReporter(reporter, comment.getUser(), ReportTargetType.COMMENT, commentId);
-        return ReportCreateResponse.from(reports.saveAndFlush(Report.ofComment(reporter, comment, request.reason())));
-    }
-
     public PageResponse<ReportResponse> getReports(int page, int size, ReportStatus status,
                                                    ReportTargetType targetType, Long targetId, String keyword) {
         var pageable = Pagination.newestFirst(page, size);
@@ -101,13 +83,6 @@ public class ReportService {
     }
 
     private record TargetVisibility(boolean available, Boolean hidden) {}
-
-    private void validateReporter(User reporter, User author, ReportTargetType type, Long targetId) {
-        if (reporter.getId().equals(author.getId())) throw new CustomException(ErrorCode.SELF_REPORT_FORBIDDEN);
-        if (reports.existsByReporterIdAndTargetTypeAndTargetId(reporter.getId(), type, targetId)) {
-            throw new CustomException(ErrorCode.DUPLICATE_REPORT);
-        }
-    }
 
     private static void requirePositiveId(Long id) {
         if (id == null || id < 1) throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);

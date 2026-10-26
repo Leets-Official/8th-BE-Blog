@@ -7,6 +7,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.CommentStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import com.leets_8th_be.kanghyeonwoo.util.TextSearch;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public class JpaCommentStore implements CommentStore {
@@ -42,12 +45,17 @@ public class JpaCommentStore implements CommentStore {
                 result.getTotalElements(), result.getTotalPages());
     }
 
+    @Override
+    public Optional<CommentView> findTarget(CommentId id) {
+        return comments.findById(id.value()).map(JpaCommentStore::toView);
+    }
+
     private static CommentView toView(CommentJpaEntity entity) {
         CommentState state = entity.getStatus() == CommentJpaEntity.Visibility.ACTIVE
                 ? CommentState.ACTIVE : CommentState.HIDDEN;
         Comment comment = new Comment(new CommentId(entity.getId()), new UserId(entity.getUserId()),
                 entity.getParentId() == null ? null : new CommentId(entity.getParentId()),
                 entity.getContent(), state, entity.isDeleted());
-        return new CommentView(comment, entity.getCreatedAt());
+        return new CommentView(comment, new PostId(entity.getPostId()), entity.getCreatedAt());
     }
 }

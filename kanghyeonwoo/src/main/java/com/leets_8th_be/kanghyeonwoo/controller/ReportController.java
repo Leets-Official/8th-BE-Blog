@@ -7,6 +7,9 @@ import com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportView;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentCommand;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class ReportController {
     private final ReportService reports;
     private final ReportPostUseCase reportPostUseCase;
+    private final ReportCommentUseCase reportCommentUseCase;
 
     @PostMapping("/posts/{postId}/reports")
     @Operation(summary = "게시글 신고", description = "본인·숨김 게시글은 신고할 수 없으며 동일 사용자의 중복 신고는 409입니다.")
@@ -39,7 +43,9 @@ public class ReportController {
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportComment(
             @PathVariable("commentId") Long commentId, @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(
-                "S201", "댓글 신고가 접수되었습니다.", reports.reportComment(commentId, request)));
+                "S201", "댓글 신고가 접수되었습니다.",
+                toCreateResponse(reportCommentUseCase.report(new ReportCommentCommand(new CommentId(commentId),
+                        new UserId(request.reporterId()), request.reason())))));
     }
 
     @GetMapping("/reports")
