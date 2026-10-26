@@ -48,7 +48,7 @@ public class InteractionAccess {
         if (post.isDeleted()) {
             throw new BusinessException(ErrorCode.POST_DELETED);
         }
-        if (post.isHidden() || (post.isPrivate() && !post.getMember().getId().equals(memberId))) {
+        if (post.isHidden() || (post.isPrivate() && !post.isOwnedBy(memberId))) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED);
         }
     }

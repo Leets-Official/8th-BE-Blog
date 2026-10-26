@@ -55,6 +55,6 @@ public class Post extends SoftDeletableEntity {
     }
 
     public boolean isOwnedBy(Long memberId) {
-        return member == null || !member.getId().equals(memberId);
+        return memberId != null && member != null && memberId.equals(member.getId());
     }
 }
