@@ -50,6 +50,10 @@ public class Post extends SoftDeletableEntity {
         this.content = content;
     }
 
+    public void hide() {
+        this.isHidden = true;
+    }
+
     public boolean isOwnedBy(Long memberId) {
         return member == null || !member.getId().equals(memberId);
     }

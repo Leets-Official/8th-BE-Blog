@@ -27,4 +27,8 @@ public class ReportController {
         return reports.reportComment(commentId, userId, request);
     }
 
+    @PostMapping("/reports/{reportId}/approve")
+    public ReportResponse approve(@PathVariable Long reportId, @RequestHeader("X-User-Id") Long userId) {
+        return reports.approve(reportId, userId);
+    }
 }

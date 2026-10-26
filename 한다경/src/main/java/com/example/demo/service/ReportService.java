@@ -38,6 +38,16 @@ public class ReportService {
         return ReportResponse.from(reports.saveAndFlush(Report.forComment(member, comment, request.reason())));
     }
 
+    // Assignment API: administrator authorization will be added with authentication.
+    public ReportResponse approve(Long reportId, Long userId) {
+        access.memberForUpdate(userId);
+        access.validId(reportId);
+        Report report = reports.findForUpdate(reportId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REPORT_NOT_FOUND));
+        report.approve();
+        return ReportResponse.from(report);
+    }
+
     private void rejectSelfReport(Member owner, Long userId) {
         if (owner.getId().equals(userId)) {
             throw new BusinessException(ErrorCode.SELF_REPORT_DENIED);

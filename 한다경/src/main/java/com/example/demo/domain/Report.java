@@ -1,5 +1,7 @@
 package com.example.demo.domain;
 
+import com.example.demo.exception.BusinessException;
+import com.example.demo.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -58,6 +60,21 @@ public class Report extends BaseEntity {
         report.comment = comment;
         report.reason = reason;
         return report;
+    }
+
+    public void approve() {
+        if (status == ReportStatus.APPROVED) {
+            return;
+        }
+        if (status != ReportStatus.PENDING) {
+            throw new BusinessException(ErrorCode.REPORT_STATE_CONFLICT);
+        }
+        status = ReportStatus.APPROVED;
+        if (post != null) {
+            post.hide();
+        } else {
+            comment.hide();
+        }
     }
 
     private int getReportTargetCount() {

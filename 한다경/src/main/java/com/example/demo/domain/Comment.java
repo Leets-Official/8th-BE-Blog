@@ -40,4 +40,8 @@ public class Comment extends SoftDeletableEntity {
 
     @OneToMany(mappedBy = "comment")
     private List<Report> reports = new ArrayList<>();
+
+    public void hide() {
+        this.isHidden = true;
+    }
 }
