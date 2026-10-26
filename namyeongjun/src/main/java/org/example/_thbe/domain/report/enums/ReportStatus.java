@@ -1,4 +1,6 @@
 package org.example._thbe.domain.report.enums;
 
-public class ReportStatus {
+
+public enum ReportStatus {
+    PENDING,APPROVED,REJECTED;
 }
