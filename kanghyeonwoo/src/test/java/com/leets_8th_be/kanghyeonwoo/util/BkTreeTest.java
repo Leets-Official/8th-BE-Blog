@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.search;
+package com.leets_8th_be.kanghyeonwoo.util;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ class BkTreeTest {
                 List.of("cake", "cook", "boon", "boo", "books", "book"))) {
             BkTree tree = new BkTree();
             long id = 1;
-            for (String word : words) tree.add(new SearchStore.Keyword(id++, word, true));
+            for (String word : words) tree.add(id++, word);
             assertThat(tree.find("book", 1)).extracting(BkTree.Match::keyword)
                     .containsExactlyInAnyOrder("books", "boo", "boon", "cook");
             assertThat(tree.find("bok", 1)).extracting(BkTree.Match::keyword)

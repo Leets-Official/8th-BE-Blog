@@ -1,4 +1,7 @@
-package com.leets_8th_be.kanghyeonwoo.search;
+package com.leets_8th_be.kanghyeonwoo.service;
+
+import com.leets_8th_be.kanghyeonwoo.repository.SearchRepository;
+import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 
 import jakarta.servlet.http.HttpSession;
 import java.time.Clock;
@@ -10,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SearchTrackingService {
     private static final String SESSION_KEY = SearchTrackingService.class.getName() + ".key";
-    private final SearchStore store;
+    private final SearchRepository store;
     private final Clock clock;
 
     public void record(String input, HttpSession session, boolean hasResults) {

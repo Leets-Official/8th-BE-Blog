@@ -1,4 +1,6 @@
-package com.leets_8th_be.kanghyeonwoo.search;
+package com.leets_8th_be.kanghyeonwoo.repository;
+
+import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -24,15 +27,18 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class SearchStore {
+public class SearchRepository {
     public record Keyword(long id, String keyword, boolean suggestible) {}
+    public record DemoKeyword(long sourceId, String keyword, boolean suggestible, Instant createdAt) {}
+    public record DemoEvent(long sourceKeywordId, Instant searchedAt) {}
+    public record DemoDedupState(long sourceKeywordId, String sessionKey, Instant lastCountedAt) {}
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transactions;
     private final AtomicLong dictionaryVersion = new AtomicLong();
     private final ReentrantLock writes = new ReentrantLock();
 
-    public SearchStore(JdbcTemplate jdbc, PlatformTransactionManager manager) {
+    public SearchRepository(JdbcTemplate jdbc, PlatformTransactionManager manager) {
         this.jdbc = jdbc;
         this.transactions = new TransactionTemplate(manager);
         this.transactions.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -84,7 +90,7 @@ public class SearchStore {
         });
     }
 
-    void incrementBucket(long keywordId, Instant at) {
+    private void incrementBucket(long keywordId, Instant at) {
         OffsetDateTime minute = time(at.truncatedTo(ChronoUnit.MINUTES));
         int changed = jdbc.update("""
                 UPDATE search_keyword_buckets SET search_count = search_count + 1
@@ -123,7 +129,7 @@ public class SearchStore {
         });
     }
 
-    Keyword ensureKeyword(String word, boolean suggestible, Instant at) {
+    private Keyword ensureKeyword(String word, boolean suggestible, Instant at) {
         List<Keyword> matches = jdbc.query("SELECT * FROM search_keywords WHERE normalized_keyword = ?",
                 this::keyword, word);
         if (matches.isEmpty()) {
@@ -187,8 +193,26 @@ public class SearchStore {
         return new Keyword(rs.getLong("id"), rs.getString("normalized_keyword"), rs.getBoolean("suggestible"));
     }
 
-    void importDemo(Runnable importer) {
-        write(importer);
+    public void importDemo(List<DemoKeyword> keywords, List<DemoEvent> events,
+                           List<DemoDedupState> states, Supplier<Boolean> createPosts) {
+        write(() -> {
+            if (!createPosts.get()) return;
+            Map<Long, Long> ids = new HashMap<>();
+            for (DemoKeyword keyword : keywords) {
+                Keyword saved = ensureKeyword(keyword.keyword(), keyword.suggestible(), keyword.createdAt());
+                ids.put(keyword.sourceId(), saved.id());
+            }
+            for (DemoEvent event : events) {
+                long id = ids.get(event.sourceKeywordId());
+                jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", id, time(event.searchedAt()));
+                incrementBucket(id, event.searchedAt());
+            }
+            for (DemoDedupState state : states) {
+                jdbc.update("""
+                        INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
+                        """, ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));
+            }
+        });
     }
 
     private void write(Runnable operation) {
@@ -200,7 +224,7 @@ public class SearchStore {
         }
     }
 
-    static OffsetDateTime time(Instant at) {
+    private static OffsetDateTime time(Instant at) {
         return at.atOffset(ZoneOffset.UTC);
     }
 }

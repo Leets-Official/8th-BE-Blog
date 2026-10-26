@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.search;
+package com.leets_8th_be.kanghyeonwoo.util;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -9,18 +9,20 @@ import java.util.Map;
 /** A metric tree using code-point Levenshtein distance, including for Korean syllables. */
 public final class BkTree {
     public record Match(long keywordId, String keyword, int distance) {}
+    private record Word(long id, String value) {}
     private static final class Node {
-        final SearchStore.Keyword keyword;
+        final Word keyword;
         final Map<Integer, Node> children = new HashMap<>();
-        Node(SearchStore.Keyword keyword) { this.keyword = keyword; }
+        Node(Word keyword) { this.keyword = keyword; }
     }
     private Node root;
 
-    public void add(SearchStore.Keyword keyword) {
+    public void add(long id, String value) {
+        Word keyword = new Word(id, value);
         if (root == null) { root = new Node(keyword); return; }
         Node node = root;
         while (true) {
-            int distance = distance(keyword.keyword(), node.keyword.keyword());
+            int distance = distance(keyword.value(), node.keyword.value());
             if (distance == 0) return;
             Node child = node.children.get(distance);
             if (child == null) { node.children.put(distance, new Node(keyword)); return; }
@@ -35,9 +37,9 @@ public final class BkTree {
         pending.add(root);
         while (!pending.isEmpty()) {
             Node node = pending.removeFirst();
-            int distance = distance(input, node.keyword.keyword());
+            int distance = distance(input, node.keyword.value());
             if (distance > 0 && distance <= radius) {
-                matches.add(new Match(node.keyword.id(), node.keyword.keyword(), distance));
+                matches.add(new Match(node.keyword.id(), node.keyword.value(), distance));
             }
             node.children.forEach((edge, child) -> {
                 if (edge >= distance - radius && edge <= distance + radius) pending.add(child);

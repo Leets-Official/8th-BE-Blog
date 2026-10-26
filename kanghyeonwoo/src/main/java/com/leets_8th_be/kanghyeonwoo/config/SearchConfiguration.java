@@ -1,4 +1,7 @@
-package com.leets_8th_be.kanghyeonwoo.search;
+package com.leets_8th_be.kanghyeonwoo.config;
+
+import com.leets_8th_be.kanghyeonwoo.service.SearchSuggestionService;
+import com.leets_8th_be.kanghyeonwoo.repository.SearchRepository;
 
 import java.time.Clock;
 import java.util.List;
@@ -15,7 +18,7 @@ public class SearchConfiguration {
 
     @Bean
     @Order(10)
-    public ApplicationRunner searchStartup(SearchStore store, SearchSuggestionService suggestions, Clock clock) {
+    public ApplicationRunner searchStartup(SearchRepository store, SearchSuggestionService suggestions, Clock clock) {
         return args -> {
             store.backfillTitles();
             store.cleanup(clock.instant());

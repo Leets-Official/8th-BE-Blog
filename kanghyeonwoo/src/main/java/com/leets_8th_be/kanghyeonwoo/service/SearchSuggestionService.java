@@ -1,4 +1,10 @@
-package com.leets_8th_be.kanghyeonwoo.search;
+package com.leets_8th_be.kanghyeonwoo.service;
+
+import com.leets_8th_be.kanghyeonwoo.dto.SearchSuggestionResponse;
+
+import com.leets_8th_be.kanghyeonwoo.repository.SearchRepository;
+import com.leets_8th_be.kanghyeonwoo.util.BkTree;
+import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -13,15 +19,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SearchSuggestionService {
-    public record Suggestion(long keywordId, String keyword, int distance, long recentSearchCount) {}
-    private final SearchStore store;
+    private final SearchRepository store;
     private final Clock clock;
     private BkTree tree = new BkTree();
     private long version = -1;
     private final Set<Long> indexedIds = new HashSet<>();
     private final ReentrantLock indexLock = new ReentrantLock();
 
-    public SearchSuggestionService(SearchStore store, Clock clock) { this.store = store; this.clock = clock; }
+    public SearchSuggestionService(SearchRepository store, Clock clock) { this.store = store; this.clock = clock; }
 
     public void rebuild() {
         indexLock.lock();
@@ -29,7 +34,7 @@ public class SearchSuggestionService {
             long current = store.dictionaryVersion();
             BkTree replacement = new BkTree();
             indexedIds.clear();
-            store.dictionary().forEach(keyword -> { replacement.add(keyword); indexedIds.add(keyword.id()); });
+            store.dictionary().forEach(keyword -> { replacement.add(keyword.id(), keyword.keyword()); indexedIds.add(keyword.id()); });
             tree = replacement;
             version = current;
         } finally {
@@ -45,7 +50,7 @@ public class SearchSuggestionService {
                 try {
                     store.dictionary().forEach(word -> {
                         if (!indexedIds.contains(word.id())) {
-                            tree.add(word);
+                            tree.add(word.id(), word.keyword());
                             indexedIds.add(word.id());
                         }
                     });
@@ -61,15 +66,15 @@ public class SearchSuggestionService {
         }
     }
 
-    public List<Suggestion> suggest(String input) {
+    public List<SearchSuggestionResponse> suggest(String input) {
         String keyword = SearchNormalization.requireKeyword(input);
         Instant now = clock.instant();
         List<BkTree.Match> matches = candidates(keyword);
         Map<Long, Long> counts = store.counts(now.minus(1, ChronoUnit.HOURS), now);
-        return matches.stream().map(m -> new Suggestion(m.keywordId(), m.keyword(), m.distance(),
+        return matches.stream().map(m -> new SearchSuggestionResponse(m.keywordId(), m.keyword(), m.distance(),
                         counts.getOrDefault(m.keywordId(), 0L)))
-                .sorted(Comparator.comparingInt(Suggestion::distance)
-                        .thenComparing(Comparator.comparingLong(Suggestion::recentSearchCount).reversed())
-                        .thenComparing(Suggestion::keyword)).limit(5).toList();
+                .sorted(Comparator.comparingInt(SearchSuggestionResponse::distance)
+                        .thenComparing(Comparator.comparingLong(SearchSuggestionResponse::recentSearchCount).reversed())
+                        .thenComparing(SearchSuggestionResponse::keyword)).limit(5).toList();
     }
 }

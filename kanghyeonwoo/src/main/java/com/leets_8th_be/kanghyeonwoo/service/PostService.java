@@ -10,7 +10,7 @@ import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
-import com.leets_8th_be.kanghyeonwoo.search.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
