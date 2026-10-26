@@ -4,6 +4,7 @@ import com.leets.mission.domain.comment.converter.CommentConverter;
 import com.leets.mission.domain.comment.dto.CommentRequestDTO;
 import com.leets.mission.domain.comment.dto.CommentResponseDTO;
 import com.leets.mission.domain.comment.entity.Comment;
+import com.leets.mission.domain.comment.entity.CommentStatus;
 import com.leets.mission.domain.comment.repository.CommentRepository;
 import com.leets.mission.domain.post.entity.Post;
 import com.leets.mission.domain.post.repository.PostRepository;
@@ -14,6 +15,8 @@ import com.leets.mission.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +34,13 @@ public class CommentService {
         User user = findUser(request.userId());
         Comment comment = commentRepository.save(CommentConverter.toComment(request, post, user));
         return CommentConverter.toDetailDTO(comment);
+    }
+
+    // 댓글 목록 조회 (ACTIVE 댓글만, 작성순)
+    public CommentResponseDTO.ListDTO getCommentList(Long postId) {
+        Post post = findActivePost(postId);
+        List<Comment> comments = commentRepository.findAllByPostAndStatusOrderByIdAsc(post, CommentStatus.ACTIVE);
+        return CommentConverter.toListDTO(postId, comments);
     }
 
     // 숨김 게시글은 없는 게시글과 같이 취급 (404)

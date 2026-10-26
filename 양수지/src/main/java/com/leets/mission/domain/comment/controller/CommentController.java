@@ -8,6 +8,7 @@ import com.leets.mission.global.apiPayload.code.SuccessStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,5 +29,11 @@ public class CommentController {
             @RequestBody @Valid CommentRequestDTO.CreateDTO request
     ) {
         return ApiResponse.of(SuccessStatus.COMMENT_CREATED, commentService.createComment(postId, request));
+    }
+
+    // 댓글 목록 조회
+    @GetMapping("/posts/{postId}/comments")
+    public ApiResponse<CommentResponseDTO.ListDTO> getCommentList(@PathVariable Long postId) {
+        return ApiResponse.onSuccess(commentService.getCommentList(postId));
     }
 }

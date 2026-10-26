@@ -6,6 +6,8 @@ import com.leets.mission.domain.comment.entity.Comment;
 import com.leets.mission.domain.post.entity.Post;
 import com.leets.mission.domain.user.entity.User;
 
+import java.util.List;
+
 // 댓글 Entity ↔ DTO 변환
 public class CommentConverter {
 
@@ -29,6 +31,17 @@ public class CommentConverter {
                 .content(comment.getContent())
                 .writer(comment.getUser().getNickname())
                 .createdAt(comment.getCreatedAt())
+                .build();
+    }
+
+    // 댓글 목록 → 목록 응답 DTO
+    public static CommentResponseDTO.ListDTO toListDTO(Long postId, List<Comment> comments) {
+        return CommentResponseDTO.ListDTO.builder()
+                .postId(postId)
+                .comments(comments.stream()
+                        .map(CommentConverter::toDetailDTO)
+                        .toList())
+                .count(comments.size())
                 .build();
     }
 }
