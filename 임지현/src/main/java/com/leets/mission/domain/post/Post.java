@@ -29,20 +29,27 @@ public class Post extends BaseEntity {
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
-    /**
-     * [확장성 설계] 게시글 조회수 카운트 필드.
-     * - 현 단계: 필드 선언 및 기본값(0) 설정.
-     * - 추후 구현: 조회수 중복 증가 방지(Cookie/IP 기반), Redis 캐싱 및 동시성 제어 로직 적용 예정.
-     */
+
     @Column(name = "view_count", nullable = false)
     private Integer viewCount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private PostStatus status;
+
     @Builder
-    public Post(Member member, String title, String content, Integer viewCount) {
+    public Post(
+            Member member,
+            String title,
+            String content,
+            Integer viewCount,
+            PostStatus status
+    ) {
         this.member = member;
         this.title = title;
         this.content = content;
-        this.viewCount = viewCount != null ? viewCount : 0;
+        this.viewCount = 0;
+        this.status = PostStatus.ACTIVE;
     }
     public void update(String title, String content) {
         this.title = title;
@@ -51,6 +58,17 @@ public class Post extends BaseEntity {
 
     public void increaseViewCount() {
         this.viewCount++;
+    }
+
+    public void hide() {
+        validateActive();
+        this.status = PostStatus.HIDDEN;
+    }
+
+    private void validateActive() {
+        if (this.status != PostStatus.ACTIVE) {
+            throw new IllegalStateException("ACTIVE 상태의 게시글만 숨길 수 있습니다.");
+        }
     }
 
     public void delete() {
