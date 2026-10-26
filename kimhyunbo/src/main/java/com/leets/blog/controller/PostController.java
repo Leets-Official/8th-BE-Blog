@@ -65,6 +65,13 @@ public class PostController {
         return respond(SuccessCode.POST_DELETED, postService.deletePost(postId, authorId));
     }
 
+    @PatchMapping("/{postId}/hide")
+    public ResponseEntity<ApiResponse<PostDetailResponse>> hidePost(
+            @PathVariable Long postId,
+            @RequestParam Long authorId) {
+        return respond(SuccessCode.POST_HIDDEN, postService.hidePost(postId, authorId));
+    }
+
     private <T> ResponseEntity<ApiResponse<T>> respond(SuccessCode successCode, T data) {
         return ResponseEntity.status(successCode.getStatus()).body(ApiResponse.success(successCode, data));
     }

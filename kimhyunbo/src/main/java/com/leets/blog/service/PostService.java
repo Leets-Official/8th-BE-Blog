@@ -7,6 +7,7 @@ import com.leets.blog.dto.post.PostListResponse;
 import com.leets.blog.dto.post.PostUpdateRequest;
 import com.leets.blog.entity.Member;
 import com.leets.blog.entity.Post;
+import com.leets.blog.entity.PostStatus;
 import com.leets.blog.global.exception.CustomException;
 import com.leets.blog.global.exception.ErrorCode;
 import com.leets.blog.repository.MemberRepository;
@@ -34,15 +35,18 @@ public class PostService {
         // API는 1페이지부터, Spring Data는 0페이지부터 시작한다.
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "id"));
 
+        // 숨김 처리된 게시글은 목록에 보여주지 않는다.
         Page<Post> posts = StringUtils.hasText(keyword)
-                ? postRepository.findByTitleContaining(keyword, pageable)
-                : postRepository.findAll(pageable);
+                ? postRepository.findByStatusAndTitleContaining(PostStatus.ACTIVE, keyword, pageable)
+                : postRepository.findByStatus(PostStatus.ACTIVE, pageable);
 
         return posts.map(PostListResponse::from).toList();
     }
 
     public PostDetailResponse getPost(Long postId) {
-        return PostDetailResponse.from(findPost(postId));
+        Post post = postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        return PostDetailResponse.from(post);
     }
 
     @Transactional
@@ -78,6 +82,17 @@ public class PostService {
 
         postRepository.delete(post);
         return new PostDeleteResponse(postId);
+    }
+
+    @Transactional
+    public PostDetailResponse hidePost(Long postId, Long authorId) {
+        Post post = findPost(postId);
+        validateAuthor(post, authorId);
+
+        post.hide();
+        postRepository.flush();
+
+        return PostDetailResponse.from(post);
     }
 
     private Post findPost(Long postId) {
