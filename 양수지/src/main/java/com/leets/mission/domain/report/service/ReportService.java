@@ -52,6 +52,30 @@ public class ReportService {
         return createReport(request, reporter, ReportTargetType.COMMENT, commentId);
     }
 
+    // 신고 처리 (PENDING → RESOLVED/REJECTED), 승인 시 신고 대상을 숨김
+    @Transactional
+    public ReportResponseDTO.DetailDTO processReport(Long reportId, ReportRequestDTO.ProcessDTO request) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.REPORT_404_1));
+        report.process(request.status()); //이미 처리된 신고면 409
+        if (report.isResolved()) {
+            hideTarget(report);
+        }
+        return ReportConverter.toDetailDTO(report);
+    }
+
+    // 신고 대상이 남아 있고 아직 노출 중일 때만 숨김 (이미 숨김/삭제된 대상은 그대로 둠)
+    private void hideTarget(Report report) {
+        switch (report.getTargetType()) {
+            case POST -> postRepository.findById(report.getTargetId())
+                    .filter(post -> !post.isHidden())
+                    .ifPresent(Post::hide);
+            case COMMENT -> commentRepository.findById(report.getTargetId())
+                    .filter(comment -> !comment.isHidden())
+                    .ifPresent(Comment::hide);
+        }
+    }
+
     // 같은 사용자가 같은 대상을 이미 신고했으면 409
     private ReportResponseDTO.DetailDTO createReport(ReportRequestDTO.CreateDTO request, User reporter,
                                                      ReportTargetType targetType, Long targetId) {

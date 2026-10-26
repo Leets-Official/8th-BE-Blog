@@ -31,7 +31,10 @@ public enum ErrorStatus {
 
     // 신고
     REPORT_400_1(HttpStatus.BAD_REQUEST, "REPORT_400_1", "본인이 작성한 글은 신고할 수 없습니다."),
-    REPORT_409_1(HttpStatus.CONFLICT, "REPORT_409_1", "이미 신고한 대상입니다.");
+    REPORT_400_2(HttpStatus.BAD_REQUEST, "REPORT_400_2", "처리 결과는 RESOLVED 또는 REJECTED만 가능합니다."),
+    REPORT_404_1(HttpStatus.NOT_FOUND, "REPORT_404_1", "신고를 찾을 수 없습니다."),
+    REPORT_409_1(HttpStatus.CONFLICT, "REPORT_409_1", "이미 신고한 대상입니다."),
+    REPORT_409_2(HttpStatus.CONFLICT, "REPORT_409_2", "이미 처리된 신고입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

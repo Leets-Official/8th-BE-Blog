@@ -54,6 +54,11 @@ public class Comment extends BaseTimeEntity {
         this.status = CommentStatus.ACTIVE;
     }
 
+    // 숨김 처리 (ACTIVE → HIDDEN)
+    public void hide() {
+        this.status = CommentStatus.HIDDEN;
+    }
+
     // 숨김 상태인지 확인
     public boolean isHidden() {
         return status == CommentStatus.HIDDEN;

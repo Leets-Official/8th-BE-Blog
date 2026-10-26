@@ -21,7 +21,8 @@ public enum SuccessStatus {
     COMMENT_CREATED(HttpStatus.CREATED, "2000", "댓글이 작성되었습니다."),
 
     // 신고
-    REPORT_CREATED(HttpStatus.CREATED, "2000", "신고가 접수되었습니다.");
+    REPORT_CREATED(HttpStatus.CREATED, "2000", "신고가 접수되었습니다."),
+    REPORT_PROCESSED(HttpStatus.OK, "2000", "신고가 처리되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

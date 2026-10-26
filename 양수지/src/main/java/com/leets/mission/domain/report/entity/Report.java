@@ -1,6 +1,8 @@
 package com.leets.mission.domain.report.entity;
 
 import com.leets.mission.domain.user.entity.User;
+import com.leets.mission.global.apiPayload.code.ErrorStatus;
+import com.leets.mission.global.apiPayload.exception.GeneralException;
 import com.leets.mission.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -66,5 +68,21 @@ public class Report extends BaseTimeEntity {
         this.targetId = targetId;
         this.reason = reason;
         this.status = ReportStatus.PENDING;
+    }
+
+    // 신고 처리 (PENDING → RESOLVED/REJECTED, 이미 처리된 신고면 409)
+    public void process(ReportStatus status) {
+        if (this.status != ReportStatus.PENDING) {
+            throw new GeneralException(ErrorStatus.REPORT_409_2);
+        }
+        if (status == ReportStatus.PENDING) {
+            throw new GeneralException(ErrorStatus.REPORT_400_2);
+        }
+        this.status = status;
+    }
+
+    // 신고가 승인되었는지 확인
+    public boolean isResolved() {
+        return status == ReportStatus.RESOLVED;
     }
 }
