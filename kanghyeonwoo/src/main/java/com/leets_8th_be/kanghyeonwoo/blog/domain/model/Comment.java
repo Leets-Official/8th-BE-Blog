@@ -1,0 +1,12 @@
+package com.leets_8th_be.kanghyeonwoo.blog.domain.model;
+
+import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+
+public record Comment(CommentId id, UserId authorId, CommentId parentId, String content,
+                      CommentState state, boolean deleted) {
+    public String displayContent() {
+        if (deleted) return "삭제된 댓글입니다.";
+        if (state == CommentState.HIDDEN) return "숨김 처리된 댓글입니다.";
+        return content;
+    }
+}

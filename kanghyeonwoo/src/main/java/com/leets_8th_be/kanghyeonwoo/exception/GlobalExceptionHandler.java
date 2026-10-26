@@ -4,6 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.InvalidCommentQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -49,6 +50,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PostAccessDenied.class)
     public ResponseEntity<ApiResponse<Void>> handlePostAccessDenied(PostAccessDenied ex) {
         return errorResponse(ErrorCode.FORBIDDEN_POST_ACCESS);
+    }
+
+    @ExceptionHandler(InvalidCommentQuery.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCommentQuery(InvalidCommentQuery ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
