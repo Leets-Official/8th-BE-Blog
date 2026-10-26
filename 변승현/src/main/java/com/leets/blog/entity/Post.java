@@ -2,6 +2,8 @@ package com.leets.blog.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +15,7 @@ import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Entity
@@ -37,6 +40,11 @@ public class Post extends BaseEntity {
     @Column(name = "is_private", nullable = false)
     private boolean isPrivate = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @ColumnDefault("'ACTIVE'")
+    private PostStatus status = PostStatus.ACTIVE;
+
     public Post(User user, String title, String content) {
         this(user, title, content, false);
     }
@@ -48,7 +56,18 @@ public class Post extends BaseEntity {
         this.isPrivate = isPrivate;
     }
 
+    public void update(String title, String content) {
+        this.title = title;
+        if (content != null) {
+            this.content = content;
+        }
+    }
+
     public void changeVisibility(boolean isPrivate) {
         this.isPrivate = isPrivate;
+    }
+
+    public void hide() {
+        status = PostStatus.HIDDEN;
     }
 }
