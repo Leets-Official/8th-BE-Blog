@@ -15,6 +15,7 @@ import com.leets.mission.domain.user.repository.UserRepository;
 import com.leets.mission.global.apiPayload.code.ErrorStatus;
 import com.leets.mission.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,8 +83,13 @@ public class ReportService {
         if (reportRepository.existsByReporterAndTargetTypeAndTargetId(reporter, targetType, targetId)) {
             throw new GeneralException(ErrorStatus.REPORT_409_1);
         }
-        Report report = reportRepository.save(ReportConverter.toReport(request, reporter, targetType, targetId));
-        return ReportConverter.toDetailDTO(report);
+        try {
+            // 동시 요청이 위 확인을 함께 통과해도 DB Unique 제약조건이 막도록 바로 INSERT
+            Report report = reportRepository.saveAndFlush(ReportConverter.toReport(request, reporter, targetType, targetId));
+            return ReportConverter.toDetailDTO(report);
+        } catch (DataIntegrityViolationException e) {
+            throw new GeneralException(ErrorStatus.REPORT_409_1);
+        }
     }
 
     // 숨김 게시글은 없는 게시글과 같이 취급 (404)
