@@ -1,6 +1,6 @@
 # 검색어 추천 및 트렌드
 
-Status: implementing
+Status: implemented
 
 ## 확정한 결정
 

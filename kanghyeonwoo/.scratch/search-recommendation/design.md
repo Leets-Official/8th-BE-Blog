@@ -1,6 +1,6 @@
 # 검색 기능 구현 설계안
 
-Status: implementing
+Status: implemented
 
 사용자와 확정한 요구사항은 [spec.md](spec.md), 용어는 [GLOSSARY.md](../../GLOSSARY.md)를 따른다. 사용자 구현 지시로 [티켓 분할안](ticket-proposal.md)의 작업을 진행한다.
 
