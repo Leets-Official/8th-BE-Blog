@@ -14,11 +14,13 @@ class HexagonalBoundaryTest {
         ArchRule rule = classes()
                 .that().resideInAnyPackage(
                         ROOT + ".user.domain..", ROOT + ".user.application..",
-                        ROOT + ".blog.domain..", ROOT + ".blog.application..")
+                        ROOT + ".blog.domain..", ROOT + ".blog.application..",
+                        ROOT + ".report.domain..", ROOT + ".report.application..")
                 .should().onlyDependOnClassesThat().resideOutsideOfPackages(
                         "org.springframework..", "jakarta.persistence..",
                         ROOT + ".user.adapter..", ROOT + ".user.config..",
                         ROOT + ".blog.adapter..", ROOT + ".blog.config..",
+                        ROOT + ".report.adapter..", ROOT + ".report.config..",
                         ROOT + ".controller..", ROOT + ".dto..", ROOT + ".entity..",
                         ROOT + ".repository..");
 
@@ -32,16 +34,27 @@ class HexagonalBoundaryTest {
                 .should().onlyDependOnClassesThat().resideOutsideOfPackages(ROOT + ".user.adapter..");
         ArchRule userRule = classes()
                 .that().resideInAnyPackage(ROOT + ".user..")
-                .should().onlyDependOnClassesThat().resideOutsideOfPackages(ROOT + ".blog.adapter..");
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(ROOT + ".blog.adapter..",
+                        ROOT + ".report.adapter..");
+        ArchRule blogReportRule = classes()
+                .that().resideInAnyPackage(ROOT + ".blog..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(ROOT + ".report.adapter..");
+        ArchRule reportUserBlogRule = classes()
+                .that().resideInAnyPackage(ROOT + ".report..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(ROOT + ".user.adapter..",
+                        ROOT + ".blog.adapter..");
 
         blogRule.check(applicationClasses());
         userRule.check(applicationClasses());
+        blogReportRule.check(applicationClasses());
+        reportUserBlogRule.check(applicationClasses());
     }
 
     @Test
     void migratedAdaptersDoNotDependOnLegacyPersistencePackages() {
         ArchRule rule = classes()
-                .that().resideInAnyPackage(ROOT + ".blog.adapter..", ROOT + ".user.adapter..")
+                .that().resideInAnyPackage(ROOT + ".blog.adapter..", ROOT + ".user.adapter..",
+                        ROOT + ".report.adapter..")
                 .should().onlyDependOnClassesThat().resideOutsideOfPackages(
                         ROOT + ".entity..", ROOT + ".repository..");
 

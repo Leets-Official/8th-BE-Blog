@@ -5,6 +5,10 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.InvalidCommentQuery;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateReport;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFound;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -54,6 +58,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCommentQuery.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidCommentQuery(InvalidCommentQuery ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(ReporterNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleReporterNotFound(ReporterNotFound ex) {
+        return errorResponse(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @ExceptionHandler(DuplicateReport.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateReport(DuplicateReport ex) {
+        return errorResponse(ErrorCode.DUPLICATE_REPORT);
+    }
+
+    @ExceptionHandler(SelfReportForbidden.class)
+    public ResponseEntity<ApiResponse<Void>> handleSelfReportForbidden(SelfReportForbidden ex) {
+        return errorResponse(ErrorCode.SELF_REPORT_FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidReportRequest.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidReportRequest(InvalidReportRequest ex) {
         return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
     }
 

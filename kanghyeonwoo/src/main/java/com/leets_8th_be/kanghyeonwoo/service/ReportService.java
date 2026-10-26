@@ -30,18 +30,6 @@ public class ReportService {
     private final Clock clock;
 
     @Transactional
-    public ReportCreateResponse reportPost(Long postId, ReportCreateRequest request) {
-        requirePositiveId(postId);
-        User reporter = users.findById(request.reporterId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Post post = posts.findForUpdate(postId)
-                .filter(p -> p.getStatus() == PostStatus.ACTIVE)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        validateReporter(reporter, post.getUser(), ReportTargetType.POST, postId);
-        return ReportCreateResponse.from(reports.saveAndFlush(Report.ofPost(reporter, post, request.reason())));
-    }
-
-    @Transactional
     public ReportCreateResponse reportComment(Long commentId, ReportCreateRequest request) {
         requirePositiveId(commentId);
         User reporter = users.findById(request.reporterId())

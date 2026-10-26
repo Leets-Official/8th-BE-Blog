@@ -4,6 +4,11 @@ import com.leets_8th_be.kanghyeonwoo.dto.*;
 import com.leets_8th_be.kanghyeonwoo.service.ReportService;
 import com.leets_8th_be.kanghyeonwoo.entity.ReportStatus;
 import com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType;
+import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportView;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostCommand;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,13 +23,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(ApiPaths.API_V1)
 public class ReportController {
     private final ReportService reports;
+    private final ReportPostUseCase reportPostUseCase;
 
     @PostMapping("/posts/{postId}/reports")
     @Operation(summary = "게시글 신고", description = "본인·숨김 게시글은 신고할 수 없으며 동일 사용자의 중복 신고는 409입니다.")
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportPost(
             @PathVariable("postId") Long postId, @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(
-                "S201", "게시글 신고가 접수되었습니다.", reports.reportPost(postId, request)));
+                "S201", "게시글 신고가 접수되었습니다.",
+                toCreateResponse(reportPostUseCase.report(new ReportPostCommand(new PostId(postId),
+                        new UserId(request.reporterId()), request.reason())))));
     }
     @PostMapping("/comments/{commentId}/reports")
     @Operation(summary = "댓글 신고", description = "본인·숨김·삭제 댓글과 숨김 게시글의 댓글은 신고할 수 없습니다. 중복 신고는 409입니다.")
@@ -52,6 +60,11 @@ public class ReportController {
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
             @PathVariable("reportId") Long reportId, @Valid @RequestBody ReportResolveRequest request) {
         return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", reports.resolve(reportId, request)));
+    }
+
+    private static ReportCreateResponse toCreateResponse(ReportView report) {
+        ReportTargetType targetType = ReportTargetType.valueOf(report.target().name());
+        return new ReportCreateResponse(report.id().value(), targetType, report.targetId(), ReportStatus.PENDING);
     }
 
 }
