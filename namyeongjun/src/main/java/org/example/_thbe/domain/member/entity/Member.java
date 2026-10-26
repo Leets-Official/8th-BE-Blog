@@ -22,4 +22,22 @@ public class Member extends BaseTimeEntity {
 
     @Column(name = "email",length = 255, nullable = false, unique = true)
     private String email;
+
+    public Member(String name,String password,String email) {
+        this.nickname = name;
+        this.password = password;
+        this.email = email;
+    }
+
+    public static Member create(String name,String password,String email) {
+        return new Member(name,password,email);
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
+    public void updateName(String name) {
+        this.nickname = nickname;
+    }
 }
