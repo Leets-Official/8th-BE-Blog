@@ -15,6 +15,7 @@ public enum SuccessStatus {
     POST_CREATED(HttpStatus.CREATED, "2000", "게시글이 생성되었습니다."),
     POST_UPDATED(HttpStatus.OK, "2000", "게시글이 수정되었습니다."),
     POST_DELETED(HttpStatus.OK, "2000", "게시글이 삭제되었습니다."),
+    POST_HIDDEN(HttpStatus.OK, "2000", "게시글이 숨김 처리되었습니다."),
 
     // 댓글
     COMMENT_CREATED(HttpStatus.CREATED, "2000", "댓글이 작성되었습니다.");

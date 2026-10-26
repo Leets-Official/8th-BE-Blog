@@ -95,6 +95,17 @@ public class PostService {
         return PostConverter.toDeleteDTO(postId);
     }
 
+    // 게시글 숨김 (ACTIVE → HIDDEN)
+    @Transactional
+    public PostResponseDTO.StatusDTO hidePost(Long postId, Long userId) {
+        Post post = findPost(postId);
+        if (!post.isWrittenBy(userId)) {
+            throw new GeneralException(ErrorStatus.POST_403_3);
+        }
+        post.hide(); //이미 숨김이면 409
+        return PostConverter.toStatusDTO(post);
+    }
+
     private Post findPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_404_1));

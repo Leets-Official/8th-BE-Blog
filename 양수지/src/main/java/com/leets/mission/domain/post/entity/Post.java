@@ -1,6 +1,8 @@
 package com.leets.mission.domain.post.entity;
 
 import com.leets.mission.domain.user.entity.User;
+import com.leets.mission.global.apiPayload.code.ErrorStatus;
+import com.leets.mission.global.apiPayload.exception.GeneralException;
 import com.leets.mission.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -67,6 +69,14 @@ public class Post extends BaseTimeEntity {
         if (content != null) {
             this.content = content;
         }
+    }
+
+    // 숨김 처리 (ACTIVE → HIDDEN, 이미 숨김이면 409)
+    public void hide() {
+        if (isHidden()) {
+            throw new GeneralException(ErrorStatus.POST_409_1);
+        }
+        this.status = PostStatus.HIDDEN;
     }
 
     // 숨김 상태인지 확인

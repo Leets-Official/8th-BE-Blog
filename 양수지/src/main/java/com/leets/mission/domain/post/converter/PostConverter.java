@@ -57,6 +57,14 @@ public class PostConverter {
                 .build();
     }
 
+    // Post 엔티티 → 상태 변경 응답 DTO
+    public static PostResponseDTO.StatusDTO toStatusDTO(Post post) {
+        return PostResponseDTO.StatusDTO.builder()
+                .postId(post.getId())
+                .status(post.getStatus())
+                .build();
+    }
+
     // 삭제된 게시글 ID → 삭제 응답 DTO
     public static PostResponseDTO.DeleteDTO toDeleteDTO(Long postId) {
         return PostResponseDTO.DeleteDTO.builder()

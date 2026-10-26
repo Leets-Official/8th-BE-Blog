@@ -1,5 +1,6 @@
 package com.leets.mission.domain.post.dto;
 
+import com.leets.mission.domain.post.entity.PostStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -39,6 +40,14 @@ public class PostResponseDTO {
             long totalElements,
             int totalPages,
             boolean hasNext
+    ) {
+    }
+
+    // 게시글 상태 변경 결과
+    @Builder
+    public record StatusDTO(
+            Long postId,
+            PostStatus status
     ) {
     }
 

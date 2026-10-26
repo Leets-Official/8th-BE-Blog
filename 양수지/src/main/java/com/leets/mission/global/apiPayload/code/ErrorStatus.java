@@ -22,7 +22,9 @@ public enum ErrorStatus {
     POST_400_2(HttpStatus.BAD_REQUEST, "POST_400_2", "page는 0 이상, size는 1 이상이어야 합니다."),
     POST_403_1(HttpStatus.FORBIDDEN, "POST_403_1", "본인이 작성한 게시글만 수정할 수 있습니다."),
     POST_403_2(HttpStatus.FORBIDDEN, "POST_403_2", "본인이 작성한 게시글만 삭제할 수 있습니다."),
-    POST_404_1(HttpStatus.NOT_FOUND, "POST_404_1", "게시글을 찾을 수 없습니다.");
+    POST_403_3(HttpStatus.FORBIDDEN, "POST_403_3", "본인이 작성한 게시글만 숨길 수 있습니다."),
+    POST_404_1(HttpStatus.NOT_FOUND, "POST_404_1", "게시글을 찾을 수 없습니다."),
+    POST_409_1(HttpStatus.CONFLICT, "POST_409_1", "이미 숨김 처리된 게시글입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
