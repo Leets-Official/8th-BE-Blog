@@ -1,5 +1,6 @@
 package com.leets.mission.domain.post.service;
 
+import com.leets.mission.domain.comment.repository.CommentRepository;
 import com.leets.mission.domain.post.converter.PostConverter;
 import com.leets.mission.domain.post.dto.PostRequestDTO;
 import com.leets.mission.domain.post.dto.PostResponseDTO;
@@ -23,6 +24,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     // 게시글 생성
     @Transactional
@@ -87,6 +89,8 @@ public class PostService {
         if (!post.isWrittenBy(userId)) {
             throw new GeneralException(ErrorStatus.POST_403_2);
         }
+        // 댓글이 게시글을 참조하므로 댓글을 먼저 삭제
+        commentRepository.deleteAllByPost(post);
         postRepository.delete(post);
         return PostConverter.toDeleteDTO(postId);
     }

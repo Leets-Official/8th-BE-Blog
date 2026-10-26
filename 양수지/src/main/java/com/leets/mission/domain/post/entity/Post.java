@@ -69,6 +69,11 @@ public class Post extends BaseTimeEntity {
         }
     }
 
+    // 숨김 상태인지 확인
+    public boolean isHidden() {
+        return status == PostStatus.HIDDEN;
+    }
+
     //사용자가 작성한 게시글인지 확인
     public boolean isWrittenBy(Long userId) {
         return user.getId().equals(userId);
