@@ -1,0 +1,87 @@
+package com.leets.mission.domain.post.controller;
+
+import com.leets.mission.domain.post.dto.PostRequestDTO;
+import com.leets.mission.domain.post.dto.PostResponseDTO;
+import com.leets.mission.domain.post.service.PostService;
+import com.leets.mission.global.apiPayload.ApiResponse;
+import com.leets.mission.global.apiPayload.code.SuccessStatus;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/posts")
+public class PostController {
+
+    private final PostService postService;
+
+    // 게시글 생성
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<PostResponseDTO.DetailDTO> createPost(@RequestBody @Valid PostRequestDTO.CreateDTO request) {
+        return ApiResponse.of(SuccessStatus.POST_CREATED, postService.createPost(request));
+    }
+
+    // 게시글 목록 조회
+    @GetMapping
+    public ApiResponse<PostResponseDTO.PreviewListDTO> getPostList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.onSuccess(postService.getPostList(page, size));
+    }
+
+    // 게시글 단일 조회
+    @GetMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DetailDTO> getPost(@PathVariable Long postId) {
+        return ApiResponse.onSuccess(postService.getPost(postId));
+    }
+
+    // 게시글 전체 수정
+    @PutMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DetailDTO> updatePost(
+            @PathVariable Long postId,  //url에
+            @RequestBody @Valid PostRequestDTO.UpdateDTO request //본문에
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.updatePost(postId, request));
+    }
+
+    // 게시글 부분 수정
+    @PatchMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DetailDTO> patchPost(
+            @PathVariable Long postId,
+            @RequestBody @Valid PostRequestDTO.PatchDTO request
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.patchPost(postId, request));
+    }
+
+    // 게시글 숨김 (userId -> 쿼리 파라미터로)
+    @PatchMapping("/{postId}/hide")
+    public ApiResponse<PostResponseDTO.StatusDTO> hidePost(
+            @PathVariable Long postId,
+            @RequestParam Long userId
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_HIDDEN, postService.hidePost(postId, userId));
+    }
+
+    // 게시글 삭제 (userId -> 쿼리 파라미터로)
+    @DeleteMapping("/{postId}")
+    public ApiResponse<PostResponseDTO.DeleteDTO> deletePost(
+            @PathVariable Long postId,
+            @RequestParam Long userId
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_DELETED, postService.deletePost(postId, userId));
+    }
+}
