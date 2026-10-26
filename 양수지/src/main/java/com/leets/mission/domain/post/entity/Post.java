@@ -71,7 +71,7 @@ public class Post extends BaseTimeEntity {
         }
     }
 
-    // 숨김 처리 (ACTIVE → HIDDEN, 이미 숨김이면 409)
+    // 숨김 처리 (ACTIVE -> HIDDEN, 이미 숨김이면 409)
     public void hide() {
         if (isHidden()) {
             throw new GeneralException(ErrorStatus.POST_409_1);

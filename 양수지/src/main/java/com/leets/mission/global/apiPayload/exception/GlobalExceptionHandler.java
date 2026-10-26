@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         return toResponse(e.getErrorStatus(), null);
     }
 
-    // @Valid 검증 실패 → 어떤 필드가 왜 틀렸는지 result에
+    // @Valid 검증 실패 -> 어떤 필드가 왜 틀렸는지 result에
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException e) {
         Map<String, String> errors = new LinkedHashMap<>();
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
         return toResponse(ErrorStatus.COMMON_400_1, null);
     }
 
-    // 그 외 → 500
+    // 그 외 -> 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) throws Exception {
         // 없는 URL(404), 지원하지 않는 HTTP 메서드(405)

@@ -75,7 +75,7 @@ public class Report extends BaseTimeEntity {
         this.status = ReportStatus.PENDING;
     }
 
-    // 신고 처리 (PENDING → RESOLVED/REJECTED, 이미 처리된 신고면 409)
+    // 신고 처리 (PENDING -> RESOLVED/REJECTED, 이미 처리된 신고면 409)
     public void process(ReportStatus status) {
         if (this.status != ReportStatus.PENDING) {
             throw new GeneralException(ErrorStatus.REPORT_409_2);

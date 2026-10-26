@@ -54,7 +54,7 @@ public class ReportService {
         return createReport(request, reporter, ReportTargetType.COMMENT, commentId);
     }
 
-    // 신고 처리 (PENDING → RESOLVED/REJECTED), 승인 시 신고 대상을 숨김
+    // 신고 처리 (PENDING -> RESOLVED/REJECTED), 승인 시 신고 대상을 숨김
     @Transactional
     public ReportResponseDTO.DetailDTO processReport(Long reportId, ReportRequestDTO.ProcessDTO request) {
         Report report = reportRepository.findById(reportId)

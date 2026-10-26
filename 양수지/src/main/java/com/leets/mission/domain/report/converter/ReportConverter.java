@@ -12,7 +12,7 @@ public class ReportConverter {
     private ReportConverter() {
     }
 
-    // 신고 요청 DTO → Report 엔티티
+    // 신고 요청 DTO -> Report 엔티티
     public static Report toReport(ReportRequestDTO.CreateDTO request, User reporter,
                                   ReportTargetType targetType, Long targetId) {
         return Report.builder()
@@ -23,7 +23,7 @@ public class ReportConverter {
                 .build();
     }
 
-    // Report 엔티티 → 상세 응답 DTO
+    // Report 엔티티 -> 상세 응답 DTO
     public static ReportResponseDTO.DetailDTO toDetailDTO(Report report) {
         return ReportResponseDTO.DetailDTO.builder()
                 .reportId(report.getId())

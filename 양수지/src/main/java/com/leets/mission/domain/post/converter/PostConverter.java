@@ -12,7 +12,7 @@ public class PostConverter {
     private PostConverter() {
     }
 
-    // 생성 요청 DTO → Post 엔티티
+    // 생성 요청 DTO -> Post 엔티티
     public static Post toPost(PostRequestDTO.CreateDTO request, User user) {
         return Post.builder()
                 .title(request.title())
@@ -21,7 +21,7 @@ public class PostConverter {
                 .build();
     }
 
-    // Post 엔티티 → 상세 응답 DTO
+    // Post 엔티티 -> 상세 응답 DTO
     public static PostResponseDTO.DetailDTO toDetailDTO(Post post) {
         return PostResponseDTO.DetailDTO.builder()
                 .postId(post.getId())
@@ -33,7 +33,7 @@ public class PostConverter {
                 .build();
     }
 
-    // Post 엔티티 → 목록 항목 DTO
+    // Post 엔티티 -> 목록 항목 DTO
     public static PostResponseDTO.PreviewDTO toPreviewDTO(Post post) {
         return PostResponseDTO.PreviewDTO.builder()
                 .postId(post.getId())
@@ -43,7 +43,7 @@ public class PostConverter {
                 .build();
     }
 
-    // 게시글 페이지 → 목록 응답 DTO
+    // 게시글 페이지 -> 목록 응답 DTO
     public static PostResponseDTO.PreviewListDTO toPreviewListDTO(Page<Post> postPage) {
         return PostResponseDTO.PreviewListDTO.builder()
                 .posts(postPage.getContent().stream()
@@ -57,7 +57,7 @@ public class PostConverter {
                 .build();
     }
 
-    // Post 엔티티 → 상태 변경 응답 DTO
+    // Post 엔티티 -> 상태 변경 응답 DTO
     public static PostResponseDTO.StatusDTO toStatusDTO(Post post) {
         return PostResponseDTO.StatusDTO.builder()
                 .postId(post.getId())
@@ -65,7 +65,7 @@ public class PostConverter {
                 .build();
     }
 
-    // 삭제된 게시글 ID → 삭제 응답 DTO
+    // 삭제된 게시글 ID -> 삭제 응답 DTO
     public static PostResponseDTO.DeleteDTO toDeleteDTO(Long postId) {
         return PostResponseDTO.DeleteDTO.builder()
                 .postId(postId)

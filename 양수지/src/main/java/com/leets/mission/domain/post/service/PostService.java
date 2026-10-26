@@ -96,7 +96,7 @@ public class PostService {
         return PostConverter.toDeleteDTO(postId);
     }
 
-    // 게시글 숨김 (ACTIVE → HIDDEN)
+    // 게시글 숨김 (ACTIVE -> HIDDEN)
     @Transactional
     public PostResponseDTO.StatusDTO hidePost(Long postId, Long userId) {
         Post post = findPost(postId);

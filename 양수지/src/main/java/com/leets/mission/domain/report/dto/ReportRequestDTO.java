@@ -19,7 +19,7 @@ public class ReportRequestDTO {
     ) {
     }
 
-    // 신고 처리 요청 (RESOLVED: 승인 → 대상 숨김, REJECTED: 반려)
+    // 신고 처리 요청 (RESOLVED: 승인 -> 대상 숨김, REJECTED: 반려)
     public record ProcessDTO(
             @NotNull(message = "처리 결과(RESOLVED 또는 REJECTED)를 입력해주세요.")
             ReportStatus status
