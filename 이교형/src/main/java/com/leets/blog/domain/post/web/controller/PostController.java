@@ -8,6 +8,7 @@ import com.leets.blog.domain.post.web.dto.request.PostCreateRequest;
 import com.leets.blog.domain.post.web.dto.request.PostUpdateRequest;
 import com.leets.blog.domain.post.web.dto.response.PostDeleteResponse;
 import com.leets.blog.domain.post.web.dto.response.PostDetailResponse;
+import com.leets.blog.domain.post.web.dto.response.PostHideResponse;
 import com.leets.blog.domain.post.web.dto.response.PostListResponse;
 import com.leets.blog.domain.post.web.dto.response.PostResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Post API", description = "게시글 CRUD API")
+@Tag(name = "Post API", description = "게시글 CRUD 및 숨김(관리자) API")
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class PostController {
 
     private final PostService postService;
 
-    @Operation(summary = "게시글 목록 조회", description = "삭제되지 않은 게시글을 페이지 단위로 조회합니다. sort: latest, oldest, popular")
+    @Operation(summary = "게시글 목록 조회", description = "삭제·숨김되지 않은 게시글을 페이지 단위로 조회합니다. sort: latest, oldest, popular")
     @GetMapping
     public ResponseEntity<ApiResponse<PostListResponse>> getPosts(
             @RequestParam(defaultValue = "1") @BindErrorCode(ErrorCode.INVALID_PAGE_NUMBER) int page,
@@ -44,7 +45,7 @@ public class PostController {
         return ApiResponse.okEntity(postService.getPosts(page, size, sort));
     }
 
-    @Operation(summary = "게시글 상세 조회", description = "삭제되지 않은 게시글 하나를 조회합니다.")
+    @Operation(summary = "게시글 상세 조회", description = "삭제·숨김되지 않은 게시글 하나를 조회합니다.")
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPost(
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
@@ -77,5 +78,14 @@ public class PostController {
             @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
         return ApiResponse.okEntity(postService.deletePost(memberId, postId));
+    }
+
+    @Operation(summary = "게시글 숨김 (관리자)", description = "게시글을 숨김(HIDDEN) 처리합니다. 숨긴 글은 목록·상세 조회, 댓글, 신고에서 제외됩니다. 이미 숨긴 글은 409입니다.")
+    @PatchMapping("/{postId}/hide")
+    public ResponseEntity<ApiResponse<PostHideResponse>> hidePost(
+            @Parameter(description = "관리자 회원 ID (로그인 대체)", required = true)
+            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
+        return ApiResponse.okEntity(postService.hidePost(memberId, postId));
     }
 }

@@ -15,14 +15,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     String COMMENT_COUNT = "(select count(c) from Comment c where c.post = p and c.deletedAt is null)";
 
     // 목록 조회 공통 부분: 작성자 이름과 댓글 수를 쿼리 한 번으로 가져옴 (정렬 기준마다 ORDER BY만 다름)
+    // 삭제·숨김된 글은 목록에서 제외 (카운트 쿼리도 같은 조건이어야 페이지 정보가 맞음)
     String SUMMARY_QUERY =
             "select new com.leets.blog.domain.post.web.dto.response.PostSummaryResponse("
             + "p.id, p.title, m.name, p.createdAt, " + COMMENT_COUNT + ") "
             + "from Post p "
             + "join p.member m "
-            + "where p.deletedAt is null ";
+            + "where p.deletedAt is null "
+            + "and p.status = com.leets.blog.domain.post.entity.PostStatus.ACTIVE ";
 
-    String SUMMARY_COUNT_QUERY = "select count(p) from Post p where p.deletedAt is null";
+    String SUMMARY_COUNT_QUERY = "select count(p) from Post p where p.deletedAt is null "
+            + "and p.status = com.leets.blog.domain.post.entity.PostStatus.ACTIVE";
 
     Optional<Post> findByIdAndDeletedAtIsNull(Long id);
 

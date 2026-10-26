@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -39,6 +40,11 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'MEMBER'")
+    @Column(nullable = false)
+    private MemberRole role;
+
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();
 
@@ -51,9 +57,15 @@ public class Member extends BaseEntity {
         this.age = age;
         this.email = email;
         this.password = password;
+        this.role = MemberRole.MEMBER;
     }
 
     public void delete() {
         softDelete();
+    }
+
+    // 관리자 권한 확인 (신고 처리·게시글 숨김)
+    public boolean isAdmin() {
+        return this.role == MemberRole.ADMIN;
     }
 }

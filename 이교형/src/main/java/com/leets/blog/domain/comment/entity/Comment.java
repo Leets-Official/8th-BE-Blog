@@ -44,4 +44,9 @@ public class Comment extends BaseEntity {
     public void delete() {
         softDelete();
     }
+
+    // 작성자 본인인지 확인 (본인 댓글 신고 방지)
+    public boolean isWrittenBy(Long memberId) {
+        return this.member.getId().equals(memberId);
+    }
 }
