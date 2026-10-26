@@ -14,6 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 public class Post extends SoftDeletableEntity {
 
+    @Version
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private long version;
+
     @Column(nullable = false, length = 50)
     private String title;
 

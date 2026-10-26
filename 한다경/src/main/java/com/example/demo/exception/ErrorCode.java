@@ -25,6 +25,7 @@ public enum ErrorCode {
     DUPLICATE_REPORT(HttpStatus.CONFLICT, "DUPLICATE_REPORT", "이미 신고한 대상입니다."),
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "존재하지 않는 신고입니다."),
     REPORT_STATE_CONFLICT(HttpStatus.CONFLICT, "REPORT_STATE_CONFLICT", "현재 상태에서는 신고를 승인할 수 없습니다."),
+    CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "CONCURRENT_MODIFICATION", "다른 요청으로 데이터가 변경되었습니다. 최신 상태를 확인한 후 다시 요청해주세요."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다.");
 
     private final HttpStatus status;
