@@ -5,9 +5,11 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetCommentTargetUs
 import com.leets_8th_be.kanghyeonwoo.report.adapter.transaction.TransactionalReportUseCases;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentUseCase;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.GetReportsUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportStore;
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ReportPostService;
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ReportCommentService;
+import com.leets_8th_be.kanghyeonwoo.report.application.usecase.GetReportsService;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,13 @@ public class ReportModuleConfiguration {
                                                 GetCommentTargetUseCase comments, ReportStore reports,
                                                 PlatformTransactionManager transactionManager) {
         return new TransactionalReportUseCases(new ReportPostService(users, posts, reports),
-                new ReportCommentService(users, comments, reports), new TransactionTemplate(transactionManager));
+                new ReportCommentService(users, comments, reports), new GetReportsService(reports),
+                new TransactionTemplate(transactionManager), readTransaction(transactionManager));
+    }
+
+    private static TransactionTemplate readTransaction(PlatformTransactionManager transactionManager) {
+        TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+        transaction.setReadOnly(true);
+        return transaction;
     }
 }

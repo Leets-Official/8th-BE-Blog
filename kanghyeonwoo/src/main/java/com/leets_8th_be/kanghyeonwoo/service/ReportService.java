@@ -29,24 +29,6 @@ public class ReportService {
     private final CommentRepository comments;
     private final Clock clock;
 
-    public PageResponse<ReportResponse> getReports(int page, int size, ReportStatus status,
-                                                   ReportTargetType targetType, Long targetId, String keyword) {
-        var pageable = Pagination.newestFirst(page, size);
-        if (targetId != null) requirePositiveId(targetId);
-        Specification<Report> criteria = (root, query, cb) -> cb.conjunction();
-        if (status != null) criteria = criteria.and((root, query, cb) -> cb.equal(root.get("status"), status));
-        if (targetType != null) criteria = criteria.and((root, query, cb) -> cb.equal(root.get("targetType"), targetType));
-        if (targetId != null) criteria = criteria.and((root, query, cb) -> cb.equal(root.get("targetId"), targetId));
-        if (keyword != null && !keyword.isBlank()) {
-            String term = keyword.strip();
-            criteria = criteria.and((root, query, cb) -> cb.or(
-                    TextSearch.contains(cb, root.get("reason"), term),
-                    TextSearch.contains(cb, root.get("targetTitleSnapshot"), term),
-                    TextSearch.contains(cb, root.get("targetContentSnapshot"), term)));
-        }
-        return PageResponse.from(reports.findAll(criteria, pageable).map(ReportResponse::from));
-    }
-
     @Transactional
     public ReportResolveResponse resolve(Long reportId, ReportResolveRequest request) {
         requirePositiveId(reportId);

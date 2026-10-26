@@ -9,6 +9,13 @@ import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostComman
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentUseCase;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.GetReportsUseCase;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportSearchQuery;
+import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportPage;
+import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportListItem;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
@@ -28,6 +35,7 @@ public class ReportController {
     private final ReportService reports;
     private final ReportPostUseCase reportPostUseCase;
     private final ReportCommentUseCase reportCommentUseCase;
+    private final GetReportsUseCase getReportsUseCase;
 
     @PostMapping("/posts/{postId}/reports")
     @Operation(summary = "게시글 신고", description = "본인·숨김 게시글은 신고할 수 없으며 동일 사용자의 중복 신고는 409입니다.")
@@ -57,8 +65,13 @@ public class ReportController {
             @RequestParam(name = "targetType", required = false) ReportTargetType targetType,
             @RequestParam(name = "targetId", required = false) Long targetId,
             @RequestParam(name = "keyword", required = false) String keyword) {
-        return ResponseEntity.ok(ApiResponse.success("신고 조회가 완료되었습니다.",
-                reports.getReports(page, size, status, targetType, targetId, keyword)));
+        ReportPage result = getReportsUseCase.getReports(new ReportSearchQuery(page, size,
+                status == null ? null : ReportState.valueOf(status.name()),
+                targetType == null ? null : ReportTarget.valueOf(targetType.name()), targetId, keyword));
+        PageResponse<ReportResponse> response = new PageResponse<>(result.items().stream()
+                .map(ReportController::toReportResponse).toList(), result.page(), result.size(),
+                result.totalElements(), result.totalPages());
+        return ResponseEntity.ok(ApiResponse.success("신고 조회가 완료되었습니다.", response));
     }
 
     @PatchMapping("/reports/{reportId}/resolve")
@@ -71,6 +84,16 @@ public class ReportController {
     private static ReportCreateResponse toCreateResponse(ReportView report) {
         ReportTargetType targetType = ReportTargetType.valueOf(report.target().name());
         return new ReportCreateResponse(report.id().value(), targetType, report.targetId(), ReportStatus.PENDING);
+    }
+
+    private static ReportResponse toReportResponse(ReportListItem report) {
+        return new ReportResponse(report.id().value(), report.reporterId().value(),
+                ReportTargetType.valueOf(report.target().name()), report.targetId(),
+                ReportStatus.valueOf(report.state().name()), report.reason(), report.titleSnapshot(),
+                report.contentSnapshot(), report.createdAt(), report.action() == null ? null
+                : com.leets_8th_be.kanghyeonwoo.entity.ReportResolutionAction.valueOf(report.action().name()),
+                report.resolutionReason(), report.processorId() == null ? null : report.processorId().value(),
+                report.resolvedAt());
     }
 
 }

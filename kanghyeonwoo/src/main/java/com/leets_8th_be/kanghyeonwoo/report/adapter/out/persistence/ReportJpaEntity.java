@@ -94,10 +94,16 @@ class ReportJpaEntity {
     }
 
     Long getId() { return id; }
+    Long getReporterId() { return reporterId; }
     ReportState getStatus() { return status; }
     String getReason() { return reason; }
     ReportTarget getTargetType() { return targetType; }
     Long getTargetId() { return targetId; }
     String getTargetTitleSnapshot() { return targetTitleSnapshot; }
     String getTargetContentSnapshot() { return targetContentSnapshot; }
+    String getAction() { return action; }
+    String getResolutionReason() { return resolutionReason; }
+    Long getProcessorId() { return processorId; }
+    LocalDateTime getCreatedAt() { return createdAt; }
+    LocalDateTime getResolvedAt() { return resolvedAt; }
 }

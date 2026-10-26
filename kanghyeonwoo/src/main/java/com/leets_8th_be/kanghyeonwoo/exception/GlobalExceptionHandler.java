@@ -11,6 +11,7 @@ import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFou
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -91,6 +92,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DeletedCommentReport.class)
     public ResponseEntity<ApiResponse<Void>> handleDeletedCommentReport(DeletedCommentReport ex) {
         return errorResponse(ErrorCode.DELETED_COMMENT_REPORT);
+    }
+
+    @ExceptionHandler(InvalidReportQuery.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidReportQuery(InvalidReportQuery ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
