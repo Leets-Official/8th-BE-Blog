@@ -1,8 +1,12 @@
 package com.leets.blog.entity;
 
+import com.leets.blog.global.exception.CustomException;
+import com.leets.blog.global.exception.ErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,6 +44,10 @@ public class Post extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private PostStatus status = PostStatus.ACTIVE;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
@@ -53,5 +61,12 @@ public class Post extends BaseTimeEntity {
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    public void hide() {
+        if (status == PostStatus.HIDDEN) {
+            throw new CustomException(ErrorCode.POST_ALREADY_HIDDEN);
+        }
+        this.status = PostStatus.HIDDEN;
     }
 }
