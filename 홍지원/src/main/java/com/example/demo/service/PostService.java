@@ -45,7 +45,7 @@ public class PostService {
     @Transactional
     public PostDto.Saved create(String userId, PostDto.Request request) {
         Member member = currentMember(userId);
-        validate(request, false);
+        validate(request);
         Post post = postRepository.saveAndFlush(new Post(member, request.title(), request.content()));
         return PostDto.Saved.from(post);
     }
@@ -55,7 +55,7 @@ public class PostService {
         Member member = currentMember(userId);
         Post post = findPost(postId);
         checkAuthor(post, member);
-        validate(request, true);
+        validate(request);
         post.update(request.title(), request.content());
         return PostDto.Saved.from(post);
     }
@@ -93,16 +93,16 @@ public class PostService {
         }
     }
 
-    private void validate(PostDto.Request request, boolean update) {
+    private void validate(PostDto.Request request) {
         if (request == null || request.title() == null || request.title().isBlank()
                 || request.content() == null || request.content().isBlank()) {
             throw new ApiException(400, "REQUIRED_FIELD_MISSING", "제목과 내용은 필수이며 공백만 입력할 수 없습니다.");
         }
         if (request.title().length() > 100) {
-            throw new ApiException(400, "TITLE_LENGTH_EXCEED", "제목은 100자 이하여야 합니다.");
+            throw new ApiException(400, "TITLE_LENGTH_EXCEEDED", "제목은 100자 이하여야 합니다.");
         }
         if (request.content().getBytes(StandardCharsets.UTF_8).length > 65_535) {
-            throw new ApiException(400, update ? "CONTENT_LENGTH_EXCEEDED" : "CONTENT_LENGTH_EXCEED",
+            throw new ApiException(400, "CONTENT_LENGTH_EXCEEDED",
                     "본문은 UTF-8 기준 65,535바이트 이하여야 합니다.");
         }
     }

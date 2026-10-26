@@ -38,7 +38,7 @@
 ```json
 {
   "isSuccess": true,
-  "code": 200,
+  "code": "200",
   "data": {
     "posts": [
       {
@@ -74,7 +74,7 @@
 ```json
 {
   "isSuccess": false,
-  "code": 500,
+  "code": "500",
   "data": null,
   "error": {
     "code": "INTERNAL_SERVER_ERROR",
@@ -143,7 +143,7 @@
 
 ### Error Response
 
-**Status:** `400 BAD_REQUEST`
+**Status:** `404 NOT_FOUND`
 
 ```json
 {
@@ -151,7 +151,7 @@
   "code": "404",
   "data": null,
   "error": {
-    "code": "NOT_FOUND",
+    "code": "POST_NOT_FOUND",
     "message": "해당 게시글을 찾을 수 없습니다."
   }
 }
@@ -161,7 +161,6 @@
 
 | HTTP 상태 | 예외 상황 | 에러 코드 |
 |---|---|---|
-| 403 | 권한 없음 | `POST_ACCESS_DENIED` |
 | 404 | 삭제된 글 조회 | `POST_NOT_FOUND` |
 | 400 | 잘못된 형식 | `INVALID_POST_ID` |
 
@@ -215,11 +214,11 @@
 ```json
 {
   "isSuccess": false,
-  "code": "404",
+  "code": "400",
   "data": null,
   "error": {
-    "code": "NOT_FOUND",
-    "message": "~~~"
+    "code": "REQUIRED_FIELD_MISSING",
+    "message": "제목과 내용은 필수이며 공백만 입력할 수 없습니다."
   }
 }
 ```
@@ -229,8 +228,8 @@
 | HTTP 상태 | 예외 상황 | 에러 코드 |
 |---|---|---|
 | 400 | 필드 누락 (제목 및 내용) | `REQUIRED_FIELD_MISSING` |
-| 400 | 제목 길이 제한 초과 | `TITLE_LENGTH_EXCEED` |
-| 400 | 본문 길이 제한 초과 | `CONTENT_LENGTH_EXCEED` |
+| 400 | 제목 길이 제한 초과 | `TITLE_LENGTH_EXCEEDED` |
+| 400 | 본문 길이 제한 초과 | `CONTENT_LENGTH_EXCEEDED` |
 | 401 | 로그인하지 않은 사용자 | `UNAUTHORIZED` |
 
 ---
@@ -299,7 +298,7 @@
 |---|---|---|
 | 400 | 잘못된 게시글 ID 형식 | `INVALID_POST_ID` |
 | 400 | 필드 누락 (제목 또는 내용) | `REQUIRED_FIELD_MISSING` |
-| 400 | 제목 길이 제한 초과 | `TITLE_LENGTH_EXCEED` |
+| 400 | 제목 길이 제한 초과 | `TITLE_LENGTH_EXCEEDED` |
 | 400 | 본문 길이 제한 초과 | `CONTENT_LENGTH_EXCEEDED` |
 | 401 | 로그인하지 않은 사용자 | `UNAUTHORIZED` |
 | 403 | 수정 권한 없음 (작성자가 아님) | `POST_ACCESS_DENIED` |
@@ -333,7 +332,7 @@
 ```json
 {
   "isSuccess": true,
-  "code": "204",
+  "code": "200",
   "data": {
     "postId": 10
   },

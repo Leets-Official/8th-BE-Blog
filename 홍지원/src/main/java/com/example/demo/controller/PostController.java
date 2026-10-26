@@ -19,7 +19,7 @@ public class PostController {
     public ApiResponse<PostDto.PostPage> list(@RequestParam(defaultValue = "1") int page,
                                              @RequestParam(defaultValue = "10") int size,
                                              @RequestParam(defaultValue = "latest") String sort) {
-        return ApiResponse.success(200, postService.list(page, size, sort));
+        return ApiResponse.success("200", postService.list(page, size, sort));
     }
 
     @GetMapping("/{post_id}")
