@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface PostStore {
     Optional<PostView> findActiveById(PostId id);
 
+    Optional<PostView> findById(PostId id);
+
     Optional<Post> findForUpdate(PostId id);
 
     PostView save(Post post);

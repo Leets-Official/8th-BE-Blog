@@ -38,6 +38,9 @@ class CreatePostServiceTest {
             }
 
             @Override
+            public Optional<PostView> findById(PostId postId) { return Optional.empty(); }
+
+            @Override
             public Optional<Post> findForUpdate(PostId postId) { return Optional.empty(); }
 
             @Override
@@ -68,6 +71,9 @@ class CreatePostServiceTest {
             public Optional<PostView> findActiveById(PostId id) {
                 return Optional.empty();
             }
+
+            @Override
+            public Optional<PostView> findById(PostId id) { return Optional.empty(); }
 
             @Override
             public Optional<Post> findForUpdate(PostId id) { return Optional.empty(); }

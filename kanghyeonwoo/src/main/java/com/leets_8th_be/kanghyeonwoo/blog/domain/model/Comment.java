@@ -9,4 +9,9 @@ public record Comment(CommentId id, UserId authorId, CommentId parentId, String 
         if (state == CommentState.HIDDEN) return "숨김 처리된 댓글입니다.";
         return content;
     }
+
+    public Comment hide() {
+        if (state == CommentState.HIDDEN) return this;
+        return new Comment(id, authorId, parentId, content, CommentState.HIDDEN, deleted);
+    }
 }

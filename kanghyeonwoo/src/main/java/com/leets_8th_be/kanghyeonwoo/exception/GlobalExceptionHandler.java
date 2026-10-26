@@ -12,6 +12,9 @@ import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForb
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportQuery;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReportNotFound;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedReportTarget;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAlreadyResolved;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -97,6 +100,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidReportQuery.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidReportQuery(InvalidReportQuery ex) {
         return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(ReportNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleReportNotFound(ReportNotFound ex) {
+        return errorResponse(ErrorCode.REPORT_NOT_FOUND);
+    }
+
+    @ExceptionHandler(ReportAlreadyResolved.class)
+    public ResponseEntity<ApiResponse<Void>> handleReportAlreadyResolved(ReportAlreadyResolved ex) {
+        return errorResponse(ErrorCode.REPORT_ALREADY_RESOLVED);
+    }
+
+    @ExceptionHandler(DeletedReportTarget.class)
+    public ResponseEntity<ApiResponse<Void>> handleDeletedReportTarget(DeletedReportTarget ex) {
+        return errorResponse(ErrorCode.REPORT_TARGET_DELETED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

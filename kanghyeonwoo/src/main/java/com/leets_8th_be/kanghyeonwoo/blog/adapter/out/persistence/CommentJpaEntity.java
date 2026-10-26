@@ -65,8 +65,11 @@ class CommentJpaEntity {
     boolean isDeleted() { return isDeleted; }
     Long getUserId() { return userId; }
     Long getPostId() { return post == null ? null : post.getId(); }
+    PostJpaEntity.Visibility getPostStatus() { return post == null ? null : post.getStatus(); }
     Long getParentId() { return parent == null ? null : parent.getId(); }
     LocalDateTime getCreatedAt() { return createdAt; }
+
+    void hide() { status = Visibility.HIDDEN; }
 
     enum Visibility { ACTIVE, HIDDEN }
 }

@@ -3,6 +3,8 @@ package com.leets_8th_be.kanghyeonwoo.report.application.usecase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.CommentNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetCommentTargetUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
@@ -31,7 +33,9 @@ public class ReportCommentService implements ReportCommentUseCase {
     public ReportView report(ReportCommentCommand command) {
         if (command.commentId().value() < 1) throw new InvalidReportRequest();
         var reporter = users.findById(command.reporterId()).orElseThrow(ReporterNotFound::new);
-        var comment = comments.getTarget(command.commentId()).comment();
+        var target = comments.getTarget(command.commentId());
+        var comment = target.comment();
+        if (target.postState() != PostState.ACTIVE) throw new PostNotFound();
         if (comment.deleted()) throw new DeletedCommentReport();
         if (comment.state() != CommentState.ACTIVE) throw new CommentNotFound();
         if (reporter.id().equals(comment.authorId())) throw new SelfReportForbidden();

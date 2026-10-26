@@ -9,13 +9,15 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.InspectPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import org.springframework.transaction.support.TransactionTemplate;
 
-public class TransactionalPostUseCases implements CreatePostUseCase, GetPostUseCase,
+public class TransactionalPostUseCases implements CreatePostUseCase, GetPostUseCase, InspectPostUseCase,
         UpdatePostUseCase, DeletePostUseCase, HidePostUseCase {
     private final CreatePostUseCase createPost;
     private final GetPostUseCase getPost;
+    private final InspectPostUseCase inspectPost;
     private final UpdatePostUseCase updatePost;
     private final DeletePostUseCase deletePost;
     private final HidePostUseCase hidePost;
@@ -25,10 +27,12 @@ public class TransactionalPostUseCases implements CreatePostUseCase, GetPostUseC
     public TransactionalPostUseCases(CreatePostUseCase createPost, GetPostUseCase getPost,
                                      UpdatePostUseCase updatePost, DeletePostUseCase deletePost,
                                      HidePostUseCase hidePost,
+                                     InspectPostUseCase inspectPost,
                                      TransactionTemplate writeTransaction,
                                      TransactionTemplate readTransaction) {
         this.createPost = createPost;
         this.getPost = getPost;
+        this.inspectPost = inspectPost;
         this.updatePost = updatePost;
         this.deletePost = deletePost;
         this.hidePost = hidePost;
@@ -44,6 +48,11 @@ public class TransactionalPostUseCases implements CreatePostUseCase, GetPostUseC
     @Override
     public PostView get(PostId id) {
         return readTransaction.execute(status -> getPost.get(id));
+    }
+
+    @Override
+    public java.util.Optional<PostView> inspect(PostId id) {
+        return readTransaction.execute(status -> inspectPost.inspect(id));
     }
 
     @Override

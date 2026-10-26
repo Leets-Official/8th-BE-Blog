@@ -32,7 +32,20 @@ public class JpaReportStore implements ReportStore {
 
     @Override
     public ReportView save(Report report) {
-        return toView(reports.saveAndFlush(ReportJpaEntity.from(report)));
+        ReportJpaEntity entity;
+        if (report.id() == null) {
+            entity = ReportJpaEntity.from(report);
+        } else {
+            entity = reports.findById(report.id().value())
+                    .orElseThrow(() -> new IllegalStateException("저장할 신고가 없습니다."));
+            entity.applyResolution(report);
+        }
+        return toView(reports.saveAndFlush(entity));
+    }
+
+    @Override
+    public java.util.Optional<Report> findForUpdate(ReportId id) {
+        return reports.findForUpdate(id.value()).map(ReportJpaEntity::toDomain);
     }
 
     @Override

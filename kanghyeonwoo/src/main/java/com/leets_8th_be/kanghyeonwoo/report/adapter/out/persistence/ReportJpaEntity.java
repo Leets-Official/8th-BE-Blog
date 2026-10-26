@@ -3,6 +3,9 @@ package com.leets_8th_be.kanghyeonwoo.report.adapter.out.persistence;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.Report;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
+import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -78,7 +81,23 @@ class ReportJpaEntity {
         entity.reason = report.reason();
         entity.targetTitleSnapshot = report.titleSnapshot();
         entity.targetContentSnapshot = report.contentSnapshot();
+        entity.applyResolution(report);
         return entity;
+    }
+
+    Report toDomain() {
+        return new Report(new ReportId(id), new UserId(reporterId), targetType, targetId, reason,
+                targetTitleSnapshot, targetContentSnapshot, status,
+                action == null ? null : ReportAction.valueOf(action), resolutionReason,
+                processorId == null ? null : new UserId(processorId), resolvedAt);
+    }
+
+    void applyResolution(Report report) {
+        status = report.state();
+        action = report.action() == null ? null : report.action().name();
+        resolutionReason = report.resolutionReason();
+        processorId = report.processorId() == null ? null : report.processorId().value();
+        resolvedAt = report.resolvedAt();
     }
 
     @PrePersist

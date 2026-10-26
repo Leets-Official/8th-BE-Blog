@@ -26,6 +26,11 @@ public class JpaPostStore implements PostStore {
     }
 
     @Override
+    public Optional<PostView> findById(PostId id) {
+        return posts.findById(id.value()).map(JpaPostStore::toView);
+    }
+
+    @Override
     public Optional<Post> findForUpdate(PostId id) {
         return posts.findForUpdate(id.value()).map(JpaPostStore::toDomain);
     }

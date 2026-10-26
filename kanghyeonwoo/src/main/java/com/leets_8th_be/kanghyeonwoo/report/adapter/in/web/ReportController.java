@@ -1,9 +1,7 @@
-package com.leets_8th_be.kanghyeonwoo.controller;
+package com.leets_8th_be.kanghyeonwoo.report.adapter.in.web;
 
 import com.leets_8th_be.kanghyeonwoo.dto.*;
-import com.leets_8th_be.kanghyeonwoo.service.ReportService;
-import com.leets_8th_be.kanghyeonwoo.entity.ReportStatus;
-import com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType;
+import com.leets_8th_be.kanghyeonwoo.controller.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportView;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
@@ -16,6 +14,10 @@ import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportListItem;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportUseCase;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportCommand;
+import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportResolutionView;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
@@ -32,10 +34,10 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Report", description = "신고 접수·조회·처리 API (과제용 사용자 ID 방식)")
 @RequestMapping(ApiPaths.API_V1)
 public class ReportController {
-    private final ReportService reports;
     private final ReportPostUseCase reportPostUseCase;
     private final ReportCommentUseCase reportCommentUseCase;
     private final GetReportsUseCase getReportsUseCase;
+    private final ResolveReportUseCase resolveReportUseCase;
 
     @PostMapping("/posts/{postId}/reports")
     @Operation(summary = "게시글 신고", description = "본인·숨김 게시글은 신고할 수 없으며 동일 사용자의 중복 신고는 409입니다.")
@@ -78,7 +80,10 @@ public class ReportController {
     @Operation(summary = "신고 처리", description = "존재하는 사용자라면 처리할 수 있습니다. HIDE는 대상 숨김, KEEP는 현재 공개 상태 유지입니다. 재처리는 409입니다.")
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
             @PathVariable("reportId") Long reportId, @Valid @RequestBody ReportResolveRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", reports.resolve(reportId, request)));
+        ReportResolutionView result = resolveReportUseCase.resolve(new ResolveReportCommand(new ReportId(reportId),
+                new UserId(request.processorId()), ReportAction.valueOf(request.action().name()),
+                request.resolutionReason()));
+        return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", toResolveResponse(result)));
     }
 
     private static ReportCreateResponse toCreateResponse(ReportView report) {
@@ -91,9 +96,15 @@ public class ReportController {
                 ReportTargetType.valueOf(report.target().name()), report.targetId(),
                 ReportStatus.valueOf(report.state().name()), report.reason(), report.titleSnapshot(),
                 report.contentSnapshot(), report.createdAt(), report.action() == null ? null
-                : com.leets_8th_be.kanghyeonwoo.entity.ReportResolutionAction.valueOf(report.action().name()),
+                : com.leets_8th_be.kanghyeonwoo.dto.ReportResolutionAction.valueOf(report.action().name()),
                 report.resolutionReason(), report.processorId() == null ? null : report.processorId().value(),
                 report.resolvedAt());
+    }
+
+    private static ReportResolveResponse toResolveResponse(ReportResolutionView report) {
+        return new ReportResolveResponse(report.id().value(), ReportStatus.valueOf(report.state().name()),
+                com.leets_8th_be.kanghyeonwoo.dto.ReportResolutionAction.valueOf(report.action().name()),
+                report.processorId().value(), report.resolvedAt(), report.targetAvailable(), report.targetHidden());
     }
 
 }

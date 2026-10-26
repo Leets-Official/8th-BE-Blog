@@ -16,7 +16,7 @@ public class CommentModuleConfiguration {
                                                  PlatformTransactionManager transactionManager) {
         TransactionTemplate readTransaction = new TransactionTemplate(transactionManager);
         readTransaction.setReadOnly(true);
-        return new TransactionalCommentUseCases(new GetCommentsService(posts, comments), comments, posts,
-                readTransaction);
+        return new TransactionalCommentUseCases(new GetCommentsService(posts, comments), comments, readTransaction,
+                new TransactionTemplate(transactionManager));
     }
 }
