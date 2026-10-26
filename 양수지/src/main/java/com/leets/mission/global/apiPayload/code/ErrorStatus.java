@@ -26,6 +26,9 @@ public enum ErrorStatus {
     POST_404_1(HttpStatus.NOT_FOUND, "POST_404_1", "게시글을 찾을 수 없습니다."),
     POST_409_1(HttpStatus.CONFLICT, "POST_409_1", "이미 숨김 처리된 게시글입니다."),
 
+    // 댓글
+    COMMENT_404_1(HttpStatus.NOT_FOUND, "COMMENT_404_1", "댓글을 찾을 수 없습니다."),
+
     // 신고
     REPORT_400_1(HttpStatus.BAD_REQUEST, "REPORT_400_1", "본인이 작성한 글은 신고할 수 없습니다."),
     REPORT_409_1(HttpStatus.CONFLICT, "REPORT_409_1", "이미 신고한 대상입니다.");

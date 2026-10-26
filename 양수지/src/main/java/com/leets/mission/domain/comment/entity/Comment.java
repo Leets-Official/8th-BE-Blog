@@ -53,4 +53,14 @@ public class Comment extends BaseTimeEntity {
         this.user = user;
         this.status = CommentStatus.ACTIVE;
     }
+
+    // 숨김 상태인지 확인
+    public boolean isHidden() {
+        return status == CommentStatus.HIDDEN;
+    }
+
+    // 사용자가 작성한 댓글인지 확인
+    public boolean isWrittenBy(Long userId) {
+        return user.getId().equals(userId);
+    }
 }

@@ -1,5 +1,7 @@
 package com.leets.mission.domain.report.service;
 
+import com.leets.mission.domain.comment.entity.Comment;
+import com.leets.mission.domain.comment.repository.CommentRepository;
 import com.leets.mission.domain.post.entity.Post;
 import com.leets.mission.domain.post.repository.PostRepository;
 import com.leets.mission.domain.report.converter.ReportConverter;
@@ -23,6 +25,7 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
 
     // 게시글 신고
@@ -35,6 +38,18 @@ public class ReportService {
             throw new GeneralException(ErrorStatus.REPORT_400_1);
         }
         return createReport(request, reporter, ReportTargetType.POST, postId);
+    }
+
+    // 댓글 신고
+    @Transactional
+    public ReportResponseDTO.DetailDTO reportComment(Long commentId, ReportRequestDTO.CreateDTO request) {
+        Comment comment = findActiveComment(commentId);
+        User reporter = findUser(request.userId());
+        if (comment.isWrittenBy(reporter.getId())) {
+            //본인 댓글 신고 불가
+            throw new GeneralException(ErrorStatus.REPORT_400_1);
+        }
+        return createReport(request, reporter, ReportTargetType.COMMENT, commentId);
     }
 
     // 같은 사용자가 같은 대상을 이미 신고했으면 409
@@ -55,6 +70,16 @@ public class ReportService {
             throw new GeneralException(ErrorStatus.POST_404_1);
         }
         return post;
+    }
+
+    // 숨김 댓글, 숨김 게시글의 댓글은 없는 댓글과 같이 취급 (404)
+    private Comment findActiveComment(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.COMMENT_404_1));
+        if (comment.isHidden() || comment.getPost().isHidden()) {
+            throw new GeneralException(ErrorStatus.COMMENT_404_1);
+        }
+        return comment;
     }
 
     private User findUser(Long userId) {

@@ -29,4 +29,14 @@ public class ReportController {
     ) {
         return ApiResponse.of(SuccessStatus.REPORT_CREATED, reportService.reportPost(postId, request));
     }
+
+    // 댓글 신고
+    @PostMapping("/comments/{commentId}/reports")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<ReportResponseDTO.DetailDTO> reportComment(
+            @PathVariable Long commentId,
+            @RequestBody @Valid ReportRequestDTO.CreateDTO request
+    ) {
+        return ApiResponse.of(SuccessStatus.REPORT_CREATED, reportService.reportComment(commentId, request));
+    }
 }
