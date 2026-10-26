@@ -4,6 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentPage;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CommentSearchQuery;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 
 import java.util.Optional;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
@@ -16,4 +17,6 @@ public interface CommentStore {
     Optional<CommentView> findForUpdate(CommentId id);
 
     CommentView save(Comment comment);
+
+    CommentView create(PostId postId, Comment comment);
 }

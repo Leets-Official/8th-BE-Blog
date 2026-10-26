@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.config;
+package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchSession;
 import jakarta.servlet.http.HttpServletRequest;

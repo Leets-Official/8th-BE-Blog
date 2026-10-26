@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 
-import com.leets_8th_be.kanghyeonwoo.controller.ApiPaths;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PageResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;

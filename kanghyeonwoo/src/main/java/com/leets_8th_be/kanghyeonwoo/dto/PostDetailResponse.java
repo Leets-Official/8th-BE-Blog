@@ -1,6 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.dto;
 
-import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,14 +31,4 @@ public class PostDetailResponse {
     @Schema(description = "최종 수정 일시")
     private LocalDateTime updatedAt;
 
-    public static PostDetailResponse from(Post post) {
-        return new PostDetailResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getUser().getId(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
-    }
 }

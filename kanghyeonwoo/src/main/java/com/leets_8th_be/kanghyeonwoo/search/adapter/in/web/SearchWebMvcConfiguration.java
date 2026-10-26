@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.config;
+package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
-public class WebMvcConfig implements WebMvcConfigurer {
+public class SearchWebMvcConfiguration implements WebMvcConfigurer {
     private final SearchSessionArgumentResolver searchSessions;
 
     @Override

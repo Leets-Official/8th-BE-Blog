@@ -1,7 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.search.config;
 
-import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchPostProjectionStore;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchTrendService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchKeywordStatsService;
@@ -9,7 +9,6 @@ import com.leets_8th_be.kanghyeonwoo.search.application.usecase.RecordSearchServ
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchPostsService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.UpdatePostProjectionService;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
-import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchSuggestionsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.adapter.transaction.TransactionalSearchQueries;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -44,9 +43,9 @@ public class SearchConfiguration {
         return new RecordSearchService(store, searchClock);
     }
 
-    @Bean public SearchPostsService searchPostsService(SearchStore store) { return new SearchPostsService(store); }
+    @Bean public SearchPostsService searchPostsService(SearchPostProjectionStore store) { return new SearchPostsService(store); }
 
-    @Bean public UpdatePostProjectionUseCase updatePostProjectionUseCase(SearchStore store) {
+    @Bean public UpdatePostProjectionUseCase updatePostProjectionUseCase(SearchPostProjectionStore store) {
         return new UpdatePostProjectionService(store);
     }
 

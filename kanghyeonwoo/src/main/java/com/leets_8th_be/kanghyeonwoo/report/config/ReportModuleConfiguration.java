@@ -7,10 +7,6 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.InspectPostUseCase
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HideCommentUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.adapter.transaction.TransactionalReportUseCases;
-import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
-import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentUseCase;
-import com.leets_8th_be.kanghyeonwoo.report.application.port.in.GetReportsUseCase;
-import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportStore;
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ReportPostService;
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ReportCommentService;

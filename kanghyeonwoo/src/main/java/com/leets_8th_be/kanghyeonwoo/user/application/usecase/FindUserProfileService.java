@@ -18,4 +18,5 @@ public class FindUserProfileService implements UserProfileLookup {
     public Optional<UserProfile> findById(UserId id) {
         return profiles.findById(id);
     }
+
 }

@@ -1,6 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.controller;
 
-import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;

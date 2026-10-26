@@ -1,16 +1,14 @@
 package com.leets_8th_be.kanghyeonwoo.search.config;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
-import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
-import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
-import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchDemoDataStore;
+import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileEmailLookup;
+import com.leets_8th_be.kanghyeonwoo.user.application.port.in.CreateUserProfileUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.leets_8th_be.kanghyeonwoo.entity.Post;
-import com.leets_8th_be.kanghyeonwoo.entity.User;
-import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
-import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.Duration;
@@ -31,11 +29,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SearchDemoSeeder implements ApplicationRunner {
     private static final String DEMO_EMAIL = "search-demo@blog.example";
-    private final SearchStore store;
+    private final SearchDemoDataStore store;
     private final SearchSuggestionService suggestions;
-    private final UpdatePostProjectionUseCase postProjections;
-    private final UserRepository users;
-    private final PostRepository posts;
+    private final UserProfileEmailLookup users;
+    private final CreateUserProfileUseCase createUsers;
+    private final CreatePostUseCase createPosts;
     private final ObjectMapper mapper;
     private final Clock clock;
 
@@ -47,30 +45,28 @@ public class SearchDemoSeeder implements ApplicationRunner {
         }
         Instant anchor = clock.instant().truncatedTo(ChronoUnit.MINUTES);
         Duration shift = Duration.between(Instant.parse(example.get("reference_time").asText()), anchor);
-        var keywords = new ArrayList<SearchStore.DemoKeyword>();
+        var keywords = new ArrayList<SearchDemoDataStore.DemoKeyword>();
         for (JsonNode row : example.get("search_keywords")) {
-            keywords.add(new SearchStore.DemoKeyword(row.get("id").asLong(),
+            keywords.add(new SearchDemoDataStore.DemoKeyword(row.get("id").asLong(),
                     row.get("normalized_keyword").asText(), row.get("suggestible").asBoolean(),
                     shifted(row.get("created_at"), shift)));
         }
-        var events = new ArrayList<SearchStore.DemoEvent>();
+        var events = new ArrayList<SearchDemoDataStore.DemoEvent>();
         for (JsonNode row : example.get("search_events")) {
-            events.add(new SearchStore.DemoEvent(row.get("keyword_id").asLong(), shifted(row.get("searched_at"), shift)));
+            events.add(new SearchDemoDataStore.DemoEvent(row.get("keyword_id").asLong(), shifted(row.get("searched_at"), shift)));
         }
-        var states = new ArrayList<SearchStore.DemoDedupState>();
+        var states = new ArrayList<SearchDemoDataStore.DemoDedupState>();
         for (JsonNode row : example.get("search_dedup_states")) {
-            states.add(new SearchStore.DemoDedupState(row.get("keyword_id").asLong(),
+            states.add(new SearchDemoDataStore.DemoDedupState(row.get("keyword_id").asLong(),
                     row.get("session_key").asText(), shifted(row.get("last_counted_at"), shift)));
         }
         store.importDemo(keywords, events, states, () -> {
             if (users.findByEmail(DEMO_EMAIL).isPresent()) return false;
-            User author = users.saveAndFlush(User.create("검색 데모 작성자", DEMO_EMAIL));
-            Post first = posts.saveAndFlush(Post.create("Spring Boot와 Java 시작하기", "검색 추천과 집계를 확인하는 데모 게시글입니다.", author));
-            Post second = posts.saveAndFlush(Post.create("JPA와 스프링부트 실습", "스프링과 JPA 검색 결과를 확인합니다.", author));
-            postProjections.synchronize(new PostProjection(first.getId(), first.getTitle(), author.getId(),
-                    first.getCreatedAt(), true));
-            postProjections.synchronize(new PostProjection(second.getId(), second.getTitle(), author.getId(),
-                    second.getCreatedAt(), true));
+            var author = createUsers.create("검색 데모 작성자", DEMO_EMAIL);
+            createPosts.create(new CreatePostCommand("Spring Boot와 Java 시작하기",
+                    "검색 추천과 집계를 확인하는 데모 게시글입니다.", author.id()));
+            createPosts.create(new CreatePostCommand("JPA와 스프링부트 실습",
+                    "스프링과 JPA 검색 결과를 확인합니다.", author.id()));
             return true;
         });
         suggestions.rebuild();

@@ -3,6 +3,7 @@ package com.leets_8th_be.kanghyeonwoo.blog.application.usecase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
@@ -41,12 +42,15 @@ class CreatePostServiceTest {
             public Optional<PostView> findById(PostId postId) { return Optional.empty(); }
 
             @Override
+            public java.util.List<PostView> findAll() { return java.util.List.of(); }
+
+            @Override
             public Optional<Post> findForUpdate(PostId postId) { return Optional.empty(); }
 
             @Override
             public void delete(PostId postId) { throw new AssertionError("unexpected delete"); }
         };
-        CreatePostService createPost = new CreatePostService(users, posts);
+        CreatePostService createPost = new CreatePostService(users, posts, noProjectionChanges());
 
         assertThatThrownBy(() -> createPost.create(
                 new CreatePostCommand("제목", "본문", new UserId(404L))))
@@ -76,12 +80,15 @@ class CreatePostServiceTest {
             public Optional<PostView> findById(PostId id) { return Optional.empty(); }
 
             @Override
+            public java.util.List<PostView> findAll() { return java.util.List.of(); }
+
+            @Override
             public Optional<Post> findForUpdate(PostId id) { return Optional.empty(); }
 
             @Override
             public void delete(PostId id) { throw new AssertionError("unexpected delete"); }
         };
-        CreatePostService createPost = new CreatePostService(users, posts);
+        CreatePostService createPost = new CreatePostService(users, posts, noProjectionChanges());
 
         PostView created = createPost.create(new CreatePostCommand("첫 게시글", "게시글 본문", authorId));
 
@@ -89,5 +96,12 @@ class CreatePostServiceTest {
         assertThat(created.id()).isEqualTo(new PostId(42L));
         assertThat(created.authorId()).isEqualTo(authorId);
         assertThat(created.title()).isEqualTo("첫 게시글");
+    }
+
+    private static PostProjectionPort noProjectionChanges() {
+        return new PostProjectionPort() {
+            @Override public void synchronize(PostView post) { }
+            @Override public void remove(PostId postId) { }
+        };
     }
 }

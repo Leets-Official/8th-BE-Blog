@@ -12,10 +12,6 @@ public class UpdatePostService implements UpdatePostUseCase {
     private final PostStore posts;
     private final PostProjectionPort projection;
 
-    public UpdatePostService(PostStore posts) {
-        this(posts, PostProjectionPort.noop());
-    }
-
     public UpdatePostService(PostStore posts, PostProjectionPort projection) {
         this.posts = posts;
         this.projection = projection;

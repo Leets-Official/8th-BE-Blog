@@ -1,7 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.report.adapter.in.web;
 
 import com.leets_8th_be.kanghyeonwoo.dto.*;
-import com.leets_8th_be.kanghyeonwoo.controller.ApiPaths;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportView;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;

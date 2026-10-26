@@ -1,6 +1,6 @@
 # 헥사고날 모듈러 모놀리스 리팩토링
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 
@@ -12,7 +12,7 @@ Status: ready-for-agent
 
 기존 Spring Boot 애플리케이션과 Gradle 프로젝트 하나를 유지하면서 `user`, `blog`, `report`, `search` 기능 모듈을 만든다. 각 모듈은 도메인·유스케이스·포트·어댑터 경계를 갖고, 업무 규칙은 Spring MVC·Spring Data JPA·HTTP 응답 형식에 의존하지 않는다.
 
-기존 API 경로, 응답 형식과 코드, DB 스키마 및 데이터를 보존한다. 모듈은 자기 데이터만 소유하고 공개 포트와 식별자·불변 레코드로만 상호작용한다. 실제 독립 서비스로 추출할 때 전용 DB, 네트워크 통신, 이벤트 전달과 데이터 이관을 별도 설계한다.
+기존 API 경로, 응답 형식과 코드, 기존 DB 테이블 및 데이터를 보존한다. 검색 모듈은 게시글 테이블을 직접 조회하지 않도록 별도의 검색 프로젝션 테이블을 추가로 소유한다. 이 테이블은 기존 테이블과 데이터를 변경하거나 대체하지 않는다. 모듈은 자기 데이터만 소유하고 공개 포트와 식별자·불변 레코드로만 상호작용한다. 실제 독립 서비스로 추출할 때 전용 DB, 네트워크 통신, 이벤트 전달과 데이터 이관을 별도 설계한다.
 
 ## User Stories
 
@@ -48,7 +48,8 @@ Status: ready-for-agent
 - Modules access other modules only through public application ports. `user` exposes profile lookup; `blog` exposes the post/comment operations needed by other modules; `report` requests target information and hiding through `blog` ports.
 - `blog` owns content visibility state. `report` owns report state and resolution decisions. A HIDE resolution calls the blog port; report resolution and content hiding stay in one database transaction in the current monolith.
 - `search` owns keyword search behavior and its post projection. `blog` emits post-change events; synchronous in-process handling updates the search projection in the same database transaction for this phase.
-- Keep one physical database and the existing schema/data during this refactor. Persistence adapters map foreign module references as identifiers rather than JPA object relationships, while the existing database foreign-key constraints remain managed by the schema.
+- The search-owned post projection uses a new additive table. Existing tables, columns, constraints, and stored rows are preserved; the new table is populated from existing posts during startup synchronization.
+- Keep one physical database and preserve existing tables/data during this refactor. Additive tables owned by a feature are allowed when required by its ownership boundary; the search projection is the only such addition in this refactor. Persistence adapters map foreign module references as identifiers rather than JPA object relationships, while existing database foreign-key constraints remain managed by the schema.
 - At actual independent service extraction, move each service's owned data into a dedicated database. Table splitting, schema migration, outbox delivery, eventual search consistency, network transport, and distributed compensation are later decisions.
 - Preserve existing HTTP routes, request/response shapes, `ApiResponse`, and existing error-code values. Web adapters translate semantic domain/application failures to the established HTTP status and API error response.
 - Represent use-case failures with semantic, framework-independent exceptions. Keep API error code mapping in the web adapter.
@@ -70,7 +71,7 @@ Status: ready-for-agent
 
 - Independently deploying services during this refactor.
 - Adding authentication, authorization roles, or a user account lifecycle. The `user` module owns the existing profile records only.
-- Changing public API routes, payloads, response envelopes, existing error-code values, or current DB schema/data in this phase.
+- Changing public API routes, payloads, response envelopes, existing error-code values, or existing DB tables/data in this phase. Additive module-owned tables required by the approved design are allowed.
 - Choosing HTTP versus gRPC, a message broker, retry/circuit-breaker policy, or a production outbox implementation before services are actually extracted.
 - Implementing distributed transactions or a saga now. Current report/content state changes remain atomic in the single-database monolith.
 - Replacing the database engine or adding a new business feature.

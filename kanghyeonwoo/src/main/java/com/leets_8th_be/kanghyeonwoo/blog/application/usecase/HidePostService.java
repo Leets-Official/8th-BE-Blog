@@ -11,10 +11,6 @@ public class HidePostService implements HidePostUseCase {
     private final PostStore posts;
     private final PostProjectionPort projection;
 
-    public HidePostService(PostStore posts) {
-        this(posts, PostProjectionPort.noop());
-    }
-
     public HidePostService(PostStore posts, PostProjectionPort projection) {
         this.posts = posts;
         this.projection = projection;

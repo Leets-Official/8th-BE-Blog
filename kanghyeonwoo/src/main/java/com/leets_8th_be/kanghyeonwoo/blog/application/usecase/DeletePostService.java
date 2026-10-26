@@ -11,10 +11,6 @@ public class DeletePostService implements DeletePostUseCase {
     private final PostStore posts;
     private final PostProjectionPort projection;
 
-    public DeletePostService(PostStore posts) {
-        this(posts, PostProjectionPort.noop());
-    }
-
     public DeletePostService(PostStore posts, PostProjectionPort projection) {
         this.posts = posts;
         this.projection = projection;

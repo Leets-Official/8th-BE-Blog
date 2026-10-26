@@ -5,12 +5,10 @@ import com.leets_8th_be.kanghyeonwoo.dto.SearchTrendResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.SearchKeywordStatsResponse;
 
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
-import com.leets_8th_be.kanghyeonwoo.controller.ApiPaths;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchSuggestionsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchTrendsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchKeywordStatsUseCase;
-import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchSuggestion;
-import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchTrend;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchKeywordStats;
 import com.leets_8th_be.kanghyeonwoo.dto.SearchHourlyCountResponse;
 import io.swagger.v3.oas.annotations.Operation;

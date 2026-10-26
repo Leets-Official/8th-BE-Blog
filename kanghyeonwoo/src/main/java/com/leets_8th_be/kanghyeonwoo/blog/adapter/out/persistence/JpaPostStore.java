@@ -9,6 +9,7 @@ import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public class JpaPostStore implements PostStore {
@@ -28,6 +29,11 @@ public class JpaPostStore implements PostStore {
     @Override
     public Optional<PostView> findById(PostId id) {
         return posts.findById(id.value()).map(JpaPostStore::toView);
+    }
+
+    @Override
+    public List<PostView> findAll() {
+        return posts.findAll().stream().map(JpaPostStore::toView).toList();
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.report.application.usecase;
 
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetPostUseCase;
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;

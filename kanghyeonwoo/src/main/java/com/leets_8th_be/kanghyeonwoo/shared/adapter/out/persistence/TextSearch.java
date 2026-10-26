@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.util;
+package com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence;
 
 import java.util.Locale;
 import jakarta.persistence.criteria.CriteriaBuilder;

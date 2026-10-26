@@ -14,10 +14,6 @@ public class CreatePostService implements CreatePostUseCase {
     private final PostStore posts;
     private final PostProjectionPort projection;
 
-    public CreatePostService(UserProfileLookup profiles, PostStore posts) {
-        this(profiles, posts, PostProjectionPort.noop());
-    }
-
     public CreatePostService(UserProfileLookup profiles, PostStore posts, PostProjectionPort projection) {
         this.profiles = profiles;
         this.posts = posts;

@@ -59,6 +59,21 @@ class CommentJpaEntity {
     protected CommentJpaEntity() {
     }
 
+    static CommentJpaEntity create(String content, Long userId, PostJpaEntity post, CommentJpaEntity parent) {
+        CommentJpaEntity entity = new CommentJpaEntity();
+        entity.content = content;
+        entity.userId = userId;
+        entity.post = post;
+        entity.parent = parent;
+        return entity;
+    }
+
+    @jakarta.persistence.PrePersist
+    void prepareInsert() { createdAt = updatedAt = LocalDateTime.now(); }
+
+    @jakarta.persistence.PreUpdate
+    void prepareUpdate() { updatedAt = LocalDateTime.now(); }
+
     Long getId() { return id; }
     Visibility getStatus() { return status; }
     String getContent() { return content; }
@@ -70,6 +85,7 @@ class CommentJpaEntity {
     LocalDateTime getCreatedAt() { return createdAt; }
 
     void hide() { status = Visibility.HIDDEN; }
+    void delete() { isDeleted = true; }
 
     enum Visibility { ACTIVE, HIDDEN }
 }

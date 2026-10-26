@@ -15,7 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import com.leets_8th_be.kanghyeonwoo.util.TextSearch;
+import com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence.TextSearch;
 
 @Repository
 public class JpaReportStore implements ReportStore {

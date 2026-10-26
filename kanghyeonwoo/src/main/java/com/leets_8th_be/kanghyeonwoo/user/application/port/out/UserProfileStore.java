@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface UserProfileStore {
     Optional<UserProfile> findById(UserId id);
+    Optional<UserProfile> findByEmail(String email);
+    UserProfile create(String username, String email);
 }

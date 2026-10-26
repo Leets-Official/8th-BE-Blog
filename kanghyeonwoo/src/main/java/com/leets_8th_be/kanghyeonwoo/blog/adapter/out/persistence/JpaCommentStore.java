@@ -10,7 +10,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
-import com.leets_8th_be.kanghyeonwoo.util.TextSearch;
+import com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence.TextSearch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,9 +22,11 @@ import java.util.Optional;
 @Repository
 public class JpaCommentStore implements CommentStore {
     private final CommentJpaRepository comments;
+    private final PostJpaRepository posts;
 
-    public JpaCommentStore(CommentJpaRepository comments) {
+    public JpaCommentStore(CommentJpaRepository comments, PostJpaRepository posts) {
         this.comments = comments;
+        this.posts = posts;
     }
 
     @Override
@@ -61,7 +63,17 @@ public class JpaCommentStore implements CommentStore {
         CommentJpaEntity entity = comments.findById(comment.id().value())
                 .orElseThrow(() -> new IllegalStateException("저장할 댓글이 없습니다."));
         if (comment.state() == CommentState.HIDDEN) entity.hide();
+        if (comment.deleted()) entity.delete();
         return toView(comments.save(entity));
+    }
+
+    @Override
+    public CommentView create(PostId postId, Comment comment) {
+        PostJpaEntity post = posts.getReferenceById(postId.value());
+        CommentJpaEntity parent = comment.parentId() == null ? null
+                : comments.getReferenceById(comment.parentId().value());
+        return toView(comments.saveAndFlush(CommentJpaEntity.create(comment.content(), comment.authorId().value(),
+                post, parent)));
     }
 
     private static CommentView toView(CommentJpaEntity entity) {

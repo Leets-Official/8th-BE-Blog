@@ -2,6 +2,8 @@ package com.leets_8th_be.kanghyeonwoo.search.adapter.out.persistence;
 
 import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchPostProjectionStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchDemoDataStore;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPost;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPostPage;
@@ -31,7 +33,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class JdbcSearchStore implements SearchStore {
+public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, SearchDemoDataStore {
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transactions;
@@ -153,7 +155,7 @@ public class JdbcSearchStore implements SearchStore {
     }
 
     @Override
-    public void upsertPostProjection(PostProjection post) {
+    public void upsert(PostProjection post) {
         jdbc.update("""
                 MERGE INTO search_post_projections(post_id, title, normalized_title, author_id, created_at, visible)
                 KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
@@ -162,12 +164,12 @@ public class JdbcSearchStore implements SearchStore {
     }
 
     @Override
-    public void deletePostProjection(long postId) {
+    public void delete(long postId) {
         jdbc.update("DELETE FROM search_post_projections WHERE post_id = ?", postId);
     }
 
     @Override
-    public SearchPostPage searchPosts(int page, int size, String normalizedKeyword) {
+    public SearchPostPage search(int page, int size, String normalizedKeyword) {
         String condition = normalizedKeyword == null ? "" : " AND normalized_title LIKE ? ESCAPE '!'";
         Object[] parameters = normalizedKeyword == null ? new Object[]{}
                 : new Object[]{"%" + escapeLike(normalizedKeyword) + "%"};
@@ -222,21 +224,21 @@ public class JdbcSearchStore implements SearchStore {
         return new Keyword(rs.getLong("id"), rs.getString("normalized_keyword"), rs.getBoolean("suggestible"));
     }
 
-    public void importDemo(List<DemoKeyword> keywords, List<DemoEvent> events,
-                           List<DemoDedupState> states, Supplier<Boolean> createPosts) {
+    public void importDemo(List<SearchDemoDataStore.DemoKeyword> keywords, List<SearchDemoDataStore.DemoEvent> events,
+                           List<SearchDemoDataStore.DemoDedupState> states, Supplier<Boolean> createPosts) {
         write(() -> {
             if (!createPosts.get()) return;
             Map<Long, Long> ids = new HashMap<>();
-            for (DemoKeyword keyword : keywords) {
+            for (SearchDemoDataStore.DemoKeyword keyword : keywords) {
                 Keyword saved = ensureKeyword(keyword.keyword(), keyword.suggestible(), keyword.createdAt());
                 ids.put(keyword.sourceId(), saved.id());
             }
-            for (DemoEvent event : events) {
+            for (SearchDemoDataStore.DemoEvent event : events) {
                 long id = ids.get(event.sourceKeywordId());
                 jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", id, time(event.searchedAt()));
                 incrementBucket(id, event.searchedAt());
             }
-            for (DemoDedupState state : states) {
+            for (SearchDemoDataStore.DemoDedupState state : states) {
                 jdbc.update("""
                         INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
                         """, ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));

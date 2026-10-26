@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.service;
+package com.leets_8th_be.kanghyeonwoo.search.config;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 
