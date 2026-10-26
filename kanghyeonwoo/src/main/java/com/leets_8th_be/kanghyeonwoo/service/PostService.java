@@ -2,17 +2,13 @@ package com.leets_8th_be.kanghyeonwoo.service;
 
 import com.leets_8th_be.kanghyeonwoo.dto.PageResponse;
 import com.leets_8th_be.kanghyeonwoo.util.Pagination;
-import com.leets_8th_be.kanghyeonwoo.dto.PostCreateRequest;
 import com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse;
-import com.leets_8th_be.kanghyeonwoo.dto.PostResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
 import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import com.leets_8th_be.kanghyeonwoo.entity.PostStatus;
-import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
-import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
 import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,24 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
-
-    @Transactional
-    public PostResponse createPost(PostCreateRequest request) {
-        User author = userRepository.findById(request.getAuthorId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        Post post = Post.create(request.getTitle(), request.getContent(), author);
-        Post savedPost = postRepository.save(post);
-        return PostResponse.from(savedPost);
-    }
-
-    public PostDetailResponse getPostById(Long postId) {
-        Post post = postRepository.findById(postId)
-                .filter(p -> p.getStatus() == PostStatus.ACTIVE)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        return PostDetailResponse.from(post);
-    }
 
     public PageResponse<PostSummaryResponse> getPosts(int page, int size, String keyword) {
         Pageable pageable = Pagination.newestFirst(page, size);

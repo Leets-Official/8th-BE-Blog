@@ -1,6 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.exception;
 
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +33,16 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ex.getErrorCode();
         ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), ex.getMessage());
         return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(AuthorNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthorNotFound(AuthorNotFound ex) {
+        return errorResponse(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @ExceptionHandler(PostNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handlePostNotFound(PostNotFound ex) {
+        return errorResponse(ErrorCode.POST_NOT_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -79,5 +91,10 @@ public class GlobalExceptionHandler {
         log.error("처리되지 않은 서버 오류", ex);
         ApiResponse<Void> response = ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), ErrorCode.INTERNAL_SERVER_ERROR.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    private ResponseEntity<ApiResponse<Void>> errorResponse(ErrorCode errorCode) {
+        ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }
 }

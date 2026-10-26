@@ -1,9 +1,23 @@
-package com.leets_8th_be.kanghyeonwoo.controller;
+package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web;
 
-import com.leets_8th_be.kanghyeonwoo.dto.*;
-import com.leets_8th_be.kanghyeonwoo.service.PostService;
+import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetPostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import com.leets_8th_be.kanghyeonwoo.controller.ApiPaths;
+import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.PageResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.PostCreateRequest;
+import com.leets_8th_be.kanghyeonwoo.dto.PostDeleteResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.PostResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
+import com.leets_8th_be.kanghyeonwoo.dto.PostUpdateRequest;
 import com.leets_8th_be.kanghyeonwoo.service.PostSearchService;
+import com.leets_8th_be.kanghyeonwoo.service.PostService;
 import com.leets_8th_be.kanghyeonwoo.service.SearchSession;
+import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,8 +25,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Post", description = "게시글 관련 REST API")
 @RestController
@@ -20,23 +41,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(ApiPaths.API_V1 + "/posts")
 public class PostController {
 
+    private final CreatePostUseCase createPost;
+    private final GetPostUseCase getPost;
     private final PostService postService;
     private final PostSearchService postSearchService;
 
     @Operation(summary = "게시글 등록", description = "신규 게시글을 등록합니다. (제목은 최대 150자, 본문은 공백 불가)")
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
-        PostResponse response = postService.createPost(request);
+        PostView post = createPost.create(new CreatePostCommand(request.getTitle(), request.getContent(),
+                new UserId(request.getAuthorId())));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("S201", "게시글이 성공적으로 등록되었습니다.", response));
+                .body(ApiResponse.success("S201", "게시글이 성공적으로 등록되었습니다.", toCreateResponse(post)));
     }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID(postId)로 특정 게시글의 상세 정보를 조회합니다.")
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostById(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId) {
-        PostDetailResponse response = postService.getPostById(postId);
-        return ResponseEntity.ok(ApiResponse.success("S200", "게시글 조회가 완료되었습니다.", response));
+        PostView post = getPost.get(new PostId(postId));
+        return ResponseEntity.ok(ApiResponse.success("S200", "게시글 조회가 완료되었습니다.", toDetailResponse(post)));
     }
 
     @Operation(summary = "게시글 목록 조회 (검색 및 페이징)", description = "페이징 및 제목 검색 키워드(대소문자 무관)를 기반으로 게시글 목록을 최신순으로 조회합니다.")
@@ -66,5 +90,15 @@ public class PostController {
             @Parameter(description = "작성자 회원 ID", example = "1") @RequestParam("authorId") Long authorId) {
         PostDeleteResponse response = postService.deletePost(postId, authorId);
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글이 성공적으로 삭제되었습니다.", response));
+    }
+
+    private static PostResponse toCreateResponse(PostView post) {
+        return new PostResponse(post.id().value(), post.title(), post.content(),
+                post.authorId().value(), post.createdAt());
+    }
+
+    private static PostDetailResponse toDetailResponse(PostView post) {
+        return new PostDetailResponse(post.id().value(), post.title(), post.content(),
+                post.authorId().value(), post.createdAt(), post.updatedAt());
     }
 }
