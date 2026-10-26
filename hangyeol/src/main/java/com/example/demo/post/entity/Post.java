@@ -2,6 +2,7 @@ package com.example.demo.post.entity;
 
 import com.example.demo.comment.entity.Comment;
 import com.example.demo.global.entity.BaseEntity;
+import com.example.demo.global.enums.RestrictionStatus;
 import com.example.demo.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,8 +33,18 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "member_id",nullable=false)
     private Member member;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RestrictionStatus restrictionStatus = RestrictionStatus.NORMAL;
+
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
     }
+
+    public void updateRestrictionStatus(RestrictionStatus status) {
+        this.restrictionStatus = status;
+    }
+
 }

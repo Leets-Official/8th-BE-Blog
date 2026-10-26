@@ -1,10 +1,11 @@
 package com.example.demo.report.entity;
 
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.Objects;
-
+@Getter
 @Embeddable
 public class ReportCommentId implements Serializable {
 

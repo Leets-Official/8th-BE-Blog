@@ -1,6 +1,20 @@
 package com.example.demo.report.dto;
 
-public class ReportReqDTO {
-    public record PostReportRequest(){}
+import com.example.demo.report.enums.ReportStatus;
 
+public class ReportReqDTO {
+    public record PostReportRequest (
+        Long reporterId,
+        String reason
+    ){}
+
+    public record CommentReportRequest (
+        Long reporterId,
+        String reason
+
+    ){}
+
+    public record PostReportStatusRequest (
+        ReportStatus status
+    ) {}
 }

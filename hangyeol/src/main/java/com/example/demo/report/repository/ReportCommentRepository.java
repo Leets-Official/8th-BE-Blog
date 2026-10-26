@@ -1,7 +1,9 @@
 package com.example.demo.report.repository;
 
 import com.example.demo.report.entity.ReportComment;
+import com.example.demo.report.entity.ReportCommentId;
+import com.example.demo.report.entity.ReportPostId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ReportCommentRepository extends JpaRepository<ReportComment,Long> {
+public interface ReportCommentRepository extends JpaRepository<ReportComment, ReportCommentId> {
 }
