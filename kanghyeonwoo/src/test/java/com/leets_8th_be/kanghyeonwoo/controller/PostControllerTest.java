@@ -1,6 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
@@ -13,6 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +47,12 @@ class PostControllerTest {
 
     @Autowired
     private com.leets_8th_be.kanghyeonwoo.repository.ReportRepository reportRepository;
+
+    @Autowired
+    private HidePostUseCase hidePost;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private User testUser;
 
@@ -136,6 +146,20 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST4001"))
                 .andExpect(jsonPath("$.message").value("해당 ID의 게시글을 찾을 수 없습니다."));
+    }
+
+    @Test
+    @DisplayName("블로그 공개 숨김 포트로 숨긴 게시글은 상세 조회에서 제외된다.")
+    void hiddenPostIsNotAvailableFromDetailEndpoint() throws Exception {
+        com.leets_8th_be.kanghyeonwoo.entity.Post post = postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("숨길 글", "본문", testUser));
+
+        hidePost.hide(new PostId(post.getId()));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                        "/api/v1/posts/" + post.getId()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("POST4001"));
     }
 
     @Test
@@ -311,6 +335,7 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.data.deletedPostId").value(post.getId()));
 
         // then: 게시글은 DB에서 삭제되었지만, 신고 내역은 스냅샷과 함께 안전하게 보존됨
+        entityManager.clear();
         org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId())).isEmpty();
 
         java.util.List<com.leets_8th_be.kanghyeonwoo.entity.Report> reports =
@@ -342,6 +367,7 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.success").value(true));
 
         // then: 게시글과 댓글은 삭제되었지만, 댓글 신고 이력은 보존됨
+        entityManager.clear();
         org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId())).isEmpty();
         org.assertj.core.api.Assertions.assertThat(commentRepository.findById(commentId)).isEmpty();
 

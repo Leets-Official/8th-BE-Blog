@@ -4,6 +4,10 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetPostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostCommand;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.controller.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
@@ -43,6 +47,8 @@ public class PostController {
 
     private final CreatePostUseCase createPost;
     private final GetPostUseCase getPost;
+    private final UpdatePostUseCase updatePost;
+    private final DeletePostUseCase deletePost;
     private final PostService postService;
     private final PostSearchService postSearchService;
 
@@ -79,7 +85,9 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDetailResponse>> updatePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Valid @RequestBody PostUpdateRequest request) {
-        PostDetailResponse response = postService.updatePost(postId, request);
+        PostView updated = updatePost.update(new UpdatePostCommand(new PostId(postId),
+                new UserId(request.getAuthorId()), request.getTitle(), request.getContent()));
+        PostDetailResponse response = toDetailResponse(updated);
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글이 성공적으로 수정되었습니다.", response));
     }
 
@@ -88,7 +96,8 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Parameter(description = "작성자 회원 ID", example = "1") @RequestParam("authorId") Long authorId) {
-        PostDeleteResponse response = postService.deletePost(postId, authorId);
+        PostId deletedId = deletePost.delete(new DeletePostCommand(new PostId(postId), new UserId(authorId)));
+        PostDeleteResponse response = new PostDeleteResponse(deletedId.value());
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글이 성공적으로 삭제되었습니다.", response));
     }
 

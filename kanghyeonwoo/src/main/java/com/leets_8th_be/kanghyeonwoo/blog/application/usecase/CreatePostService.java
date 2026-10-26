@@ -23,6 +23,6 @@ public class CreatePostService implements CreatePostUseCase {
             throw new AuthorNotFound();
         }
 
-        return posts.save(new Post(command.title(), command.content(), command.authorId()));
+        return posts.save(Post.create(command.title(), command.content(), command.authorId()));
     }
 }

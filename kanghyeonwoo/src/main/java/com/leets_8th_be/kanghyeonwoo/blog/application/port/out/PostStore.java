@@ -7,7 +7,11 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import java.util.Optional;
 
 public interface PostStore {
+    Optional<PostView> findActiveById(PostId id);
+
+    Optional<Post> findForUpdate(PostId id);
+
     PostView save(Post post);
 
-    Optional<PostView> findActiveById(PostId id);
+    void delete(PostId id);
 }

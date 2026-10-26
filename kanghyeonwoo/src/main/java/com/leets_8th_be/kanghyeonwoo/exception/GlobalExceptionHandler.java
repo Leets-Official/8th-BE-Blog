@@ -3,6 +3,7 @@ package com.leets_8th_be.kanghyeonwoo.exception;
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -43,6 +44,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PostNotFound.class)
     public ResponseEntity<ApiResponse<Void>> handlePostNotFound(PostNotFound ex) {
         return errorResponse(ErrorCode.POST_NOT_FOUND);
+    }
+
+    @ExceptionHandler(PostAccessDenied.class)
+    public ResponseEntity<ApiResponse<Void>> handlePostAccessDenied(PostAccessDenied ex) {
+        return errorResponse(ErrorCode.FORBIDDEN_POST_ACCESS);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

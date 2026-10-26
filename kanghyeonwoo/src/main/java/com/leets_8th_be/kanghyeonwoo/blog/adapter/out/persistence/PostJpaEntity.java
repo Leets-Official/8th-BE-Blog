@@ -2,6 +2,7 @@ package com.leets_8th_be.kanghyeonwoo.blog.adapter.out.persistence;
 
 import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,8 +13,11 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.OneToMany;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -44,6 +48,9 @@ class PostJpaEntity {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CommentJpaEntity> comments = new ArrayList<>();
 
     protected PostJpaEntity() {
     }
@@ -83,6 +90,15 @@ class PostJpaEntity {
     Long getUserId() { return userId; }
     LocalDateTime getCreatedAt() { return createdAt; }
     LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    void updateContent(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
+    void hide() {
+        status = Visibility.HIDDEN;
+    }
 
     enum Visibility { ACTIVE, HIDDEN }
 }

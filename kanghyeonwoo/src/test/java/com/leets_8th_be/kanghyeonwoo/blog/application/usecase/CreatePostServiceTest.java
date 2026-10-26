@@ -6,6 +6,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
 import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
 import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
@@ -35,6 +36,12 @@ class CreatePostServiceTest {
                     com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId postId) {
                 return Optional.empty();
             }
+
+            @Override
+            public Optional<Post> findForUpdate(PostId postId) { return Optional.empty(); }
+
+            @Override
+            public void delete(PostId postId) { throw new AssertionError("unexpected delete"); }
         };
         CreatePostService createPost = new CreatePostService(users, posts);
 
@@ -53,19 +60,26 @@ class CreatePostServiceTest {
             public PostView save(Post post) {
                 storedPost.set(post);
                 return new PostView(new PostId(42L), post.title(), post.content(), post.authorId(),
-                        LocalDateTime.parse("2026-01-02T03:04:05"), LocalDateTime.parse("2026-01-02T03:04:05"));
+                        PostState.ACTIVE, LocalDateTime.parse("2026-01-02T03:04:05"),
+                        LocalDateTime.parse("2026-01-02T03:04:05"));
             }
 
             @Override
             public Optional<PostView> findActiveById(PostId id) {
                 return Optional.empty();
             }
+
+            @Override
+            public Optional<Post> findForUpdate(PostId id) { return Optional.empty(); }
+
+            @Override
+            public void delete(PostId id) { throw new AssertionError("unexpected delete"); }
         };
         CreatePostService createPost = new CreatePostService(users, posts);
 
         PostView created = createPost.create(new CreatePostCommand("첫 게시글", "게시글 본문", authorId));
 
-        assertThat(storedPost.get()).isEqualTo(new Post("첫 게시글", "게시글 본문", authorId));
+        assertThat(storedPost.get()).isEqualTo(Post.create("첫 게시글", "게시글 본문", authorId));
         assertThat(created.id()).isEqualTo(new PostId(42L));
         assertThat(created.authorId()).isEqualTo(authorId);
         assertThat(created.title()).isEqualTo("첫 게시글");
