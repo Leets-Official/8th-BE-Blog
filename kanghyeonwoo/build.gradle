@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+	implementation 'net.datafaker:datafaker:2.7.0'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.mysql:mysql-connector-j'
@@ -42,4 +43,13 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Uses BLOG_DB_URL when set; otherwise adds fixtures to the existing local data/blog database.
+tasks.register('seedMockData', JavaExec) {
+    group = 'application'
+    description = '사용자·게시글·댓글 목 데이터를 중복 없이 저장하고 종료합니다.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.leets_8th_be.kanghyeonwoo.config.MockDataLoader'
+    workingDir = projectDir
 }

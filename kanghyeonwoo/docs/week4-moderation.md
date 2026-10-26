@@ -22,14 +22,139 @@ reason과 resolutionReason은 공백 불가·최대 255자다. 사용자·대상
 
 ## 상태와 처리 행동
 
+HIDE/KEEP는 상태가 아닌 신고 처리 행동이다. 신고 상태와 대상의 공개 상태는 각각 관리하며, 신고 처리와 대상 숨김은 하나의 트랜잭션으로 반영한다.
+
+### 콘텐츠 생성부터 신고 처리까지
+
+게시글·댓글을 생성하면 공개 상태는 ACTIVE다. 댓글의 isDeleted는 false다. 신고가 접수되기 전에는 해당 신고 데이터가 없으며, 일반 조회·검색과 작성자의 수정이 가능하다. 댓글의 수정은 기존 도메인 동작이며 이번에 수정 API를 추가한 것은 아니다.
+
+아래는 공개 중인 콘텐츠에 신고 한 건이 접수되어 처리되는 전체 흐름이다. 각 상자는 콘텐츠와 신고의 상태를 함께 설명하며, 별도의 enum 값을 추가한 것이 아니다.
+
 ```mermaid
-flowchart TD
-    A[신고 PENDING] --> B{처리 행동}
-    B -->|HIDE| C[신고 RESOLVED + 대상 HIDDEN]
-    B -->|KEEP| D[신고 RESOLVED + 대상 공개 상태 유지]
+stateDiagram-v2
+    state "신고 전: 콘텐츠 ACTIVE / 신고 데이터 없음" as BeforeReport
+    state "신고 접수 후: 콘텐츠 ACTIVE / 신고 PENDING" as AwaitingReview
+    state "처리 완료: 콘텐츠 HIDDEN / 신고 RESOLVED" as ResolvedHidden
+    state "처리 완료: 콘텐츠 ACTIVE / 신고 RESOLVED" as ResolvedActive
+
+    [*] --> BeforeReport: 게시글 또는 댓글 생성
+    BeforeReport --> BeforeReport: 일반 조회와 검색 / 작성자 수정
+    BeforeReport --> BeforeReport: 유효하지 않은 신고 거절
+    BeforeReport --> AwaitingReview: 유효한 신고 접수 / 스냅샷 저장
+    AwaitingReview --> AwaitingReview: 검토 대기 / 공개 상태 유지
+    AwaitingReview --> AwaitingReview: 작성자 수정 / 신고 당시 스냅샷 보존
+    AwaitingReview --> ResolvedHidden: HIDE
+    AwaitingReview --> ResolvedActive: KEEP
+
+    note right of BeforeReport
+        신고 전은 ReportStatus 값이 아니다.
+        신고 접수가 성공해야 신고 행이 생성된다.
+    end note
+    note right of AwaitingReview
+        신고만으로 숨겨지지 않는다.
+        다른 사용자의 신고는 별도 행으로 생성된다.
+    end note
 ```
 
-HIDE/KEEP는 상태가 아닌 처리 행동이다. 신고는 PENDING에서 RESOLVED로 한 번만 전이한다. KEEP는 ACTIVE를 강제하지 않으며 다른 신고로 숨겨진 대상을 복원하지 않는다. 같은 대상의 다른 신고도 자동 처리하지 않는다. 댓글 신고의 HIDE는 그 댓글만 숨기고 부모 게시글을 숨기지 않는다.
+위 흐름은 대상이 삭제되거나 다른 신고로 먼저 숨겨지지 않은 경우다. 검토 중 대상이 삭제되면 KEEP만 가능하다. 다른 신고로 이미 숨겨졌다면 KEEP로 처리해도 HIDDEN을 유지한다. 상세 규칙은 아래 상태도와 같다.
+
+### 신고 상태
+
+실제 ReportStatus 값은 PENDING과 RESOLVED뿐이다. 신고 전 단계는 신고 행이 아직 없는 상황을 표시한다.
+
+```mermaid
+stateDiagram-v2
+    state "신고 전 (신고 데이터 없음)" as NotReported
+
+    [*] --> NotReported: 콘텐츠 생성
+    NotReported --> NotReported: 일반 이용 / 신고 데이터 없음
+    NotReported --> PENDING: 유효한 신고 접수 / 신고 행 생성
+    PENDING --> RESOLVED: HIDE / 대상 숨김
+    PENDING --> RESOLVED: KEEP / 대상 공개 상태 유지
+    PENDING --> PENDING: 삭제 대상 HIDE 거절 (409)
+    RESOLVED --> RESOLVED: 재처리 거절 (409)
+
+    note right of PENDING
+        접수만으로 대상이 숨겨지지 않는다.
+        처리 실패 시 PENDING을 유지한다.
+    end note
+    note right of RESOLVED
+        처리 행동, 사유, 처리자, 시각을 보존한다.
+        신고 및 스냅샷은 계속 조회할 수 있다.
+    end note
+```
+
+신고는 PENDING에서 RESOLVED로 한 번만 전이한다. 같은 대상의 다른 신고도 자동 처리하지 않는다. 거절 요청의 자기 전이는 오류 후 상태가 유지된다는 뜻이며, 새로운 처리 이력을 저장한다는 뜻이 아니다.
+
+### 게시글 공개 상태
+
+다음 HIDE/KEEP 전이는 해당 게시글의 PENDING 신고를 처리하는 경우를 나타낸다. HIDDEN 상태에서의 처리는 숨김 전에 접수된 다른 신고가 있을 때 가능하다.
+
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVE: 게시글 생성
+    ACTIVE --> ACTIVE: 신고 전 일반 조회와 검색
+    ACTIVE --> ACTIVE: 작성자의 제목과 본문 수정
+    ACTIVE --> ACTIVE: 신고 접수 / 공개 상태 유지
+    ACTIVE --> ACTIVE: KEEP
+    ACTIVE --> HIDDEN: HIDE
+    HIDDEN --> HIDDEN: HIDE 또는 KEEP
+    HIDDEN --> HIDDEN: 작성자의 본문 수정
+    ACTIVE --> RemovedPost: 작성자 삭제
+    HIDDEN --> RemovedPost: 작성자 삭제
+
+    state "삭제됨 (DB 행 제거)" as RemovedPost
+    note right of HIDDEN
+        목록과 검색에서 제외한다.
+        상세 및 댓글 조회는 404다.
+        ACTIVE로 복원하는 기능은 없다.
+    end note
+    note right of RemovedPost
+        PostStatus의 값이 아니다.
+        연관 댓글도 물리 삭제된다.
+        신고와 스냅샷은 보존한다.
+    end note
+```
+
+KEEP는 ACTIVE를 강제하지 않으며 다른 신고로 숨겨진 대상을 복원하지 않는다.
+
+### 댓글 공개 상태와 삭제 여부
+
+댓글의 공개 상태(status)와 삭제 여부(isDeleted)는 별개다. 아래 상태도는 두 값을 나란히 표시한다. 댓글의 HIDE는 삭제되지 않은 댓글에만 가능하며 부모 게시글을 숨기지 않는다.
+
+```mermaid
+stateDiagram-v2
+    state "댓글" as Comment {
+        state "공개 상태 (status)" as Visibility {
+            [*] --> ACTIVE: 댓글 생성
+            ACTIVE --> ACTIVE: 신고 전 목록 조회와 본문 검색
+            ACTIVE --> ACTIVE: 작성자의 본문 수정
+            ACTIVE --> ACTIVE: 신고 접수 / 공개 상태 유지
+            ACTIVE --> ACTIVE: KEEP
+            ACTIVE --> HIDDEN: HIDE (삭제되지 않은 댓글)
+            HIDDEN --> HIDDEN: KEEP
+            HIDDEN --> HIDDEN: HIDE (삭제되지 않은 댓글)
+        }
+        --
+        state "삭제 여부 (isDeleted)" as Deletion {
+            [*] --> NotDeleted: 댓글 생성
+            NotDeleted --> Deleted: 기존 댓글 삭제 처리
+
+            state "false (삭제되지 않음)" as NotDeleted
+            state "true (삭제됨)" as Deleted
+        }
+    }
+```
+
+isDeleted가 true이면 공개 상태와 관계없이 삭제 표시가 우선한다. 삭제된 댓글의 신고도 KEEP로 종결할 수 있지만 HIDE는 409다. 부모 게시글이 물리 삭제되면 댓글 행도 제거되며, 위 두 필드의 상태 전이와는 구분한다.
+
+| 댓글 공개 상태 | 삭제 여부 | 일반 목록 | 본문 검색 |
+| --- | --- | --- | --- |
+| ACTIVE | false | 원문 표시 | 포함 |
+| HIDDEN | false | 숨김 안내 문구 | 제외 |
+| ACTIVE 또는 HIDDEN | true | 삭제 안내 문구 | 제외 |
+
+부모 게시글이 HIDDEN이면 댓글 목록·검색 전체를 404로 차단한다.
 
 신고 접수는 대상 공개 상태를 바꾸지 않는다. 신고 당시 스냅샷은 대상이 수정·삭제되어도 보존한다. HIDE는 수정된 현재 대상을 숨긴다. 대상이 삭제되었으면 KEEP로 종결할 수 있지만 HIDE는 409다. 삭제 대상 처리 응답은 targetAvailable=false, targetHidden=null이다.
 
@@ -66,6 +191,40 @@ FROM reports
 GROUP BY reporter_id, target_type, target_id
 HAVING COUNT(*) > 1;
 ```
+
+## Datafaker 목 데이터
+
+신고·댓글 조회를 더 많은 데이터로 실습하려면 프로젝트 디렉터리에서 다음 명령을 실행한다.
+
+```sh
+./gradlew seedMockData --args='--spring.jpa.show-sql=false'
+```
+
+HTTP 서버를 시작하지 않고 사용자·게시글·댓글을 저장한 뒤 종료한다. 기본 대상은 기존 로컬 H2 DB인 data/blog이며, BLOG_DB_URL을 설정하면 해당 DB를 사용한다. 별도 실습 DB에 넣으려면 다음처럼 실행한다.
+
+```sh
+./gradlew seedMockData --args='--spring.datasource.url=jdbc:h2:file:./data/mock-blog --spring.jpa.show-sql=false'
+```
+
+| 데이터 | 생성 개수 | 구성 |
+| --- | --- | --- |
+| 사용자 | 5명 | Datafaker 한국어 이름, mock-user-1부터 mock-user-5까지 전용 이메일 |
+| 게시글 | 12개 | ACTIVE 10개, HIDDEN 2개, 제목에 [MOCK] 표시 |
+| 댓글 | 36개 | 대댓글 12개 포함, HIDDEN 2개, 삭제 댓글 2개 |
+
+Datafaker 2.7.0으로 이름·제목·본문을 생성한다. locale은 ko, 난수 seed는 20261026으로 고정한다. locale에 없는 텍스트 제공자는 기본 언어로 대체될 수 있어 본문 전체가 한국어인 것은 아니다. locale 및 seed 설정은 [Datafaker 공식 사용법](https://www.datafaker.net/documentation/usage/)을 따른다.
+
+이름은 최대 50자, [MOCK] 접두어를 포함한 제목은 최대 150자로 제한한다. 댓글에는 질문·답변·의견 표식을 유지한다. 작성자·게시글·부모 댓글 연결과 숨김·삭제 상태는 생성기가 정하고, Datafaker는 텍스트만 만든다. 신고 데이터는 자동 생성하지 않는다.
+
+같은 라이브러리 버전과 생성 순서에서는 같은 텍스트를 생성한다. DB ID와 생성 시각은 고정하지 않는다. 기존 데이터를 삭제하거나 덮어쓰지 않고 추가하며, 전용 이메일 mock-user-1@blog.example이 이미 있으면 생성을 건너뛴다. 이전 고정 문자열 목 데이터가 있어도 그대로 보존한다. 이 이메일을 기존 목 데이터의 표식으로 사용하므로 일부 데이터가 수동 삭제되었더라도 자동 복구하지 않는다.
+
+생성은 mock-data 프로필에서만 수행한다. 일반 서버 시작에는 자동 삽입하지 않는다. 명령이 끝난 뒤 평소대로 서버를 실행하면 저장된 데이터를 조회할 수 있다. 시작 로그의 “목 사용자”와 “목 게시글” 행에서 실제 사용자·게시글·댓글 ID를 확인한다.
+
+조회 예시:
+
+- 게시글 목록: GET /posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
+- 댓글 목록: GET /posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
+- 댓글 검색: GET /posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
 
 ## Swagger 시연
 
