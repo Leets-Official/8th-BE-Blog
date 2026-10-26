@@ -9,6 +9,13 @@
 | 게시글 | 게시글 생성 | POST | `/posts` |
 | 게시글 | 게시글 수정 | PATCH | `/posts/{post_id}` |
 | 게시글 | 게시글 삭제 | DELETE | `/posts/{post_id}` |
+| 신고 | 게시글 신고 | POST | `/posts/{post_id}/reports` |
+| 신고 | 댓글 신고 | POST | `/comments/{comment_id}/reports` |
+| 신고 | 신고 목록 조회 | GET | `/reports?status=PENDING` |
+| 신고 | 신고 처리 | PATCH | `/reports/{report_id}` |
+| 게시글 | 게시글 숨김 상태 변경 | PATCH | `/posts/{post_id}/visibility` |
+| 댓글 | 댓글 채택 | PUT | `/posts/{post_id}/accepted-comment/{comment_id}` |
+| 댓글 | 댓글 채택 해제 | DELETE | `/posts/{post_id}/accepted-comment` |
 
 # API 명세
 
@@ -161,7 +168,7 @@
 
 | HTTP 상태 | 예외 상황 | 에러 코드 |
 |---|---|---|
-| 404 | 삭제된 글 조회 | `POST_NOT_FOUND` |
+| 404 | 존재하지 않거나 숨김/삭제된 글 조회 | `POST_NOT_FOUND` |
 | 400 | 잘못된 형식 | `INVALID_POST_ID` |
 
 ---
@@ -175,7 +182,7 @@
 
 | 위치 | 이름 | 타입 | 필수 | 설명 |
 |---|---|---|---|---|
-| Header | Authorization | string | O | `Bearer {accessToken}` |
+| Header | X-User-Id | string | O | 작업할 회원의 ID |
 | Body | title | string | O | 공백 문자만 입력 불가, 100자 이하 |
 | Body | content | string | O | 공백 문자만 입력 불가 |
 
@@ -230,7 +237,7 @@
 | 400 | 필드 누락 (제목 및 내용) | `REQUIRED_FIELD_MISSING` |
 | 400 | 제목 길이 제한 초과 | `TITLE_LENGTH_EXCEEDED` |
 | 400 | 본문 길이 제한 초과 | `CONTENT_LENGTH_EXCEEDED` |
-| 401 | 로그인하지 않은 사용자 | `UNAUTHORIZED` |
+| 401 | 유효한 X-User-Id가 없는 사용자 | `UNAUTHORIZED` |
 
 ---
 
@@ -243,7 +250,7 @@
 
 | 위치 | 이름 | 타입 | 필수 | 설명 |
 |---|---|---|---|---|
-| Header | Authorization | string | O | `Bearer {accessToken}` |
+| Header | X-User-Id | string | O | 작업할 회원의 ID |
 | Path | postId | Long | O | 수정할 게시글 ID (1 이상) |
 | Body | title | string | O | 공백 불가, 100자 이하 |
 | Body | content | string | O | 공백 불가 |
@@ -300,7 +307,7 @@
 | 400 | 필드 누락 (제목 또는 내용) | `REQUIRED_FIELD_MISSING` |
 | 400 | 제목 길이 제한 초과 | `TITLE_LENGTH_EXCEEDED` |
 | 400 | 본문 길이 제한 초과 | `CONTENT_LENGTH_EXCEEDED` |
-| 401 | 로그인하지 않은 사용자 | `UNAUTHORIZED` |
+| 401 | 유효한 X-User-Id가 없는 사용자 | `UNAUTHORIZED` |
 | 403 | 수정 권한 없음 (작성자가 아님) | `POST_ACCESS_DENIED` |
 | 404 | 존재하지 않거나 삭제된 게시글 | `POST_NOT_FOUND` |
 
@@ -315,7 +322,7 @@
 
 | 위치 | 이름 | 타입 | 필수 | 설명 |
 |---|---|---|---|---|
-| Header | Authorization | string | O | `Bearer {accessToken}` |
+| Header | X-User-Id | string | O | 작업할 회원의 ID |
 | Path | postId | Long | O | 삭제할 게시글 ID (1 이상) |
 
 ### Request Body
@@ -362,7 +369,7 @@
 | HTTP 상태 | 예외 상황 | 에러 코드 |
 |---|---|---|
 | 400 | 잘못된 게시글 ID 형식 | `INVALID_POST_ID` |
-| 401 | 로그인하지 않은 사용자 | `UNAUTHORIZED` |
+| 401 | 유효한 X-User-Id가 없는 사용자 | `UNAUTHORIZED` |
 | 403 | 삭제 권한 없음 (작성자가 아님) | `POST_ACCESS_DENIED` |
 | 404 | 존재하지 않거나 삭제된 게시글 | `POST_NOT_FOUND` |
 
@@ -420,14 +427,13 @@
 조회에 실패하면 상황에 맞는 오류 메시지를 표시한다.
 
 - E-1. 유효하지 않은 요청 형식 (400 Bad Request / `INVALID_POST_ID`)
-- E-2. 게시글 접근 권한 없음 (403 Forbidden / `POST_ACCESS_DENIED`)
-- E-3. 존재하지 않거나 삭제된 게시글 (404 Not Found / `POST_NOT_FOUND`)
+- E-2. 존재하지 않거나 숨김/삭제된 게시글 (404 Not Found / `POST_NOT_FOUND`)
 
 ### 3.3 게시글 생성
 
-**사용자:** 로그인한 사용자
+**사용자:** 유효한 X-User-Id를 제공한 사용자
 
-**사전 조건:** 사용자가 로그인한 상태
+**사전 조건:** X-User-Id가 실제 회원 ID를 가리킨다.
 
 **기본 흐름**
 
@@ -445,13 +451,13 @@
 - E-1. 필수 필드 누락 (400 Bad Request / `REQUIRED_FIELD_MISSING`)
 - E-2. 제목 길이 제한 초과 (400 Bad Request / `TITLE_LENGTH_EXCEEDED`)
 - E-3. 본문 길이 제한 초과 (400 Bad Request / `CONTENT_LENGTH_EXCEEDED`)
-- E-4. 로그인하지 않은 사용자 (401 Unauthorized / `UNAUTHORIZED`)
+- E-4. 유효한 X-User-Id가 없는 사용자 (401 Unauthorized / `UNAUTHORIZED`)
 
 ### 3.4 게시글 수정
 
 **사용자:** 게시글 작성자
 
-**사전 조건:** 사용자가 로그인했으며 해당 게시글의 작성자이다.
+**사전 조건:** X-User-Id가 실제 회원 ID를 가리키며 해당 게시글의 작성자이다.
 
 **기본 흐름**
 
@@ -469,7 +475,7 @@
 - E-2. 필수 필드 누락 (400 Bad Request / `REQUIRED_FIELD_MISSING`)
 - E-3. 제목 길이 제한 초과 (400 Bad Request / `TITLE_LENGTH_EXCEEDED`)
 - E-4. 본문 길이 제한 초과 (400 Bad Request / `CONTENT_LENGTH_EXCEEDED`)
-- E-5. 로그인하지 않은 사용자 (401 Unauthorized / `UNAUTHORIZED`)
+- E-5. 유효한 X-User-Id가 없는 사용자 (401 Unauthorized / `UNAUTHORIZED`)
 - E-6. 수정 권한 없음 (403 Forbidden / `POST_ACCESS_DENIED`)
 - E-7. 존재하지 않거나 삭제된 게시글 (404 Not Found / `POST_NOT_FOUND`)
 
@@ -477,7 +483,7 @@
 
 **사용자:** 게시글 작성자
 
-**사전 조건:** 사용자가 로그인했으며 해당 게시글의 작성자이다.
+**사전 조건:** X-User-Id가 실제 회원 ID를 가리키며 해당 게시글의 작성자이다.
 
 **기본 흐름**
 
@@ -494,6 +500,61 @@
 삭제에 실패하면 상황에 맞는 오류 메시지를 표시한다.
 
 - E-1. 잘못된 게시글 ID 형식 (400 Bad Request / `INVALID_POST_ID`)
-- E-2. 로그인하지 않은 사용자 (401 Unauthorized / `UNAUTHORIZED`)
+- E-2. 유효한 X-User-Id가 없는 사용자 (401 Unauthorized / `UNAUTHORIZED`)
 - E-3. 삭제 권한 없음 (403 Forbidden / `POST_ACCESS_DENIED`)
 - E-4. 존재하지 않거나 이미 삭제된 게시글 (404 Not Found / `POST_NOT_FOUND`)
+
+---
+
+## 6. 신고 및 게시글 상태 관리
+
+신규 기능은 기존 사용자 식별 방식인 `X-User-Id` 헤더를 사용하며, 성공/오류 응답은 공통 `ApiResponse` 형식을 따른다. 신고 사유와 처리 결과는 공백이 아닌 1~1000자 문자열이다. 각 사용자는 동일 게시글 또는 동일 댓글을 한 번만 신고할 수 있다. 현재 사용자 모델에 운영자 역할이 없으므로 신고 조회/처리 및 숨김 변경은 유효한 사용자 ID를 확인하며, 별도 역할 권한 검사는 하지 않는다. 댓글 채택/해제는 게시글 작성자만 할 수 있다.
+
+### 게시글 및 댓글 신고
+
+`POST /posts/{post_id}/reports` 또는 `POST /comments/{comment_id}/reports` 요청 본문:
+
+```json
+{"reason":"신고 사유"}
+```
+
+성공 시 HTTP `201 Created`, 응답 `code`는 문자열 `"201"`이다. `data`에는 신고 ID, 대상 ID, 신고자 ID, 사유, 상태와 처리 정보가 포함된다.
+
+```json
+{
+  "isSuccess": true,
+  "code": "201",
+  "data": {
+    "reportId": 3,
+    "targetType": "POST",
+    "postId": 10,
+    "commentId": null,
+    "reporterId": 1,
+    "reason": "신고 사유",
+    "status": "PENDING",
+    "result": null,
+    "resolvedById": null,
+    "createdAt": "2026-10-26T10:00:00",
+    "updatedAt": "2026-10-26T10:00:00"
+  },
+  "error": null
+}
+```
+
+없는 대상은 `404 POST_NOT_FOUND` 또는 `404 COMMENT_NOT_FOUND`, 중복 신고는 `409 DUPLICATE_REPORT`, 잘못된 사유는 `400 INVALID_REPORT_REASON`이다. 잘못된 대상 ID는 `400 INVALID_POST_ID` 또는 `400 INVALID_COMMENT_ID`, 유효한 `X-User-Id`가 없으면 `401 UNAUTHORIZED`이다.
+
+### 신고 조회 및 처리
+
+`GET /reports?status=PENDING`은 `PENDING` 또는 `RESOLVED` 신고 목록을 반환한다. `PATCH /reports/{report_id}`는 다음 본문으로 신고를 한 번 처리하며, 상태를 `PENDING`에서 `RESOLVED`로 변경하고 처리자와 결과를 저장한다.
+
+```json
+{"result":"처리 결과"}
+```
+
+유효한 `X-User-Id`가 필요하다. 상태가 없거나 `PENDING`/`RESOLVED`가 아니면 `400 INVALID_REPORT_STATUS`이며, 잘못된 신고 ID는 `400 INVALID_REPORT_ID`이다. 이미 처리된 신고를 다시 처리하면 `409 INVALID_REPORT_TRANSITION`, 존재하지 않는 신고는 `404 REPORT_NOT_FOUND`, 잘못된 처리 결과는 `400 INVALID_REPORT_RESULT`이다.
+
+### 게시글 숨김 및 댓글 채택
+
+`PATCH /posts/{post_id}/visibility` 요청 본문은 `{"status":"HIDDEN"}` 또는 `{"status":"ACTIVE"}`이다. 유효한 `X-User-Id`가 필요하며 숨김 게시글은 목록과 상세 조회에서 제외된다. 잘못된 게시글 ID 또는 없는 게시글은 각각 `400 INVALID_POST_ID` 또는 `404 POST_NOT_FOUND`이다. 현재 상태와 같은 상태로 변경하거나 올바르지 않은 상태를 요청하면 각각 `409 INVALID_VISIBILITY_TRANSITION` 또는 `400 INVALID_VISIBILITY`를 반환한다.
+
+게시글 작성자는 `PUT /posts/{post_id}/accepted-comment/{comment_id}`로 해당 게시글의 댓글을 채택하고 `DELETE /posts/{post_id}/accepted-comment`로 채택을 해제할 수 있다. 유효한 `X-User-Id`가 필요하며 게시글당 한 댓글만 채택할 수 있다. 다른 댓글이 이미 채택된 경우 `409 COMMENT_ALREADY_ACCEPTED`, 채택할 댓글이 없는 경우 `409 NO_ACCEPTED_COMMENT`, 작성자가 아니면 `403 POST_ACCESS_DENIED`, 대상 댓글이 없으면 `404 COMMENT_NOT_FOUND`, 댓글이 다른 게시글에 속하면 `400 COMMENT_POST_MISMATCH`이다.

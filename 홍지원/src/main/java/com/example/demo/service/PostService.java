@@ -39,7 +39,10 @@ public class PostService {
     }
 
     public PostDto.Detail detail(long postId) {
-        return PostDto.Detail.from(findPost(postId));
+        if (postId < 1) throw new ApiException(400, "INVALID_POST_ID", "게시글 ID는 1 이상이어야 합니다.");
+        Post post = postRepository.findVisibleById(postId).orElseThrow(
+                () -> new ApiException(404, "POST_NOT_FOUND", "해당 게시글을 찾을 수 없습니다."));
+        return PostDto.Detail.from(post);
     }
 
     @Transactional
