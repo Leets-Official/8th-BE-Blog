@@ -16,6 +16,7 @@ import com.leets.mission.global.apiPayload.code.ErrorStatus;
 import com.leets.mission.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,12 @@ public class ReportService {
         report.process(request.status()); //이미 처리된 신고면 409
         if (report.isResolved()) {
             hideTarget(report);
+        }
+        try {
+            // 다른 요청이 먼저 처리했으면 version이 달라 UPDATE가 실패
+            reportRepository.flush();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new GeneralException(ErrorStatus.REPORT_409_2);
         }
         return ReportConverter.toDetailDTO(report);
     }

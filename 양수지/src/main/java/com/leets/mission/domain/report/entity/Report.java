@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -60,6 +61,10 @@ public class Report extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ReportStatus status;
+
+    // 낙관적 락 버전 (동시에 같은 신고를 처리하면 먼저 커밋한 요청만 성공)
+    @Version
+    private Long version;
 
     @Builder
     private Report(User reporter, ReportTargetType targetType, Long targetId, String reason) {
