@@ -2,6 +2,7 @@ package com.leets.blog.service;
 
 import com.leets.blog.dto.post.*;
 import com.leets.blog.entity.Post;
+import com.leets.blog.entity.PostStatus;
 import com.leets.blog.entity.User;
 import com.leets.blog.exception.PostApiException;
 import com.leets.blog.repository.PostRepository;
@@ -29,6 +30,9 @@ public class PostService {
     public PostResponse detail(Long postId, Long userId) {
         if (userId != null) validateUserId(userId);
         Post post = findActivePost(postId);
+        if (post.getStatus() == PostStatus.HIDDEN) {
+            throw new PostApiException(403, "POST_HIDDEN", "숨김 처리된 게시글입니다.");
+        }
         if (post.isPrivate() && !Objects.equals(post.getUser().getId(), userId)) {
             throw new PostApiException(403, "POST_ACCESS_DENIED", "해당 게시글에 접근할 권한이 없습니다.");
         }
@@ -71,6 +75,24 @@ public class PostService {
         Post post = findActivePost(postId);
         checkOwner(post, userId, "삭제");
         post.markDeleted();
+    }
+
+    @Transactional
+    public PostStatusResponse hide(Long postId) {
+        if (postId == null || postId <= 0) {
+            throw new PostApiException(400, "INVALID_POST_ID", "올바르지 않은 게시글 ID입니다.");
+        }
+        Post post = postRepository.findForUpdateById(postId)
+                .orElseThrow(() -> new PostApiException(404, "POST_NOT_FOUND", "존재하지 않는 게시글입니다."));
+        if (post.getDeletedAt() != null) {
+            throw new PostApiException(404, "POST_DELETED", "삭제된 게시글입니다.");
+        }
+        if (post.getStatus() == PostStatus.HIDDEN) {
+            throw new PostApiException(409, "POST_ALREADY_HIDDEN", "이미 숨김 처리된 게시글입니다.");
+        }
+        post.hide();
+        postRepository.flush();
+        return new PostStatusResponse(post.getId(), post.getStatus());
     }
 
     private Post findActivePost(Long postId) {

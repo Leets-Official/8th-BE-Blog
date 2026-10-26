@@ -5,6 +5,7 @@ import com.leets.blog.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -51,5 +52,12 @@ public class PostController {
     public ResponseEntity<Void> delete(@PathVariable Long postId, @RequestBody DeletePostRequest request) {
         postService.delete(postId, request.userId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{postId}/hide")
+    @Operation(summary = "게시글 숨김", description = "숨김 게시글은 일반 목록과 상세 조회에서 제외됩니다.")
+    @ApiResponse(responseCode = "200", description = "숨김 처리 완료")
+    public PostStatusResponse hide(@PathVariable Long postId) {
+        return postService.hide(postId);
     }
 }
