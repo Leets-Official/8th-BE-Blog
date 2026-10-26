@@ -1,7 +1,12 @@
 package com.leets_8th_be.kanghyeonwoo.controller;
 
 import com.leets_8th_be.kanghyeonwoo.dto.*;
+import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
+import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
 import com.leets_8th_be.kanghyeonwoo.service.PostService;
+import com.leets_8th_be.kanghyeonwoo.search.SearchNormalization;
+import com.leets_8th_be.kanghyeonwoo.search.SearchTrackingService;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +25,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final SearchTrackingService searchTracking;
 
     @Operation(summary = "게시글 등록", description = "신규 게시글을 등록합니다. (제목은 최대 150자, 본문은 공백 불가)")
     @PostMapping
@@ -42,8 +48,15 @@ public class PostController {
     public ResponseEntity<ApiResponse<List<PostSummaryResponse>>> getPosts(
             @Parameter(description = "페이지 번호 (1부터 시작)", example = "1") @RequestParam(name = "page", defaultValue = "1") int page,
             @Parameter(description = "페이지 크기", example = "10") @RequestParam(name = "size", defaultValue = "10") int size,
-            @Parameter(description = "제목 검색 키워드 (선택)", example = "Spring") @RequestParam(name = "keyword", required = false) String keyword) {
+            @Parameter(description = "제목 검색 키워드 (선택)", example = "Spring") @RequestParam(name = "keyword", required = false) String keyword,
+            HttpServletRequest request) {
+        if (page < 1 || size < 1 || size > 100) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         List<PostSummaryResponse> responses = postService.getPosts(page, size, keyword);
+        if (page == 1 && !SearchNormalization.normalize(keyword).isEmpty()) {
+            searchTracking.record(keyword, request.getSession(), !responses.isEmpty());
+        }
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글 목록 조회가 완료되었습니다.", responses));
     }
 

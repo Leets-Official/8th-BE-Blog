@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
+    SEARCH_KEYWORD_NOT_FOUND(HttpStatus.NOT_FOUND, "SEARCH4001", "해당 검색어를 찾을 수 없습니다."),
+
     // 게시판 리소스
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4001", "해당 ID의 게시글을 찾을 수 없습니다."),
     FORBIDDEN_POST_ACCESS(HttpStatus.FORBIDDEN, "POST4003", "작성자 본인만 수정 및 삭제할 수 있습니다."),

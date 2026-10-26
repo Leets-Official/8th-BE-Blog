@@ -10,6 +10,7 @@ import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import com.leets_8th_be.kanghyeonwoo.search.SearchNormalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,8 +50,9 @@ public class PostService {
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(Sort.Direction.DESC, "createdAt", "id"));
 
         Page<Post> postPage;
-        if (keyword != null && !keyword.isBlank()) {
-            postPage = postRepository.findByTitleContainingIgnoreCase(keyword.trim(), pageable);
+        if (!SearchNormalization.normalize(keyword).isEmpty()) {
+            postPage = postRepository.findByNormalizedTitleContaining(
+                    SearchNormalization.requireKeyword(keyword), pageable);
         } else {
             postPage = postRepository.findAll(pageable);
         }
