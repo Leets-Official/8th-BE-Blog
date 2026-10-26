@@ -23,6 +23,30 @@ class SearchControllerTest {
     @Autowired UserRepository users;
 
     @Test
+    void uncountedAndInvalidRequestsDoNotCreateSessions() throws Exception {
+        mvc.perform(get("/posts"))
+                .andExpect(status().isOk())
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
+                        result.getRequest().getSession(false)).isNull());
+        mvc.perform(get("/posts").param("keyword", "spring").param("page", "2"))
+                .andExpect(status().isOk())
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
+                        result.getRequest().getSession(false)).isNull());
+        mvc.perform(get("/posts").param("keyword", "x"))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
+                        result.getRequest().getSession(false)).isNull());
+    }
+
+    @Test
+    void aCountedFirstPageSearchCreatesASession() throws Exception {
+        mvc.perform(get("/posts").param("keyword", "spring"))
+                .andExpect(status().isOk())
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
+                        result.getRequest().getSession(false)).isNotNull());
+    }
+
+    @Test
     void searchesNormalizedTitlesWithoutChangingTheirDisplay() throws Exception {
         User author = users.save(User.create("검색 작성자", "search-author@example.com"));
         posts.saveAndFlush(Post.create("Spring   Boot 입문", "본문", author));
