@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import com.example.demo.global.exception.CustomException;
+import com.example.demo.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,6 +34,10 @@ public class Post extends BaseTimeEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PostStatus status = PostStatus.ACTIVE;
+
     public Post(String title, String content, Member member) {
         this.title = title;
         this.content = content;
@@ -49,5 +55,16 @@ public class Post extends BaseTimeEntity {
 
     void addComment(Comment comment) {
         this.comments.add(comment);
+    }
+
+    public void hide() {
+        if (this.status == PostStatus.HIDDEN) {
+            throw new CustomException(ErrorCode.POST_ALREADY_HIDDEN);
+        }
+        this.status = PostStatus.HIDDEN;
+    }
+
+    public boolean isHidden() {
+        return this.status == PostStatus.HIDDEN;
     }
 }

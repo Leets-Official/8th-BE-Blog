@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.dto.post.PostCreateRequest;
 import com.example.demo.dto.post.PostDeleteResponse;
 import com.example.demo.dto.post.PostDetailResponse;
+import com.example.demo.dto.post.PostHideRequest;
 import com.example.demo.dto.post.PostListResponse;
+import com.example.demo.dto.post.PostStatusResponse;
 import com.example.demo.dto.post.PostUpdateRequest;
 import com.example.demo.global.response.ApiResponse;
 import com.example.demo.service.PostService;
@@ -46,6 +48,12 @@ public class PostController {
     public ApiResponse<PostDetailResponse> updatePost(@PathVariable Long postId,
                                                       @Valid @RequestBody PostUpdateRequest request) {
         return ApiResponse.ok("게시글이 성공적으로 수정되었습니다.", postService.updatePost(postId, request));
+    }
+
+    @PostMapping("/{postId}/hide")
+    public ApiResponse<PostStatusResponse> hidePost(@PathVariable Long postId,
+                                                    @Valid @RequestBody PostHideRequest request) {
+        return ApiResponse.ok("게시글이 숨김 처리되었습니다.", postService.hidePost(postId, request));
     }
 
     @DeleteMapping("/{postId}")
