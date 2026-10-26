@@ -18,7 +18,10 @@ public enum SuccessStatus {
     POST_HIDDEN(HttpStatus.OK, "2000", "게시글이 숨김 처리되었습니다."),
 
     // 댓글
-    COMMENT_CREATED(HttpStatus.CREATED, "2000", "댓글이 작성되었습니다.");
+    COMMENT_CREATED(HttpStatus.CREATED, "2000", "댓글이 작성되었습니다."),
+
+    // 신고
+    REPORT_CREATED(HttpStatus.CREATED, "2000", "신고가 접수되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
