@@ -6,11 +6,11 @@
 
 | 요청 | 입력 | 결과 |
 | --- | --- | --- |
-| POST /posts/{postId}/reports | reporterId, reason | 게시글 신고 생성, 201 |
-| POST /comments/{commentId}/reports | reporterId, reason | 댓글 신고 생성, 201 |
-| GET /posts/{postId}/comments | page, size, keyword | 해당 게시글의 댓글 목록·본문 검색 |
-| GET /reports | page, size, status, targetType, targetId, keyword | 신고 목록·스냅샷 검색 |
-| PATCH /reports/{reportId}/resolve | processorId, action, resolutionReason | 신고 처리, 200 |
+| POST /api/v1/posts/{postId}/reports | reporterId, reason | 게시글 신고 생성, 201 |
+| POST /api/v1/comments/{commentId}/reports | reporterId, reason | 댓글 신고 생성, 201 |
+| GET /api/v1/posts/{postId}/comments | page, size, keyword | 해당 게시글의 댓글 목록·본문 검색 |
+| GET /api/v1/reports | page, size, status, targetType, targetId, keyword | 신고 목록·스냅샷 검색 |
+| PATCH /api/v1/reports/{reportId}/resolve | processorId, action, resolutionReason | 신고 처리, 200 |
 
 reason과 resolutionReason은 공백 불가·최대 255자다. 사용자·대상 ID는 양수여야 한다. 모든 응답은 success, 문자열 code, message, data를 사용한다. 성공 코드는 S200/S201이며 실패 시 data는 null이다.
 
@@ -222,9 +222,9 @@ Datafaker 2.7.0으로 이름·제목·본문을 생성한다. locale은 ko, 난�
 
 조회 예시:
 
-- 게시글 목록: GET /posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
-- 댓글 목록: GET /posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
-- 댓글 검색: GET /posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
+- 게시글 목록: GET /api/v1/posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
+- 댓글 목록: GET /api/v1/posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
+- 댓글 검색: GET /api/v1/posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
 
 ## Swagger 시연
 

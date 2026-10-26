@@ -24,15 +24,15 @@ class SearchControllerTest {
 
     @Test
     void uncountedAndInvalidRequestsDoNotCreateSessions() throws Exception {
-        mvc.perform(get("/posts"))
+        mvc.perform(get("/api/v1/posts"))
                 .andExpect(status().isOk())
                 .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
                         result.getRequest().getSession(false)).isNull());
-        mvc.perform(get("/posts").param("keyword", "spring").param("page", "2"))
+        mvc.perform(get("/api/v1/posts").param("keyword", "spring").param("page", "2"))
                 .andExpect(status().isOk())
                 .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
                         result.getRequest().getSession(false)).isNull());
-        mvc.perform(get("/posts").param("keyword", "x"))
+        mvc.perform(get("/api/v1/posts").param("keyword", "x"))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
                         result.getRequest().getSession(false)).isNull());
@@ -40,7 +40,7 @@ class SearchControllerTest {
 
     @Test
     void aCountedFirstPageSearchCreatesASession() throws Exception {
-        mvc.perform(get("/posts").param("keyword", "spring"))
+        mvc.perform(get("/api/v1/posts").param("keyword", "spring"))
                 .andExpect(status().isOk())
                 .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
                         result.getRequest().getSession(false)).isNotNull());
@@ -51,7 +51,7 @@ class SearchControllerTest {
         User author = users.save(User.create("검색 작성자", "search-author@example.com"));
         posts.saveAndFlush(Post.create("Spring   Boot 입문", "본문", author));
 
-        mvc.perform(get("/posts").param("keyword", "  SPRING  BOOT  "))
+        mvc.perform(get("/api/v1/posts").param("keyword", "  SPRING  BOOT  "))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.items.length()").value(1))
                 .andExpect(jsonPath("$.data.items[0].title").value("Spring   Boot 입문"));
@@ -59,7 +59,7 @@ class SearchControllerTest {
 
     @Test
     void suggestsAnEnglishTypoFromTheInitialDictionary() throws Exception {
-        mvc.perform(get("/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("spring"))
                 .andExpect(jsonPath("$.data[0].distance").value(1));
@@ -69,8 +69,8 @@ class SearchControllerTest {
     void newlySuccessfulSearchesBecomeSuggestible() throws Exception {
         User author = users.save(User.create("사전 작성자", "dictionary@example.com"));
         posts.saveAndFlush(Post.create("Tracerframework 사용법", "본문", author));
-        mvc.perform(get("/posts").param("keyword", "Tracerframework")).andExpect(status().isOk());
-        mvc.perform(get("/search/suggestions").param("keyword", "tracerframewor"))
+        mvc.perform(get("/api/v1/posts").param("keyword", "Tracerframework")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "tracerframewor"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("tracerframework"));
     }
@@ -80,9 +80,9 @@ class SearchControllerTest {
         User author = users.save(User.create("한글 작성자", "korean@example.com"));
         posts.saveAndFlush(Post.create("스프링 100% 학습", "본문", author));
         posts.saveAndFlush(Post.create("스프링 100X 학습", "본문", author));
-        mvc.perform(get("/posts").param("keyword", "100%"))
+        mvc.perform(get("/api/v1/posts").param("keyword", "100%"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(1));
-        mvc.perform(get("/posts").param("keyword", java.text.Normalizer.normalize("스프링", java.text.Normalizer.Form.NFD)))
+        mvc.perform(get("/api/v1/posts").param("keyword", java.text.Normalizer.normalize("스프링", java.text.Normalizer.Form.NFD)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(2));
     }
 }

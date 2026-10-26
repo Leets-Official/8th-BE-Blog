@@ -37,7 +37,7 @@ class MockDataSeederTest {
         assertThat(posts.count()).isEqualTo(12);
         assertThat(comments.count()).isEqualTo(36);
         assertThat(reports.count()).isZero();
-        mvc.perform(get("/posts").param("keyword", "MOCK").param("size", "3"))
+        mvc.perform(get("/api/v1/posts").param("keyword", "MOCK").param("size", "3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(10))
                 .andExpect(jsonPath("$.data.totalPages").value(4));
@@ -61,15 +61,15 @@ class MockDataSeederTest {
                 .filter(comment -> comment.getStatus() == CommentStatus.HIDDEN)
                 .filter(comment -> activePostIds.contains(comment.getPost().getId())).findFirst().orElseThrow();
         Long visiblePostId = hiddenParent.getPost().getId();
-        mvc.perform(get("/posts/{id}/comments", visiblePostId))
+        mvc.perform(get("/api/v1/posts/{id}/comments", visiblePostId))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(3))
                 .andExpect(jsonPath("$.data.items[?(@.parentId == " + hiddenParent.getId() + ")].id").isNotEmpty())
                 .andExpect(jsonPath("$.data.items[?(@.status == 'HIDDEN')].content")
                         .value(org.hamcrest.Matchers.contains("숨김 처리된 댓글입니다.")));
-        mvc.perform(get("/posts/{id}/comments", visiblePostId).param("keyword", "질문"))
+        mvc.perform(get("/api/v1/posts/{id}/comments", visiblePostId).param("keyword", "질문"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(0));
         var hidden = examples.stream().filter(p -> p.getStatus() == PostStatus.HIDDEN).findFirst().orElseThrow();
-        mvc.perform(get("/posts/{id}", hidden.getId())).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/posts/{id}", hidden.getId())).andExpect(status().isNotFound());
     }
     @Test
     @Transactional

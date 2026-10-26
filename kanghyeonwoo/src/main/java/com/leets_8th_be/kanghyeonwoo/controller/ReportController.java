@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Report", description = "신고 접수·조회·처리 API (과제용 사용자 ID 방식)")
+@RequestMapping(ApiPaths.API_V1)
 public class ReportController {
     private final ReportService reports;
 

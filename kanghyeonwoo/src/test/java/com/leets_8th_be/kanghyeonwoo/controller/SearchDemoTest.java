@@ -20,7 +20,7 @@ class SearchDemoTest {
 
     @Test
     void insertsExampleDataAndShowsTheExpectedRankings() throws Exception {
-        mvc.perform(get("/search/trends"))
+        mvc.perform(get("/api/v1/search/trends"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(3))
                 .andExpect(jsonPath("$.data[0].keyword").value("spring"))
@@ -29,20 +29,20 @@ class SearchDemoTest {
                 .andExpect(jsonPath("$.data[0].riseScore").value(1.6))
                 .andExpect(jsonPath("$.data[1].keyword").value("jpa"))
                 .andExpect(jsonPath("$.data[2].keyword").value("java"));
-        mvc.perform(get("/search/suggestions").param("keyword", "스프링부투"))
+        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "스프링부투"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("스프링부트"))
                 .andExpect(jsonPath("$.data[1].keyword").value("스프링"));
-        String body = mvc.perform(get("/search/suggestions").param("keyword", "sprng"))
+        String body = mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(10))
                 .andReturn().getResponse().getContentAsString();
         Number id = com.jayway.jsonpath.JsonPath.read(body, "$.data[0].keywordId");
-        mvc.perform(get("/search/keywords/" + id + "/stats"))
+        mvc.perform(get("/api/v1/search/keywords/" + id + "/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.currentCount").value(10))
                 .andExpect(jsonPath("$.data.previousCount").value(2))
                 .andExpect(jsonPath("$.data.hourlyCounts[21].count").value(2))
                 .andExpect(jsonPath("$.data.hourlyCounts[22].count").value(10));
-        mvc.perform(get("/posts")).andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(2));
+        mvc.perform(get("/api/v1/posts")).andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(2));
     }
 }

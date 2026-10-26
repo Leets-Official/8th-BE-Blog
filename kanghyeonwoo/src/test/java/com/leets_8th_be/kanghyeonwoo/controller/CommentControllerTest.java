@@ -39,7 +39,7 @@ class CommentControllerTest {
         comments.saveAndFlush(Comment.create("질문 다른 글", author, another));
 
         entities.clear();
-        mvc.perform(get("/posts/{id}/comments", post.getId()).param("size", "2"))
+        mvc.perform(get("/api/v1/posts/{id}/comments", post.getId()).param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(4))
                 .andExpect(jsonPath("$.data.totalPages").value(2))
@@ -47,15 +47,15 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.data.items[0].content").value("삭제된 댓글입니다."))
                 .andExpect(jsonPath("$.data.items[1].status").value("HIDDEN"))
                 .andExpect(jsonPath("$.data.items[1].content").value("숨김 처리된 댓글입니다."));
-        mvc.perform(get("/posts/{id}/comments", post.getId()).param("keyword", "질문").param("size", "1"))
+        mvc.perform(get("/api/v1/posts/{id}/comments", post.getId()).param("keyword", "질문").param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(2))
                 .andExpect(jsonPath("$.data.items[0].id").value(child.getId()))
                 .andExpect(jsonPath("$.data.items[0].parentId").value(parent.getId()));
-        mvc.perform(get("/posts/{id}/comments", post.getId()).param("keyword", "100%"))
+        mvc.perform(get("/api/v1/posts/{id}/comments", post.getId()).param("keyword", "100%"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(1));
-        mvc.perform(get("/posts/{id}/comments", post.getId()).param("page", "0"))
+        mvc.perform(get("/api/v1/posts/{id}/comments", post.getId()).param("page", "0"))
                 .andExpect(status().isBadRequest());
-        mvc.perform(get("/posts/999999/comments")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/posts/999999/comments")).andExpect(status().isNotFound());
     }
 }

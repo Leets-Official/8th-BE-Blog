@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Search", description = "유사 검색어 추천 및 검색량 통계")
 @RestController
-@RequestMapping("/search")
+@RequestMapping(ApiPaths.API_V1 + "/search")
 @RequiredArgsConstructor
 public class SearchController {
     private final SearchSuggestionService suggestions;

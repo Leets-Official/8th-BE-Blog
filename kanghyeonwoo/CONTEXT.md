@@ -31,15 +31,6 @@
 }
 ***
 
-### `RepeatStringRequest`
-문자열 반복 API 호출 시 클라이언트가 전달하는 입력 DTO.
-- **필드**: `value` (String)
-- **검증**: `@NotBlank(message = "문자열 값은 비어있거나 공백일 수 없습니다.")`
-
-### `RepeatStringResponse`
-문자열 2개 복제 결과 페이로드를 담는 DTO (`ApiResponse.data`에 실려 전달됨).
-- **필드**: `string_one`, `string_two` (`@JsonProperty`를 통한 스네이크 케이스 매핑)
-
 ## Infrastructure & Handlers
 
 ### `GlobalExceptionHandler`
@@ -50,5 +41,4 @@
 프레젠테이션 계층 컨트롤러.
 - 모든 응답을 `ResponseEntity<ApiResponse<T>>` 형태로 반환. HTTP 상태와 JSON 본문을 구분한다.
 - **엔드포인트**:
-  - `GET /health`, `GET /api/v1/health` ➔ `ApiResponse<String>`
-  - `POST /string/repeat`, `POST /api/v1/string/repeat` ➔ `ApiResponse<RepeatStringResponse>`
+  - `GET /api/v1/health` ➔ `ApiResponse<String>`
