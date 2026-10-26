@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "post_like", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_post_like_user_post", columnNames = {"user_id", "post_id"})
+        @UniqueConstraint(name = "uk_post_like_member_post", columnNames = {"member_id", "post_id"})
 })
 @Getter
 @NoArgsConstructor
@@ -20,7 +20,7 @@ public class PostLike {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
