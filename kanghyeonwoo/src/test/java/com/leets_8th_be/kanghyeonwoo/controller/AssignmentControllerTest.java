@@ -26,13 +26,13 @@ class AssignmentControllerTest {
         mockMvc.perform(get("/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data").value("ok"));
 
         mockMvc.perform(get("/api/v1/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data").value("ok"));
     }
 
@@ -46,7 +46,7 @@ class AssignmentControllerTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.message").value("문자열 복제에 성공하였습니다."))
                 .andExpect(jsonPath("$.data.string_one").value("hello"))
                 .andExpect(jsonPath("$.data.string_two").value("hello"));
@@ -56,7 +56,7 @@ class AssignmentControllerTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data.string_one").value("hello"))
                 .andExpect(jsonPath("$.data.string_two").value("hello"));
     }

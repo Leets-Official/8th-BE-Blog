@@ -148,7 +148,7 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("게시글 목록 조회 시 200 OK와 최신순 정렬된 요약 목록 배열을 반환한다.")
+    @DisplayName("게시글 목록 조회 시 200 OK와 최신순 정렬된 요약 목록과 페이징 정보를 반환한다.")
     void getPostsSuccess() throws Exception {
         postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("첫 번째 글", "본문 1", testUser));
         postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("두 번째 글", "본문 2", testUser));
@@ -160,10 +160,10 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.message").value("게시글 목록 조회가 완료되었습니다."))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].title").value("두 번째 글"))
-                .andExpect(jsonPath("$.data[1].title").value("첫 번째 글"));
+                .andExpect(jsonPath("$.data.items").isArray())
+                .andExpect(jsonPath("$.data.items.length()").value(2))
+                .andExpect(jsonPath("$.data.items[0].title").value("두 번째 글"))
+                .andExpect(jsonPath("$.data.items[1].title").value("첫 번째 글"));
     }
 
     @Test
@@ -177,8 +177,8 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("S200"))
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("Spring REST API"));
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].title").value("Spring REST API"));
     }
 
     @Test
@@ -350,4 +350,27 @@ class PostControllerTest {
         org.assertj.core.api.Assertions.assertThat(commentReports).hasSize(1);
         org.assertj.core.api.Assertions.assertThat(commentReports.get(0).getTargetContentSnapshot()).isEqualTo("신고 대상 욕설 댓글");
     }
+    @Test
+    void paginatesSearchResultsWithTotalCountsAndRejectsInvalidPages() throws Exception {
+        for (int i = 1; i <= 3; i++) postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("pagination " + i, "본문", testUser));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+                        .param("keyword", "pagination").param("page", "2").param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].title").value("pagination 1"))
+                .andExpect(jsonPath("$.data.page").value(2))
+                .andExpect(jsonPath("$.data.size").value(2))
+                .andExpect(jsonPath("$.data.totalElements").value(3))
+                .andExpect(jsonPath("$.data.totalPages").value(2));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+                        .param("keyword", "no-results"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items").isEmpty())
+                .andExpect(jsonPath("$.data.totalElements").value(0))
+                .andExpect(jsonPath("$.data.totalPages").value(0));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+                        .param("page", "0")).andExpect(status().isBadRequest());
+    }
+
 }

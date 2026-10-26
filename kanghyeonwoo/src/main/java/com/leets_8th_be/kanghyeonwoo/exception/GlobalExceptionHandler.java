@@ -1,7 +1,11 @@
 package com.leets_8th_be.kanghyeonwoo.exception;
 
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.hibernate.exception.ConstraintViolationException;
+import java.util.Locale;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -11,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -46,7 +51,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        ApiResponse<Void> response = ApiResponse.fail(ErrorCode.MISSING_REQUEST_BODY.getCode(), ErrorCode.MISSING_REQUEST_BODY.getMessage());
+        ErrorCode code = ex.getCause() == null ? ErrorCode.MISSING_REQUEST_BODY : ErrorCode.INVALID_INPUT_VALUE;
+        ApiResponse<Void> response = ApiResponse.fail(code.getCode(), code.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -56,8 +62,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(response);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof ConstraintViolationException violation && violation.getConstraintName() != null
+                    && violation.getConstraintName().toLowerCase(Locale.ROOT).contains("uk_report_reporter_target")) {
+                ErrorCode code = ErrorCode.DUPLICATE_REPORT;
+                return ResponseEntity.status(code.getHttpStatus()).body(ApiResponse.fail(code.getCode(), code.getMessage()));
+            }
+        }
+        return handleGeneralException(ex);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
+        log.error("처리되지 않은 서버 오류", ex);
         ApiResponse<Void> response = ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), ErrorCode.INTERNAL_SERVER_ERROR.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

@@ -43,6 +43,6 @@ class SearchDemoTest {
                 .andExpect(jsonPath("$.data.previousCount").value(2))
                 .andExpect(jsonPath("$.data.hourlyCounts[21].count").value(2))
                 .andExpect(jsonPath("$.data.hourlyCounts[22].count").value(10));
-        mvc.perform(get("/posts")).andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(2));
+        mvc.perform(get("/posts")).andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(2));
     }
 }

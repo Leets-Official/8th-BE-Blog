@@ -14,6 +14,14 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4001", "해당 ID의 게시글을 찾을 수 없습니다."),
     FORBIDDEN_POST_ACCESS(HttpStatus.FORBIDDEN, "POST4003", "작성자 본인만 수정 및 삭제할 수 있습니다."),
 
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT4001", "해당 신고를 찾을 수 없습니다."),
+    REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "REPORT4093", "이미 처리된 신고입니다."),
+    REPORT_TARGET_DELETED(HttpStatus.CONFLICT, "REPORT4094", "삭제된 대상은 숨길 수 없습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT4001", "해당 댓글을 찾을 수 없습니다."),
+    DELETED_COMMENT_REPORT(HttpStatus.CONFLICT, "REPORT4092", "삭제된 댓글은 신고할 수 없습니다."),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "REPORT4091", "이미 신고한 대상입니다."),
+    SELF_REPORT_FORBIDDEN(HttpStatus.FORBIDDEN, "REPORT4031", "본인 콘텐츠는 신고할 수 없습니다."),
+
     // 사용자 리소스
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4001", "해당 ID의 사용자를 찾을 수 없습니다."),
 

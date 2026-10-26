@@ -6,14 +6,14 @@
 모든 REST API 응답을 일관되게 래핑하는 제네릭 공통 응답 DTO.
 - **필드 구성**:
   - `success` (boolean): 요청 성공 여부 (`true` / `false`)
-  - `code` (int): HTTP 상태 코드 또는 비즈니스 에러 코드 (예: `200`, `400`)
+  - `code` (String): 비즈니스 응답 코드 (예: `S200`, `S201`, `COMMON400_VALIDATION`)
   - `message` (String): 클라이언트 안내 또는 디버깅 메시지
   - `data` (T): 실제 비즈니스 응답 데이터 (실패 시 `null`)
 - **표준 응답 예시 (성공)**:
 ***
 {
   "success": true,
-  "code": 200,
+  "code": "S200",
   "message": "문자열 복제에 성공하였습니다.",
   "data": {
     "string_one": "hello",
@@ -25,7 +25,7 @@
 ***
 {
   "success": false,
-  "code": 400,
+  "code": "COMMON400_VALIDATION",
   "message": "문자열 값은 비어있거나 공백일 수 없습니다.",
   "data": null
 }
@@ -48,7 +48,7 @@
 
 ### `AssignmentController`
 프레젠테이션 계층 컨트롤러.
-- 모든 응답을 `ApiResponse<T>` 형태로 반환.
+- 모든 응답을 `ResponseEntity<ApiResponse<T>>` 형태로 반환. HTTP 상태와 JSON 본문을 구분한다.
 - **엔드포인트**:
   - `GET /health`, `GET /api/v1/health` ➔ `ApiResponse<String>`
   - `POST /string/repeat`, `POST /api/v1/string/repeat` ➔ `ApiResponse<RepeatStringResponse>`

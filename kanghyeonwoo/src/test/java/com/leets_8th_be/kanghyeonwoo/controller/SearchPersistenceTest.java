@@ -27,7 +27,7 @@ class SearchPersistenceTest {
                         .containsExactly("spring", "jpa", "java");
                 assertThat(context.getBean(SearchTrendService.class).trends().getFirst().currentCount()).isEqualTo(10);
                 assertThat(context.getBean(SearchSuggestionService.class).suggest("sprng").getFirst().keyword()).isEqualTo("spring");
-                assertThat(context.getBean(PostService.class).getPosts(1, 10, null)).hasSize(2);
+                assertThat(context.getBean(PostService.class).getPosts(1, 10, null).items()).hasSize(2);
             }
         }
     }

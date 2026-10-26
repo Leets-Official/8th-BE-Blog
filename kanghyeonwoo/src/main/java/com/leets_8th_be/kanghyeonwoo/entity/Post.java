@@ -29,6 +29,10 @@ public class Post extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20) default 'ACTIVE'")
+    private PostStatus status = PostStatus.ACTIVE;
+
     @Column(nullable = false, length = 150)
     private String title;
 
@@ -56,6 +60,10 @@ public class Post extends BaseTimeEntity {
                 .content(content)
                 .user(user)
                 .build();
+    }
+
+    public void hide() {
+        this.status = PostStatus.HIDDEN;
     }
 
     public void update(String title, String content) {

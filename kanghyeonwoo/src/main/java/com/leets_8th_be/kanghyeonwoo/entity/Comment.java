@@ -19,6 +19,10 @@ public class Comment extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20) default 'ACTIVE'")
+    private CommentStatus status = CommentStatus.ACTIVE;
+
     @Lob
     @Column(nullable = false)
     private String content;
@@ -64,6 +68,10 @@ public class Comment extends BaseTimeEntity {
 
     public void update(String content) {
         this.content = content;
+    }
+
+    public void hide() {
+        this.status = CommentStatus.HIDDEN;
     }
 
     public void delete() {

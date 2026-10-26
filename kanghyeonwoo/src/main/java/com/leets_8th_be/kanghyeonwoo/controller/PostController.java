@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Tag(name = "Post", description = "게시글 관련 REST API")
 @RestController
@@ -42,12 +41,12 @@ public class PostController {
 
     @Operation(summary = "게시글 목록 조회 (검색 및 페이징)", description = "페이징 및 제목 검색 키워드(대소문자 무관)를 기반으로 게시글 목록을 최신순으로 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostSummaryResponse>>> getPosts(
+    public ResponseEntity<ApiResponse<PageResponse<PostSummaryResponse>>> getPosts(
             @Parameter(description = "페이지 번호 (1부터 시작)", example = "1") @RequestParam(name = "page", defaultValue = "1") int page,
             @Parameter(description = "페이지 크기", example = "10") @RequestParam(name = "size", defaultValue = "10") int size,
             @Parameter(description = "제목 검색 키워드 (선택)", example = "Spring") @RequestParam(name = "keyword", required = false) String keyword,
             @Parameter(hidden = true) SearchSession session) {
-        List<PostSummaryResponse> responses = postSearchService.getPosts(page, size, keyword, session);
+        PageResponse<PostSummaryResponse> responses = postSearchService.getPosts(page, size, keyword, session);
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글 목록 조회가 완료되었습니다.", responses));
     }
 

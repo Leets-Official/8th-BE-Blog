@@ -53,8 +53,8 @@ class SearchControllerTest {
 
         mvc.perform(get("/posts").param("keyword", "  SPRING  BOOT  "))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("Spring   Boot 입문"));
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].title").value("Spring   Boot 입문"));
     }
 
     @Test
@@ -81,8 +81,8 @@ class SearchControllerTest {
         posts.saveAndFlush(Post.create("스프링 100% 학습", "본문", author));
         posts.saveAndFlush(Post.create("스프링 100X 학습", "본문", author));
         mvc.perform(get("/posts").param("keyword", "100%"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(1));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(1));
         mvc.perform(get("/posts").param("keyword", java.text.Normalizer.normalize("스프링", java.text.Normalizer.Form.NFD)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(2));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.items.length()").value(2));
     }
 }
