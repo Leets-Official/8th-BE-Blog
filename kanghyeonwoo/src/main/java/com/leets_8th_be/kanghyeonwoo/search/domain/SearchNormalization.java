@@ -1,7 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.search.domain;
 
-import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
-import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -20,7 +18,7 @@ public final class SearchNormalization {
     public static String requireKeyword(String input) {
         String keyword = normalize(input);
         int length = keyword.codePointCount(0, keyword.length());
-        if (length < 2 || length > 50) throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        if (length < 2 || length > 50) throw new InvalidSearchKeyword();
         return keyword;
     }
 

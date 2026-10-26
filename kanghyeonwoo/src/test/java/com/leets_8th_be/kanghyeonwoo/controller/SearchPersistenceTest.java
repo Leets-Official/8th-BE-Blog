@@ -4,7 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.KanghyeonwooApplication;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchTrendService;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchTrend;
-import com.leets_8th_be.kanghyeonwoo.service.PostService;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchPostsUseCase;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,7 +26,7 @@ class SearchPersistenceTest {
                         .containsExactly("spring", "jpa", "java");
                 assertThat(context.getBean(SearchTrendService.class).trends().getFirst().currentCount()).isEqualTo(10);
                 assertThat(context.getBean(SearchSuggestionService.class).suggest("sprng").getFirst().keyword()).isEqualTo("spring");
-                assertThat(context.getBean(PostService.class).getPosts(1, 10, null).items()).hasSize(2);
+                assertThat(context.getBean(SearchPostsUseCase.class).search(1, 10, null).items()).hasSize(2);
             }
         }
     }

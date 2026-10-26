@@ -2,6 +2,9 @@ package com.leets_8th_be.kanghyeonwoo.search.adapter.out.persistence;
 
 import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPost;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPostPage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -61,13 +64,6 @@ public class JdbcSearchStore implements SearchStore {
     // This application runs one server. All search writers share this lock through commit.
     public void seedDictionary(List<String> words, Instant at) {
         write(() -> words.forEach(word -> ensureKeyword(word, true, at)));
-    }
-
-    public void backfillTitles() {
-        write(() -> jdbc.query("SELECT id, title FROM posts WHERE normalized_title IS NULL",
-                (rs, row) -> Map.entry(rs.getLong("id"), rs.getString("title")))
-                .forEach(post -> jdbc.update("UPDATE posts SET normalized_title = ? WHERE id = ?",
-                        SearchNormalization.normalize(post.getValue()), post.getKey())));
     }
 
     public void record(String word, String sessionKey, boolean hasResults, Instant at) {
@@ -154,6 +150,42 @@ public class JdbcSearchStore implements SearchStore {
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public long count(long keywordId, Instant start, Instant end) {
         return counts(start, end, keywordId).getOrDefault(keywordId, 0L);
+    }
+
+    @Override
+    public void upsertPostProjection(PostProjection post) {
+        jdbc.update("""
+                MERGE INTO search_post_projections(post_id, title, normalized_title, author_id, created_at, visible)
+                KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
+                """, post.id(), post.title(), SearchNormalization.normalize(post.title()), post.authorId(),
+                post.createdAt(), post.visible());
+    }
+
+    @Override
+    public void deletePostProjection(long postId) {
+        jdbc.update("DELETE FROM search_post_projections WHERE post_id = ?", postId);
+    }
+
+    @Override
+    public SearchPostPage searchPosts(int page, int size, String normalizedKeyword) {
+        String condition = normalizedKeyword == null ? "" : " AND normalized_title LIKE ? ESCAPE '!'";
+        Object[] parameters = normalizedKeyword == null ? new Object[]{}
+                : new Object[]{"%" + escapeLike(normalizedKeyword) + "%"};
+        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM search_post_projections WHERE visible = TRUE" + condition,
+                Long.class, parameters);
+        String query = "SELECT post_id, title, author_id, created_at FROM search_post_projections "
+                + "WHERE visible = TRUE" + condition + " ORDER BY created_at DESC, post_id DESC LIMIT ? OFFSET ?";
+        Object[] pageParameters = java.util.Arrays.copyOf(parameters, parameters.length + 2);
+        pageParameters[parameters.length] = size;
+        pageParameters[parameters.length + 1] = (long) (page - 1) * size;
+        List<SearchPost> results = jdbc.query(query, (rs, row) -> new SearchPost(rs.getLong("post_id"),
+                rs.getString("title"), rs.getLong("author_id"), rs.getTimestamp("created_at").toLocalDateTime()), pageParameters);
+        long elements = total == null ? 0 : total;
+        return new SearchPostPage(results, page, size, elements, (int) Math.ceil(elements / (double) size));
+    }
+
+    private static String escapeLike(String value) {
+        return value.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     }
 
     private Map<Long, Long> counts(Instant start, Instant end, Long keywordId) {

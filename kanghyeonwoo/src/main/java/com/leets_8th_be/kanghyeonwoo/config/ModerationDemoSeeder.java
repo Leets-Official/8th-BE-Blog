@@ -6,6 +6,8 @@ import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -24,6 +26,7 @@ public class ModerationDemoSeeder implements ApplicationRunner {
     private final UserRepository users;
     private final PostRepository posts;
     private final CommentRepository comments;
+    private final UpdatePostProjectionUseCase postProjections;
 
     @Override
     @Transactional
@@ -33,6 +36,8 @@ public class ModerationDemoSeeder implements ApplicationRunner {
         User reporter = users.save(User.create("신고 데모 신고자", "moderation-reporter@blog.example"));
         User processor = users.save(User.create("신고 데모 처리자", "moderation-processor@blog.example"));
         Post post = posts.save(Post.create("신고 데모 게시글", "신고 당시 본문을 스냅샷으로 보존합니다.", author));
+        postProjections.synchronize(new PostProjection(post.getId(), post.getTitle(), author.getId(),
+                post.getCreatedAt(), true));
         Comment parent = comments.save(Comment.create("신고 데모 댓글 질문", author, post));
         comments.save(Comment.builder().content("정상 답변입니다.").user(processor).post(post).parent(parent).build());
         Comment deleted = Comment.create("삭제할 댓글", author, post);

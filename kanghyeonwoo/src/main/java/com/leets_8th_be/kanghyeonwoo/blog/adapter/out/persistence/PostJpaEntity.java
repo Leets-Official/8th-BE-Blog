@@ -1,6 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.out.persistence;
 
-import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -40,9 +39,6 @@ class PostJpaEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "normalized_title", length = 450)
-    private String normalizedTitle;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -70,17 +66,11 @@ class PostJpaEntity {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        normalizeTitle();
     }
 
     @PreUpdate
     void prepareUpdate() {
         updatedAt = LocalDateTime.now();
-        normalizeTitle();
-    }
-
-    private void normalizeTitle() {
-        normalizedTitle = SearchNormalization.normalize(title);
     }
 
     Long getId() { return id; }

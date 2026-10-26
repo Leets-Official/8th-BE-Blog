@@ -4,6 +4,8 @@ import com.leets_8th_be.kanghyeonwoo.entity.Comment;
 import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class MockDataSeeder implements ApplicationRunner {
     private final UserRepository users;
     private final PostRepository posts;
     private final CommentRepository comments;
+    private final UpdatePostProjectionUseCase postProjections;
 
     @Override
     @Transactional
@@ -46,6 +49,8 @@ public class MockDataSeeder implements ApplicationRunner {
                     authors.get(i % authors.size()));
             if (i >= 10) post.hide();
             posts.save(post);
+            postProjections.synchronize(new PostProjection(post.getId(), post.getTitle(),
+                    post.getUser().getId(), post.getCreatedAt(), post.getStatus() == com.leets_8th_be.kanghyeonwoo.entity.PostStatus.ACTIVE));
             Comment parent = Comment.create("질문: " + generator.commentContent(),
                     authors.get((i + 1) % authors.size()), post);
             if (i == 0 || i == 2) parent.hide();

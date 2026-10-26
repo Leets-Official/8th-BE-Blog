@@ -4,6 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.adapter.transaction.TransactionalPostU
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.CreatePostService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.GetPostService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.UpdatePostService;
@@ -20,13 +21,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class BlogModuleConfiguration {
     @Bean
     public TransactionalPostUseCases postUseCases(UserProfileLookup userProfiles, PostStore posts,
+                                                  PostProjectionPort projection,
                                                   PlatformTransactionManager transactionManager) {
         TransactionTemplate writeTransaction = new TransactionTemplate(transactionManager);
         TransactionTemplate readTransaction = new TransactionTemplate(transactionManager);
         readTransaction.setReadOnly(true);
 
-        return new TransactionalPostUseCases(new CreatePostService(userProfiles, posts),
-                new GetPostService(posts), new UpdatePostService(posts), new DeletePostService(posts),
-                new HidePostService(posts), new InspectPostService(posts), writeTransaction, readTransaction);
+        return new TransactionalPostUseCases(new CreatePostService(userProfiles, posts, projection),
+                new GetPostService(posts), new UpdatePostService(posts, projection), new DeletePostService(posts, projection),
+                new HidePostService(posts, projection), new InspectPostService(posts), writeTransaction, readTransaction);
     }
 }

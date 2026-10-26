@@ -2,6 +2,8 @@ package com.leets_8th_be.kanghyeonwoo.search.config;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,7 @@ public class SearchDemoSeeder implements ApplicationRunner {
     private static final String DEMO_EMAIL = "search-demo@blog.example";
     private final SearchStore store;
     private final SearchSuggestionService suggestions;
+    private final UpdatePostProjectionUseCase postProjections;
     private final UserRepository users;
     private final PostRepository posts;
     private final ObjectMapper mapper;
@@ -62,8 +65,12 @@ public class SearchDemoSeeder implements ApplicationRunner {
         store.importDemo(keywords, events, states, () -> {
             if (users.findByEmail(DEMO_EMAIL).isPresent()) return false;
             User author = users.saveAndFlush(User.create("검색 데모 작성자", DEMO_EMAIL));
-            posts.save(Post.create("Spring Boot와 Java 시작하기", "검색 추천과 집계를 확인하는 데모 게시글입니다.", author));
-            posts.save(Post.create("JPA와 스프링부트 실습", "스프링과 JPA 검색 결과를 확인합니다.", author));
+            Post first = posts.saveAndFlush(Post.create("Spring Boot와 Java 시작하기", "검색 추천과 집계를 확인하는 데모 게시글입니다.", author));
+            Post second = posts.saveAndFlush(Post.create("JPA와 스프링부트 실습", "스프링과 JPA 검색 결과를 확인합니다.", author));
+            postProjections.synchronize(new PostProjection(first.getId(), first.getTitle(), author.getId(),
+                    first.getCreatedAt(), true));
+            postProjections.synchronize(new PostProjection(second.getId(), second.getTitle(), author.getId(),
+                    second.getCreatedAt(), true));
             return true;
         });
         suggestions.rebuild();

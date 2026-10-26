@@ -6,6 +6,9 @@ import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestion
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchTrendService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchKeywordStatsService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.RecordSearchService;
+import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchPostsService;
+import com.leets_8th_be.kanghyeonwoo.search.application.usecase.UpdatePostProjectionService;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchSuggestionsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.adapter.transaction.TransactionalSearchQueries;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -41,6 +44,12 @@ public class SearchConfiguration {
         return new RecordSearchService(store, searchClock);
     }
 
+    @Bean public SearchPostsService searchPostsService(SearchStore store) { return new SearchPostsService(store); }
+
+    @Bean public UpdatePostProjectionUseCase updatePostProjectionUseCase(SearchStore store) {
+        return new UpdatePostProjectionService(store);
+    }
+
     @Bean public TransactionalSearchQueries searchQueries(SearchKeywordStatsService stats,
             SearchSuggestionService suggestions, SearchTrendService trends, PlatformTransactionManager manager) {
         return new TransactionalSearchQueries(stats, suggestions, trends, new TransactionTemplate(manager));
@@ -50,7 +59,6 @@ public class SearchConfiguration {
     @Order(10)
     public ApplicationRunner searchStartup(SearchStore store, SearchSuggestionService suggestions, Clock clock) {
         return args -> {
-            store.backfillTitles();
             store.cleanup(clock.instant());
             store.rebuildBuckets();
             store.seedDictionary(List.of("spring", "spring boot", "java", "jpa", "스프링", "스프링부트", "자바"), clock.instant());
