@@ -4,6 +4,8 @@ import com.leets.mission.domain.user.entity.User;
 import com.leets.mission.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,11 +40,17 @@ public class Post extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // 게시글 상태 (생성 시 ACTIVE)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PostStatus status;
+
     @Builder
     private Post(String title, String content, User user) {
         this.title = title;
         this.content = content;
         this.user = user;
+        this.status = PostStatus.ACTIVE;
     }
 
     // 전체 수정 (PUT)
