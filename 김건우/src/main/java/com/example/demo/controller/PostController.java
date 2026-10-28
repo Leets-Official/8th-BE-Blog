@@ -56,4 +56,11 @@ public class PostController {
         postService.deletePost(postId, userId);
         return ApiResponse.success(SuccessCode.POST_DELETED, null);
     }
+
+    // [4주차] 게시글 숨김 (액션형)
+    @PostMapping("/{postId}/hide")
+    public ResponseEntity<ApiResponse<PostHideResponse>> hidePost(
+            @PathVariable Long postId, @RequestParam Long userId) {
+        return ApiResponse.success(SuccessCode.POST_HIDDEN, postService.hidePost(postId, userId));
+    }
 }

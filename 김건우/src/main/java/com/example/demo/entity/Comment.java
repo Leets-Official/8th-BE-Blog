@@ -27,10 +27,18 @@ public class Comment extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // [4주차] 채택 여부 (게시글당 1개만 true 가능)
+    @Column(nullable = false)
+    private boolean accepted = false;
+
     @Builder
     public Comment(Post post, User user, String content) {
         this.post = post;
         this.user = user;
         this.content = content;
+    }
+
+    public void accept() {
+        this.accepted = true;
     }
 }

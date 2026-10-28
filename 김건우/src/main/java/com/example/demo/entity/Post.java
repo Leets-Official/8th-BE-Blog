@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import com.example.demo.global.CustomException;
+import com.example.demo.global.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,6 +31,11 @@ public class Post extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // [4주차] 게시글 상태: ACTIVE(기본) / HIDDEN
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PostStatus status = PostStatus.ACTIVE;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
@@ -42,5 +49,17 @@ public class Post extends BaseEntity {
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    public boolean isHidden() {
+        return this.status == PostStatus.HIDDEN;
+    }
+
+    // ACTIVE -> HIDDEN. 이미 숨김이면 409
+    public void hide() {
+        if (isHidden()) {
+            throw new CustomException(ErrorCode.POST_ALREADY_HIDDEN);
+        }
+        this.status = PostStatus.HIDDEN;
     }
 }
