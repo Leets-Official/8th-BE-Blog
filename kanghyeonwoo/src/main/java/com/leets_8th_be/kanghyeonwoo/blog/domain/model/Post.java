@@ -27,12 +27,19 @@ public record Post(PostId id, String title, String content, UserId authorId, Pos
     }
 
     public Post update(UserId actorId, String title, String content) {
+        if (state == PostState.DELETED) throw new PostDeleted();
         requireAuthor(actorId);
         return new Post(id, title, content, authorId, state);
     }
 
+    public Post delete(UserId actorId) {
+        if (state == PostState.DELETED) throw new PostDeleted();
+        requireAuthor(actorId);
+        return new Post(id, title, content, authorId, PostState.DELETED);
+    }
+
     public Post hide() {
-        if (state == PostState.HIDDEN) return this;
+        if (state != PostState.ACTIVE) return this;
         return new Post(id, title, content, authorId, PostState.HIDDEN);
     }
 }

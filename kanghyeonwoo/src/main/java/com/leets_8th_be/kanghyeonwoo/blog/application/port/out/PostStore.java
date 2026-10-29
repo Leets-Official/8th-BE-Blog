@@ -17,5 +17,4 @@ public interface PostStore {
 
     PostView save(Post post);
 
-    void delete(PostId id);
 }

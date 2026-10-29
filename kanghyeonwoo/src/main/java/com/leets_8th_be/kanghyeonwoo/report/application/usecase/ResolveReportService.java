@@ -59,9 +59,10 @@ public class ResolveReportService implements ResolveReportUseCase {
 
     private TargetVisibility resolvePost(Long postId, ReportAction action) {
         var post = posts.inspect(new PostId(postId)).orElse(null);
-        if (post == null) return deletedTarget(action);
+        if (post == null || post.state() == PostState.DELETED) return deletedTarget(action);
         if (action == ReportAction.HIDE) {
-            hidePost.hide(new PostId(postId));
+            var hidden = hidePost.hide(new PostId(postId));
+            if (hidden.state() == PostState.DELETED) return deletedTarget(action);
             return new TargetVisibility(true, true);
         }
         return new TargetVisibility(true, post.state() == PostState.HIDDEN);
@@ -70,9 +71,12 @@ public class ResolveReportService implements ResolveReportUseCase {
     private TargetVisibility resolveComment(Long commentId, ReportAction action) {
         var target = comments.inspect(new CommentId(commentId)).orElse(null);
         if (target == null) return deletedTarget(action);
-        if (target.comment().deleted()) return deletedTarget(action);
+        if (target.comment().deleted() || target.postState() == PostState.DELETED) return deletedTarget(action);
         if (action == ReportAction.HIDE) {
-            hideComment.hide(new CommentId(commentId));
+            var hidden = hideComment.hide(new CommentId(commentId));
+            if (hidden.comment().deleted() || hidden.postState() == PostState.DELETED) {
+                return deletedTarget(action);
+            }
             return new TargetVisibility(true, true);
         }
         return new TargetVisibility(true, target.comment().state() == CommentState.HIDDEN);

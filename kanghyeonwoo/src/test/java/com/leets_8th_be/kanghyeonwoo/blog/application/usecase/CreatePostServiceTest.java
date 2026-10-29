@@ -47,8 +47,6 @@ class CreatePostServiceTest {
             @Override
             public Optional<Post> findForUpdate(PostId postId) { return Optional.empty(); }
 
-            @Override
-            public void delete(PostId postId) { throw new AssertionError("unexpected delete"); }
         };
         CreatePostService createPost = new CreatePostService(users, posts, noProjectionChanges());
 
@@ -85,8 +83,6 @@ class CreatePostServiceTest {
             @Override
             public Optional<Post> findForUpdate(PostId id) { return Optional.empty(); }
 
-            @Override
-            public void delete(PostId id) { throw new AssertionError("unexpected delete"); }
         };
         CreatePostService createPost = new CreatePostService(users, posts, noProjectionChanges());
 

@@ -90,5 +90,9 @@ class PostJpaEntity {
         status = Visibility.HIDDEN;
     }
 
-    enum Visibility { ACTIVE, HIDDEN }
+    void markDeleted() {
+        status = Visibility.DELETED;
+    }
+
+    enum Visibility { ACTIVE, HIDDEN, DELETED }
 }

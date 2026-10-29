@@ -73,7 +73,7 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success("S200", "게시글이 성공적으로 수정되었습니다.", response));
     }
 
-    @Operation(summary = "게시글 삭제", description = "게시글 작성자 본인만 삭제할 수 있으며, 연관된 댓글도 함께 연쇄 삭제됩니다.")
+    @Operation(summary = "게시글 삭제", description = "작성자의 게시글을 DELETED 상태로 전환합니다. 게시글과 연관 댓글·신고 스냅샷은 보존되며 공개 조회에서는 제외됩니다.")
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,

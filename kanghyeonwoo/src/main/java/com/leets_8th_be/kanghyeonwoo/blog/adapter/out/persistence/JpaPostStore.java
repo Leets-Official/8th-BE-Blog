@@ -51,25 +51,19 @@ public class JpaPostStore implements PostStore {
                     .orElseThrow(() -> new IllegalStateException("저장할 게시글이 없습니다."));
             entity.updateContent(post.title(), post.content());
             if (post.state() == PostState.HIDDEN) entity.hide();
+            if (post.state() == PostState.DELETED) entity.markDeleted();
         }
         return toView(posts.save(entity));
     }
 
-    @Override
-    public void delete(PostId id) {
-        posts.deleteById(id.value());
-        posts.flush();
-    }
-
     private static PostView toView(PostJpaEntity post) {
         return new PostView(new PostId(post.getId()), post.getTitle(), post.getContent(),
-                new UserId(post.getUserId()), post.getStatus() == PostJpaEntity.Visibility.ACTIVE
-                ? PostState.ACTIVE : PostState.HIDDEN,
+                new UserId(post.getUserId()), PostState.valueOf(post.getStatus().name()),
                 post.getCreatedAt(), post.getUpdatedAt());
     }
 
     private static Post toDomain(PostJpaEntity post) {
         return new Post(new PostId(post.getId()), post.getTitle(), post.getContent(), new UserId(post.getUserId()),
-                post.getStatus() == PostJpaEntity.Visibility.ACTIVE ? PostState.ACTIVE : PostState.HIDDEN);
+                PostState.valueOf(post.getStatus().name()));
     }
 }

@@ -83,7 +83,7 @@ public class JpaCommentStore implements CommentStore {
                 entity.getParentId() == null ? null : new CommentId(entity.getParentId()),
                 entity.getContent(), state, entity.isDeleted());
         return new CommentView(comment, new PostId(entity.getPostId()),
-                entity.getPostStatus() == PostJpaEntity.Visibility.ACTIVE ? PostState.ACTIVE : PostState.HIDDEN,
+                PostState.valueOf(entity.getPostStatus().name()),
                 entity.getCreatedAt());
     }
 }

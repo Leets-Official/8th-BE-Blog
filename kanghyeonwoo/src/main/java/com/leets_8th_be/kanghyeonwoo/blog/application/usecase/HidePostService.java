@@ -6,6 +6,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
 
 public class HidePostService implements HidePostUseCase {
     private final PostStore posts;
@@ -20,7 +21,11 @@ public class HidePostService implements HidePostUseCase {
     public PostView hide(PostId id) {
         var post = posts.findForUpdate(id).orElseThrow(PostNotFound::new);
         PostView saved = posts.save(post.hide());
-        projection.synchronize(saved);
+        if (saved.state() == PostState.DELETED) {
+            projection.remove(saved.id());
+        } else {
+            projection.synchronize(saved);
+        }
         return saved;
     }
 }

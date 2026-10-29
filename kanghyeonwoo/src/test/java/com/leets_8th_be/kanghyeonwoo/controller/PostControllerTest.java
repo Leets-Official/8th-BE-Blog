@@ -296,6 +296,31 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.message").value("게시글이 성공적으로 삭제되었습니다."))
                 .andExpect(jsonPath("$.data.deletedPostId").value(post.getId()));
+
+        entityManager.flush();
+        entityManager.clear();
+        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId()).orElseThrow().getStatus())
+                .isEqualTo(com.leets_8th_be.kanghyeonwoo.entity.PostStatus.DELETED);
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts/" + post.getId()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts")
+                        .param("keyword", "삭제할 글"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(0));
+        Map<String, Object> updateRequest = new HashMap<>();
+        updateRequest.put("authorId", testUser.getId());
+        updateRequest.put("title", "삭제 후 수정 시도");
+        updateRequest.put("content", "삭제 후 본문 수정 시도");
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/posts/" + post.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/" + post.getId())
+                        .param("authorId", String.valueOf(testUser.getId())))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                        "/api/v1/posts/" + post.getId() + "/comments"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -346,9 +371,11 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data.deletedPostId").value(post.getId()));
 
-        // then: 게시글은 DB에서 삭제되었지만, 신고 내역은 스냅샷과 함께 안전하게 보존됨
+        // then: 게시글은 DELETED 상태로 보존되고 신고 내역은 스냅샷과 함께 안전하게 보존됨
+        entityManager.flush();
         entityManager.clear();
-        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId())).isEmpty();
+        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId()).orElseThrow().getStatus())
+                .isEqualTo(com.leets_8th_be.kanghyeonwoo.entity.PostStatus.DELETED);
 
         java.util.List<com.leets_8th_be.kanghyeonwoo.entity.Report> reports =
                 reportRepository.findByTargetTypeAndTargetId(com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType.POST, post.getId());
@@ -359,7 +386,7 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("신고가 달린 댓글이 포함된 게시글 삭제 시 게시글과 댓글은 삭제되고 댓글 신고 내역은 보존된다.")
+    @DisplayName("신고가 달린 댓글이 포함된 게시글 삭제 시 게시글과 댓글은 보존되고 댓글 신고 내역도 보존된다.")
     void deletePostWithCommentReportIntegritySuccess() throws Exception {
         com.leets_8th_be.kanghyeonwoo.entity.Post post = com.leets_8th_be.kanghyeonwoo.entity.Post.create("게시글", "본문", testUser);
         com.leets_8th_be.kanghyeonwoo.entity.Comment comment = com.leets_8th_be.kanghyeonwoo.entity.Comment.create("신고 대상 욕설 댓글", testUser, post);
@@ -372,16 +399,18 @@ class PostControllerTest {
                 com.leets_8th_be.kanghyeonwoo.entity.Report.ofComment(reporter, post.getComments().get(0), "욕설 신고")
         );
 
-        // when: 게시글 삭제 요청 (연쇄적으로 댓글까지 삭제됨)
+        // when: 게시글 삭제 요청
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/" + post.getId())
                         .param("authorId", String.valueOf(testUser.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        // then: 게시글과 댓글은 삭제되었지만, 댓글 신고 이력은 보존됨
+        // then: 게시글은 DELETED 상태가 되고 댓글과 신고 이력은 보존됨
+        entityManager.flush();
         entityManager.clear();
-        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId())).isEmpty();
-        org.assertj.core.api.Assertions.assertThat(commentRepository.findById(commentId)).isEmpty();
+        org.assertj.core.api.Assertions.assertThat(postRepository.findById(post.getId()).orElseThrow().getStatus())
+                .isEqualTo(com.leets_8th_be.kanghyeonwoo.entity.PostStatus.DELETED);
+        org.assertj.core.api.Assertions.assertThat(commentRepository.findById(commentId)).isPresent();
 
         java.util.List<com.leets_8th_be.kanghyeonwoo.entity.Report> commentReports =
                 reportRepository.findByTargetTypeAndTargetId(com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType.COMMENT, commentId);

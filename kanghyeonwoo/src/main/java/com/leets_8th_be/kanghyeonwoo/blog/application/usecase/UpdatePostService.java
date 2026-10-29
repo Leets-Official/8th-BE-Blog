@@ -7,6 +7,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostDeleted;
 
 public class UpdatePostService implements UpdatePostUseCase {
     private final PostStore posts;
@@ -20,7 +21,13 @@ public class UpdatePostService implements UpdatePostUseCase {
     @Override
     public PostView update(UpdatePostCommand command) {
         Post post = posts.findForUpdate(command.postId()).orElseThrow(PostNotFound::new);
-        PostView saved = posts.save(post.update(command.authorId(), command.title(), command.content()));
+        Post updated;
+        try {
+            updated = post.update(command.authorId(), command.title(), command.content());
+        } catch (PostDeleted ex) {
+            throw new PostNotFound();
+        }
+        PostView saved = posts.save(updated);
         projection.synchronize(saved);
         return saved;
     }

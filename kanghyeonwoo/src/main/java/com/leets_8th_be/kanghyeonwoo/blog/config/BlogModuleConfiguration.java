@@ -9,6 +9,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.UpdatePostService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.DeletePostService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.HidePostService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.InspectPostService;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,13 @@ public class BlogModuleConfiguration {
     @Bean
     @Order(90)
     public ApplicationRunner synchronizeExistingPostProjections(PostStore posts, PostProjectionPort projection) {
-        return args -> posts.findAll().forEach(projection::synchronize);
+        return args -> posts.findAll().forEach(post -> {
+            if (post.state() == PostState.DELETED) {
+                projection.remove(post.id());
+            } else {
+                projection.synchronize(post);
+            }
+        });
     }
 
     @Bean

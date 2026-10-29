@@ -187,6 +187,7 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$.data.targetHidden").isEmpty());
         mvc.perform(delete("/api/v1/posts/{id}", post.getId()).param("authorId", author.getId().toString()))
                 .andExpect(status().isOk());
+        reportComment(comment.getId(), reporter.getId()).andExpect(status().isNotFound());
         resolve(postReport, "HIDE").andExpect(status().isConflict());
         resolve(postReport, "KEEP").andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.targetAvailable").value(false));
