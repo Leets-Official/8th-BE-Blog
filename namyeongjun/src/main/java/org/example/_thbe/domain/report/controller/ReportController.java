@@ -1,5 +1,6 @@
 package org.example._thbe.domain.report.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example._thbe.domain.report.dto.ReportCreateRequest;
 import org.example._thbe.domain.report.dto.ReportCreateResponse;
@@ -21,7 +22,7 @@ public class ReportController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ResponseEntity<ApiResponse<ReportCreateResponse>> createReport(
-            @RequestBody ReportCreateRequest request,
+            @RequestBody @Valid ReportCreateRequest request,
             @RequestParam Long userId
     ) {
         ReportCreateResponse response = reportService.createReport(request,userId);
