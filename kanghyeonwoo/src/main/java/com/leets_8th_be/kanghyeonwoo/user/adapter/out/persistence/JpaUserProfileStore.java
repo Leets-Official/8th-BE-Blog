@@ -1,8 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.user.adapter.out.persistence;
 
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.out.UserProfileStore;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

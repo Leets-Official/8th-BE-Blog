@@ -5,7 +5,7 @@ import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

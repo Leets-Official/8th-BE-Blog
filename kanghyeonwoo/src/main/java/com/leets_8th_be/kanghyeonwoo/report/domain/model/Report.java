@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.report.domain.model;
 
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import java.time.LocalDateTime;
 
 public record Report(ReportId id, UserId reporterId, ReportTarget target, Long targetId,

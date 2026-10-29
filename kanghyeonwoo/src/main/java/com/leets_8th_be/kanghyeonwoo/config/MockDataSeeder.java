@@ -8,7 +8,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeleteCommentUseCa
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HideCommentUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.CreateUserProfileUseCase;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileEmailLookup;
 import java.util.ArrayList;
@@ -56,16 +56,16 @@ public class MockDataSeeder implements ApplicationRunner {
             var postId = new PostId(post.id().value());
             var parent = createComments.create(new CreateCommentCommand(postId,
                     authors.get((i + 1) % authors.size()).id(), null, "질문: " + generator.commentContent()));
-            if (i == 0 || i == 2) hideComments.hide(parent.comment().id());
+            if (i == 0 || i == 2) hideComments.hide(parent.id());
             var reply = createComments.create(new CreateCommentCommand(postId,
-                    authors.get((i + 2) % authors.size()).id(), parent.comment().id(), "답변: " + generator.commentContent()));
+                    authors.get((i + 2) % authors.size()).id(), parent.id(), "답변: " + generator.commentContent()));
             var additional = createComments.create(new CreateCommentCommand(postId,
                     authors.get((i + 3) % authors.size()).id(), null, "의견: " + generator.commentContent()));
-            if (i == 1 || i == 3) deleteComments.delete(additional.comment().id());
+            if (i == 1 || i == 3) deleteComments.delete(additional.id());
             if (i >= 10) hidePosts.hide(postId);
             log.info("목 게시글: postId={}, status={}, parentCommentId={}, replyId={}",
-                    postId.value(), i >= 10 ? "HIDDEN" : "ACTIVE", parent.comment().id().value(),
-                    reply.comment().id().value());
+                    postId.value(), i >= 10 ? "HIDDEN" : "ACTIVE", parent.id().value(),
+                    reply.id().value());
         }
         log.info("목 데이터 생성: 사용자 5명, 게시글 12개(숨김 2개), 댓글 36개(대댓글 12개, 숨김 2개, 삭제 2개)");
     }

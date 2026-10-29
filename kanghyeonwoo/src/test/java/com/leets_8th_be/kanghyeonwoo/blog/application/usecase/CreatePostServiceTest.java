@@ -4,13 +4,12 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.AuthorDirectory;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
-import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -24,7 +23,7 @@ class CreatePostServiceTest {
 
     @Test
     void rejectsPostWhenAuthorProfileDoesNotExist() {
-        UserProfileLookup users = ignored -> Optional.empty();
+        AuthorDirectory authors = ignored -> false;
         PostStore posts = new PostStore() {
             @Override
             public com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView save(
@@ -48,7 +47,7 @@ class CreatePostServiceTest {
             public Optional<Post> findForUpdate(PostId postId) { return Optional.empty(); }
 
         };
-        CreatePostService createPost = new CreatePostService(users, posts, noProjectionChanges());
+        CreatePostService createPost = new CreatePostService(authors, posts, noProjectionChanges());
 
         assertThatThrownBy(() -> createPost.create(
                 new CreatePostCommand("제목", "본문", new UserId(404L))))
@@ -59,7 +58,7 @@ class CreatePostServiceTest {
     void createsPostForAnExistingAuthor() {
         UserId authorId = new UserId(7L);
         AtomicReference<Post> storedPost = new AtomicReference<>();
-        UserProfileLookup users = id -> Optional.of(new UserProfile(id, "작성자", "author@example.com"));
+        AuthorDirectory authors = ignored -> true;
         PostStore posts = new PostStore() {
             @Override
             public PostView save(Post post) {
@@ -84,7 +83,7 @@ class CreatePostServiceTest {
             public Optional<Post> findForUpdate(PostId id) { return Optional.empty(); }
 
         };
-        CreatePostService createPost = new CreatePostService(users, posts, noProjectionChanges());
+        CreatePostService createPost = new CreatePostService(authors, posts, noProjectionChanges());
 
         PostView created = createPost.create(new CreatePostCommand("첫 게시글", "게시글 본문", authorId));
 

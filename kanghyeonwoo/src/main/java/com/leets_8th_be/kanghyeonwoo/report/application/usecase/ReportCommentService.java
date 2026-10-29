@@ -1,48 +1,47 @@
 package com.leets_8th_be.kanghyeonwoo.report.application.usecase;
 
-import com.leets_8th_be.kanghyeonwoo.blog.application.exception.CommentNotFound;
-import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetCommentTargetUseCase;
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
-import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.CommentTargetNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateReport;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.ParentPostUnavailable;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportView;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportCommentUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportStore;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetPort;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReporterDirectory;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetKind;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.Report;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
-import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
 
 public class ReportCommentService implements ReportCommentUseCase {
-    private final UserProfileLookup users;
-    private final GetCommentTargetUseCase comments;
+    private final ReporterDirectory reporters;
+    private final ReportTargetPort targets;
     private final ReportStore reports;
 
-    public ReportCommentService(UserProfileLookup users, GetCommentTargetUseCase comments, ReportStore reports) {
-        this.users = users;
-        this.comments = comments;
+    public ReportCommentService(ReporterDirectory reporters, ReportTargetPort targets, ReportStore reports) {
+        this.reporters = reporters;
+        this.targets = targets;
         this.reports = reports;
     }
 
     @Override
     public ReportView report(ReportCommentCommand command) {
-        if (command.commentId().value() < 1) throw new InvalidReportRequest();
-        var reporter = users.findById(command.reporterId()).orElseThrow(ReporterNotFound::new);
-        var target = comments.getTarget(command.commentId());
-        var comment = target.comment();
-        if (target.postState() != PostState.ACTIVE) throw new PostNotFound();
+        if (command.commentId() < 1) throw new InvalidReportRequest();
+        if (!reporters.exists(command.reporterId())) throw new ReporterNotFound();
+        var comment = targets.find(ReportTargetKind.COMMENT, command.commentId())
+                .orElseThrow(CommentTargetNotFound::new);
+        if (!comment.parentPostActive()) throw new ParentPostUnavailable();
         if (comment.deleted()) throw new DeletedCommentReport();
-        if (comment.state() != CommentState.ACTIVE) throw new CommentNotFound();
-        if (reporter.id().equals(comment.authorId())) throw new SelfReportForbidden();
-        if (reports.exists(reporter.id(), ReportTarget.COMMENT, command.commentId().value())) {
+        if (comment.hidden()) throw new CommentTargetNotFound();
+        if (command.reporterId().equals(comment.authorId())) throw new SelfReportForbidden();
+        if (reports.exists(command.reporterId(), ReportTarget.COMMENT, command.commentId())) {
             throw new DuplicateReport();
         }
-        return reports.save(Report.pendingComment(reporter.id(), command.commentId().value(), command.reason(),
+        return reports.save(Report.pendingComment(command.reporterId(), command.commentId(), command.reason(),
                 comment.content()));
     }
 }

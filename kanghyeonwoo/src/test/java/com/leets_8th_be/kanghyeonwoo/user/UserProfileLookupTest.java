@@ -2,9 +2,9 @@ package com.leets_8th_be.kanghyeonwoo.user;
 
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

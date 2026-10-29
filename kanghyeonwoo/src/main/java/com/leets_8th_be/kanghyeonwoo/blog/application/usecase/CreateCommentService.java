@@ -8,22 +8,22 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreateCommentUseCa
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.CommentStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
-import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.AuthorDirectory;
 
 public class CreateCommentService implements CreateCommentUseCase {
-    private final UserProfileLookup profiles;
+    private final AuthorDirectory authors;
     private final GetPostUseCase posts;
     private final CommentStore comments;
 
-    public CreateCommentService(UserProfileLookup profiles, GetPostUseCase posts, CommentStore comments) {
-        this.profiles = profiles;
+    public CreateCommentService(AuthorDirectory authors, GetPostUseCase posts, CommentStore comments) {
+        this.authors = authors;
         this.posts = posts;
         this.comments = comments;
     }
 
     @Override
     public CommentView create(CreateCommentCommand command) {
-        if (profiles.findById(command.authorId()).isEmpty()) throw new AuthorNotFound();
+        if (!authors.exists(command.authorId())) throw new AuthorNotFound();
         posts.get(command.postId());
         if (command.parentId() != null) {
             var parent = comments.findTarget(command.parentId()).orElseThrow(CommentNotFound::new);

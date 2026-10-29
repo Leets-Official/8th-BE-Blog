@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.blog.domain.model;
 
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
 public record Comment(CommentId id, UserId authorId, CommentId parentId, String content,
                       CommentState state, boolean deleted) {

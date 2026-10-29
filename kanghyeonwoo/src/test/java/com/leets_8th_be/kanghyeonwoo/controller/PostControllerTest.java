@@ -10,7 +10,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;

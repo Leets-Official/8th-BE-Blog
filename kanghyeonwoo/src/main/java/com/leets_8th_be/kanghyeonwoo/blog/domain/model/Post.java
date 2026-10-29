@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.blog.domain.model;
 
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
 public record Post(PostId id, String title, String content, UserId authorId, PostState state) {
     public Post {

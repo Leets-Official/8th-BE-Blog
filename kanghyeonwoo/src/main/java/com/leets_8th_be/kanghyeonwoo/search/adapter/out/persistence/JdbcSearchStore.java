@@ -4,6 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchPostProjectionStore;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchDemoDataStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.contract.SearchDemoData;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPost;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPostPage;
@@ -18,7 +19,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -37,6 +37,7 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transactions;
+    private final TransactionTemplate requiredTransactions;
     private final AtomicLong dictionaryVersion = new AtomicLong();
     private final ReentrantLock writes = new ReentrantLock();
 
@@ -44,6 +45,7 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
         this.jdbc = jdbc;
         this.transactions = new TransactionTemplate(manager);
         this.transactions.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.requiredTransactions = new TransactionTemplate(manager);
     }
 
     public long dictionaryVersion() {
@@ -224,26 +226,44 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
         return new Keyword(rs.getLong("id"), rs.getString("normalized_keyword"), rs.getBoolean("suggestible"));
     }
 
-    public void importDemo(List<SearchDemoDataStore.DemoKeyword> keywords, List<SearchDemoDataStore.DemoEvent> events,
-                           List<SearchDemoDataStore.DemoDedupState> states, Supplier<Boolean> createPosts) {
-        write(() -> {
-            if (!createPosts.get()) return;
-            Map<Long, Long> ids = new HashMap<>();
-            for (SearchDemoDataStore.DemoKeyword keyword : keywords) {
-                Keyword saved = ensureKeyword(keyword.keyword(), keyword.suggestible(), keyword.createdAt());
-                ids.put(keyword.sourceId(), saved.id());
-            }
-            for (SearchDemoDataStore.DemoEvent event : events) {
-                long id = ids.get(event.sourceKeywordId());
-                jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", id, time(event.searchedAt()));
-                incrementBucket(id, event.searchedAt());
-            }
-            for (SearchDemoDataStore.DemoDedupState state : states) {
-                jdbc.update("""
-                        INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
-                        """, ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));
-            }
-        });
+    public void importDemo(SearchDemoData data) {
+        boolean outerTransaction = TransactionSynchronizationManager.isActualTransactionActive()
+                && TransactionSynchronizationManager.isSynchronizationActive();
+        if (outerTransaction) {
+            writes.lock();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    writes.unlock();
+                }
+            });
+            requiredTransactions.executeWithoutResult(status -> importRows(data));
+            return;
+        }
+        writes.lock();
+        try {
+            requiredTransactions.executeWithoutResult(status -> importRows(data));
+        } finally {
+            writes.unlock();
+        }
+    }
+
+    private void importRows(SearchDemoData data) {
+        Map<Long, Long> ids = new HashMap<>();
+        for (SearchDemoData.DemoKeyword keyword : data.keywords()) {
+            Keyword saved = ensureKeyword(keyword.keyword(), keyword.suggestible(), keyword.createdAt());
+            ids.put(keyword.sourceId(), saved.id());
+        }
+        for (SearchDemoData.DemoEvent event : data.events()) {
+            long id = ids.get(event.sourceKeywordId());
+            jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", id, time(event.searchedAt()));
+            incrementBucket(id, event.searchedAt());
+        }
+        for (SearchDemoData.DemoDedupState state : data.states()) {
+            jdbc.update("""
+                    INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
+                    """, ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));
+        }
     }
 
     private void write(Runnable operation) {

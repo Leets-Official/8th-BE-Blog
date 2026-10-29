@@ -2,6 +2,8 @@ package com.leets_8th_be.kanghyeonwoo.architecture;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
+import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
 import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -54,6 +56,129 @@ class HexagonalBoundaryTest {
     }
 
     @Test
+    void featureCoresDoNotDependOnOtherFeatureCores() {
+        ArchRule blogRule = classes()
+                .that().resideInAnyPackage(ROOT + ".blog.domain..", ROOT + ".blog.application..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(
+                        ROOT + ".user..", ROOT + ".report..", ROOT + ".search..");
+        ArchRule userRule = classes()
+                .that().resideInAnyPackage(ROOT + ".user.domain..", ROOT + ".user.application..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(
+                        ROOT + ".blog..", ROOT + ".report..", ROOT + ".search..");
+        ArchRule reportRule = classes()
+                .that().resideInAnyPackage(ROOT + ".report.domain..", ROOT + ".report.application..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(
+                        ROOT + ".blog..", ROOT + ".user..", ROOT + ".search..");
+        ArchRule searchRule = classes()
+                .that().resideInAnyPackage(ROOT + ".search.domain..", ROOT + ".search.application..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(
+                        ROOT + ".blog..", ROOT + ".user..", ROOT + ".report..");
+
+        blogRule.check(applicationClasses());
+        userRule.check(applicationClasses());
+        reportRule.check(applicationClasses());
+        searchRule.check(applicationClasses());
+    }
+
+    @Test
+    void featureAdaptersUseOnlyOtherModulesPublishedContracts() {
+        disallowForeignInternals("blog", "user", "report", "search").check(applicationClasses());
+        disallowForeignInternals("user", "blog", "report", "search").check(applicationClasses());
+        disallowForeignInternals("report", "blog", "user", "search").check(applicationClasses());
+        disallowForeignInternals("search", "blog", "user", "report").check(applicationClasses());
+    }
+
+    @Test
+    void blogDoesNotDependOnSearchModule() {
+        ArchRule rule = classes().that().resideInAnyPackage(ROOT + ".blog..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(ROOT + ".search..");
+        rule.check(applicationClasses());
+    }
+
+    @Test
+    void publishedContractsAreImmutableAndDoNotExposeFeatureInternals() {
+        var contracts = applicationClasses().stream()
+                .filter(type -> type.getPackageName().matches(ROOT + "\\.(blog|user|report|search)\\.application\\.contract(\\..*)?"))
+                .toList();
+        assertThat(contracts).isNotEmpty();
+        for (var contract : contracts) {
+            try {
+                Class<?> contractType = Class.forName(contract.getName(), false, getClass().getClassLoader());
+                assertThat(contractType.isRecord() || contractType.isEnum()).as(contract.getName()).isTrue();
+            } catch (ClassNotFoundException exception) {
+                throw new AssertionError("테스트 클래스패스에서 계약을 찾을 수 없습니다: " + contract.getName(), exception);
+            }
+        }
+
+        String[] applicationInternals = java.util.Arrays.stream(new String[]{"blog", "user", "report", "search"})
+                .flatMap(module -> java.util.stream.Stream.of(
+                        ROOT + "." + module + ".application.model..",
+                        ROOT + "." + module + ".application.usecase..",
+                        ROOT + "." + module + ".application.port..",
+                        ROOT + "." + module + ".application.exception.."))
+                .toArray(String[]::new);
+        String[] forbidden = java.util.stream.Stream.concat(
+                        java.util.stream.Stream.of("org.springframework..", "jakarta.persistence..", "jakarta.servlet..",
+                                ROOT + ".blog.domain..", ROOT + ".user.domain..", ROOT + ".report.domain..",
+                                ROOT + ".search.domain..", ROOT + ".blog.adapter..", ROOT + ".user.adapter..",
+                                ROOT + ".report.adapter..", ROOT + ".search.adapter.."),
+                        java.util.Arrays.stream(applicationInternals))
+                .toArray(String[]::new);
+        ArchRule rule = classes().that().resideInAnyPackage(ROOT + ".blog.application.contract..",
+                        ROOT + ".search.application.contract..", ROOT + ".user.application.contract..",
+                        ROOT + ".report.application.contract..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(forbidden);
+        rule.check(applicationClasses());
+    }
+
+    @Test
+    void applicationModelsAreImmutableRecordsWithoutDomainAggregates() {
+        var models = applicationClasses().stream()
+                .filter(type -> type.getPackageName().matches(ROOT + "\\.(blog|user|report|search)\\.application\\.model(\\..*)?"))
+                .toList();
+        assertThat(models).isNotEmpty();
+        for (var model : models) {
+            try {
+                Class<?> modelType = Class.forName(model.getName(), false, getClass().getClassLoader());
+                assertThat(modelType.isRecord()).as(model.getName()).isTrue();
+                for (var component : modelType.getRecordComponents()) {
+                    Class<?> componentType = component.getType();
+                    if (componentType.getPackageName().matches(ROOT + "\\.(blog|user|report|search)\\.domain\\.model")) {
+                        assertThat(componentType.isEnum() || componentType.getSimpleName().endsWith("Id"))
+                                .as(model.getName() + "." + component.getName()).isTrue();
+                    }
+                }
+            } catch (ClassNotFoundException exception) {
+                throw new AssertionError("테스트 클래스패스에서 모델을 찾을 수 없습니다: " + model.getName(), exception);
+            }
+        }
+    }
+
+    @Test
+    void commentUseCaseResultsDoNotExposeDomainAggregates() {
+        assertThat(CommentView.class.isRecord()).isTrue();
+        assertThat(java.util.Arrays.stream(CommentView.class.getRecordComponents())
+                .noneMatch(component -> component.getType() == Comment.class))
+                .isTrue();
+    }
+
+    private static ArchRule disallowForeignInternals(String owner, String... otherModules) {
+        String[] forbiddenPackages = java.util.Arrays.stream(otherModules)
+                .flatMap(module -> java.util.stream.Stream.of(
+                        ROOT + "." + module + ".domain..",
+                        ROOT + "." + module + ".adapter..",
+                        ROOT + "." + module + ".config..",
+                        ROOT + "." + module + ".application.usecase..",
+                        ROOT + "." + module + ".application.exception..",
+                        ROOT + "." + module + ".application.port.out..",
+                        ROOT + "." + module + ".application.model.."))
+                .toArray(String[]::new);
+        return classes().that().resideInAnyPackage(ROOT + "." + owner + ".adapter..",
+                        ROOT + "." + owner + ".config..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(forbiddenPackages);
+    }
+
+    @Test
     void migratedAdaptersDoNotDependOnLegacyPersistencePackages() {
         ArchRule rule = classes()
                 .that().resideInAnyPackage(ROOT + ".blog.adapter..", ROOT + ".user.adapter..",
@@ -70,7 +195,7 @@ class HexagonalBoundaryTest {
                         ROOT + ".report.domain..", ROOT + ".search.domain..")
                 .should().onlyDependOnClassesThat().resideInAnyPackage("java..", "javax..", "jakarta.validation..",
                         ROOT + ".user.domain..", ROOT + ".blog.domain..", ROOT + ".report.domain..",
-                        ROOT + ".search.domain..");
+                        ROOT + ".search.domain..", ROOT + ".shared.domain..");
         rule.check(applicationClasses());
     }
 

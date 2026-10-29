@@ -14,7 +14,7 @@ public interface CommentStore {
 
     Optional<CommentView> findTarget(CommentId id);
 
-    Optional<CommentView> findForUpdate(CommentId id);
+    Optional<Comment> findForUpdate(CommentId id);
 
     CommentView save(Comment comment);
 

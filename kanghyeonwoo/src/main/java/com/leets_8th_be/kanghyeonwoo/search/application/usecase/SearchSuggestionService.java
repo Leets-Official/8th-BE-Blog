@@ -2,6 +2,7 @@ package com.leets_8th_be.kanghyeonwoo.search.application.usecase;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchSuggestion;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RebuildSearchSuggestionsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.domain.BkTree;
 import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
 
@@ -15,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SearchSuggestionService {
+public class SearchSuggestionService implements RebuildSearchSuggestionsUseCase {
     private final SearchStore store;
     private final Clock clock;
     private BkTree tree = new BkTree();
@@ -25,6 +26,7 @@ public class SearchSuggestionService {
 
     public SearchSuggestionService(SearchStore store, Clock clock) { this.store = store; this.clock = clock; }
 
+    @Override
     public void rebuild() {
         indexLock.lock();
         try {

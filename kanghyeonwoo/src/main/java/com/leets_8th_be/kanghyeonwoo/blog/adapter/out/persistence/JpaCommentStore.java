@@ -9,7 +9,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence.TextSearch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -54,8 +54,8 @@ public class JpaCommentStore implements CommentStore {
     }
 
     @Override
-    public Optional<CommentView> findForUpdate(CommentId id) {
-        return comments.findForUpdate(id.value()).map(JpaCommentStore::toView);
+    public Optional<Comment> findForUpdate(CommentId id) {
+        return comments.findForUpdate(id.value()).map(JpaCommentStore::toDomain);
     }
 
     @Override
@@ -77,13 +77,17 @@ public class JpaCommentStore implements CommentStore {
     }
 
     private static CommentView toView(CommentJpaEntity entity) {
+        Comment comment = toDomain(entity);
+        return new CommentView(comment.id(), comment.authorId(), comment.parentId(), comment.content(),
+                comment.displayContent(), comment.state(), comment.deleted(), new PostId(entity.getPostId()),
+                PostState.valueOf(entity.getPostStatus().name()), entity.getCreatedAt());
+    }
+
+    private static Comment toDomain(CommentJpaEntity entity) {
         CommentState state = entity.getStatus() == CommentJpaEntity.Visibility.ACTIVE
                 ? CommentState.ACTIVE : CommentState.HIDDEN;
-        Comment comment = new Comment(new CommentId(entity.getId()), new UserId(entity.getUserId()),
+        return new Comment(new CommentId(entity.getId()), new UserId(entity.getUserId()),
                 entity.getParentId() == null ? null : new CommentId(entity.getParentId()),
                 entity.getContent(), state, entity.isDeleted());
-        return new CommentView(comment, new PostId(entity.getPostId()),
-                PostState.valueOf(entity.getPostStatus().name()),
-                entity.getCreatedAt());
     }
 }

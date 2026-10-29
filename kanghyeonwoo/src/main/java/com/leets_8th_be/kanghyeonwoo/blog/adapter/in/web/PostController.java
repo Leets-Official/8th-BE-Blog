@@ -17,7 +17,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto.PostDeleteResponse;
 import com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto.PostDetailResponse;
 import com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto.PostResponse;
 import com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto.PostUpdateRequest;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

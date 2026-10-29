@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.user.domain.model;
+package com.leets_8th_be.kanghyeonwoo.shared.domain;
 
 public record UserId(Long value) {
     public UserId {

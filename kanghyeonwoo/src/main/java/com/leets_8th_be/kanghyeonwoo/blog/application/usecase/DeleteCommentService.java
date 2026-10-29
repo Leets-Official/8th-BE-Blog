@@ -10,7 +10,7 @@ public class DeleteCommentService implements DeleteCommentUseCase {
     private final CommentStore comments;
     public DeleteCommentService(CommentStore comments) { this.comments = comments; }
     @Override public CommentView delete(CommentId id) {
-        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new).comment();
+        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new);
         return comments.save(comment.delete());
     }
 }

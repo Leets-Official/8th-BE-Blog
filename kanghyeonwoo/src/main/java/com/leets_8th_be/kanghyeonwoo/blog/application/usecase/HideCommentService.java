@@ -14,7 +14,7 @@ public class HideCommentService implements HideCommentUseCase {
 
     @Override
     public com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView hide(CommentId id) {
-        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new).comment();
+        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new);
         if (comment.deleted()) throw new CommentNotFound();
         return comments.save(comment.hide());
     }

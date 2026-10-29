@@ -1,5 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.user.application.usecase;
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.CreateUserProfileUseCase;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.out.UserProfileStore;
 public class CreateUserProfileService implements CreateUserProfileUseCase {

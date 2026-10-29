@@ -9,7 +9,7 @@ import com.leets_8th_be.kanghyeonwoo.report.domain.model.Report;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

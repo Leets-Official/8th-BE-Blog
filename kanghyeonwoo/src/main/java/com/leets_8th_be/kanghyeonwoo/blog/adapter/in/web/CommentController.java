@@ -56,10 +56,9 @@ public class CommentController {
     }
 
     private static CommentResponse toResponse(CommentView view) {
-        var comment = view.comment();
-        CommentStatus status = comment.state() == CommentState.ACTIVE ? CommentStatus.ACTIVE : CommentStatus.HIDDEN;
-        return new CommentResponse(comment.id().value(), comment.authorId().value(),
-                comment.parentId() == null ? null : comment.parentId().value(), comment.displayContent(),
-                status, comment.deleted(), view.createdAt());
+        CommentStatus status = view.state() == CommentState.ACTIVE ? CommentStatus.ACTIVE : CommentStatus.HIDDEN;
+        return new CommentResponse(view.id().value(), view.authorId().value(),
+                view.parentId() == null ? null : view.parentId().value(), view.displayContent(),
+                status, view.deleted(), view.createdAt());
     }
 }

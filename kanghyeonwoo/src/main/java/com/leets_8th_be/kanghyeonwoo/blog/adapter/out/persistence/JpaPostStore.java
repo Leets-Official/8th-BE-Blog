@@ -5,7 +5,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

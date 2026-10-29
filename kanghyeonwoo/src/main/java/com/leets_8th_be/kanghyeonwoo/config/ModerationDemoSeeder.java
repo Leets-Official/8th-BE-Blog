@@ -41,11 +41,11 @@ public class ModerationDemoSeeder implements ApplicationRunner {
                 "신고 당시 본문을 스냅샷으로 보존합니다.", author.id()));
         var postId = new PostId(post.id().value());
         var parent = createComments.create(new CreateCommentCommand(postId, author.id(), null, "신고 데모 댓글 질문"));
-        createComments.create(new CreateCommentCommand(postId, processor.id(), parent.comment().id(), "정상 답변입니다."));
+        createComments.create(new CreateCommentCommand(postId, processor.id(), parent.id(), "정상 답변입니다."));
         var deleted = createComments.create(new CreateCommentCommand(postId, author.id(), null, "삭제할 댓글"));
-        deleteComments.delete(deleted.comment().id());
+        deleteComments.delete(deleted.id());
         log.info("신고 데모: authorId={}, reporterId={}, processorId={}, postId={}, commentId={}",
                 author.id().value(), reporter.id().value(), processor.id().value(), post.id().value(),
-                parent.comment().id().value());
+                parent.id().value());
     }
 }

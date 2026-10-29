@@ -21,9 +21,7 @@ import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportUse
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportResolutionView;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -57,7 +55,7 @@ public class ReportController {
             @PathVariable("postId") Long postId, @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus()).body(ApiResponse.success(
                 ApiResponseCode.RESOURCE_CREATED, "게시글 신고가 접수되었습니다.",
-                toCreateResponse(reportPostUseCase.report(new ReportPostCommand(new PostId(postId),
+                toCreateResponse(reportPostUseCase.report(new ReportPostCommand(postId,
                         new UserId(request.reporterId()), request.reason())))));
     }
     @PostMapping("/comments/{commentId}/reports")
@@ -76,7 +74,7 @@ public class ReportController {
             @PathVariable("commentId") Long commentId, @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus()).body(ApiResponse.success(
                 ApiResponseCode.RESOURCE_CREATED, "댓글 신고가 접수되었습니다.",
-                toCreateResponse(reportCommentUseCase.report(new ReportCommentCommand(new CommentId(commentId),
+                toCreateResponse(reportCommentUseCase.report(new ReportCommentCommand(commentId,
                         new UserId(request.reporterId()), request.reason())))));
     }
 

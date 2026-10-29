@@ -1,7 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.user.application.port.in;
 
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
 import java.util.Optional;
 

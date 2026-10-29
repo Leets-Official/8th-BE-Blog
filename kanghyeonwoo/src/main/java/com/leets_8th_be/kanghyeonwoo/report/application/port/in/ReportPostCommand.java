@@ -1,7 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.report.application.port.in;
 
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
-public record ReportPostCommand(PostId postId, UserId reporterId, String reason) {
+public record ReportPostCommand(Long postId, UserId reporterId, String reason) {
 }

@@ -4,4 +4,7 @@ import java.util.List;
 
 public record ReportPage(List<ReportListItem> items, int page, int size,
                          long totalElements, int totalPages) {
+    public ReportPage {
+        items = List.copyOf(items);
+    }
 }
