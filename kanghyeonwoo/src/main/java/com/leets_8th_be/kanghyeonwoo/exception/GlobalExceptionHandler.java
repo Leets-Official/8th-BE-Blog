@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.exception;
 
-import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;

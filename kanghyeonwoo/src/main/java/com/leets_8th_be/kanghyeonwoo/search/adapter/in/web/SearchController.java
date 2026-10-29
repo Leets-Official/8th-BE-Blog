@@ -4,7 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.dto.SearchSuggestionResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.SearchTrendResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.SearchKeywordStatsResponse;
 
-import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchSuggestionsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchTrendsUseCase;

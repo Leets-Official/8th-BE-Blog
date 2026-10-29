@@ -10,7 +10,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeletePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
-import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostCreateRequest;
 import com.leets_8th_be.kanghyeonwoo.dto.PostDeleteResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse;

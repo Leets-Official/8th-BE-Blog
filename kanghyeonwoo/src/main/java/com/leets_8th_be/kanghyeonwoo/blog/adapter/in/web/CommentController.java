@@ -7,10 +7,10 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetCommentsUseCase
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
-import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.CommentResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.CommentStatus;
-import com.leets_8th_be.kanghyeonwoo.dto.PageResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

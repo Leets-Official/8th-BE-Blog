@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.dto;
+package com.leets_8th_be.kanghyeonwoo.shared.web;
 
 import java.util.List;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.dto;
+package com.leets_8th_be.kanghyeonwoo.shared.web;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
