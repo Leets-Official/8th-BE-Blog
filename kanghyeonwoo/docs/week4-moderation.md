@@ -2,17 +2,19 @@
 
 게시글·댓글 신고, 신고 목록·검색, 신고 처리와 댓글 목록·검색을 제공한다. 로그인과 ADMIN 역할은 추가하지 않는다. 요청의 사용자 ID가 존재하는지 확인하는 과제용 방식이며, 존재하는 사용자라면 누구나 신고를 처리하고 조회할 수 있다.
 
+게시글 작성자 삭제는 `DELETED` 상태로 전환하는 soft-delete로 처리한다. 게시글과 댓글 행 및 신고 스냅샷은 보존한다.
+
 ## API
 
 | 요청 | 입력 | 결과 |
 | --- | --- | --- |
-| POST /api/v1/posts/{postId}/reports | reporterId, reason | 게시글 신고 생성, 201 |
-| POST /api/v1/comments/{commentId}/reports | reporterId, reason | 댓글 신고 생성, 201 |
-| GET /api/v1/posts/{postId}/comments | page, size, keyword | 해당 게시글의 댓글 목록·본문 검색 |
-| GET /api/v1/reports | page, size, status, targetType, targetId, keyword | 신고 목록·스냅샷 검색 |
-| PATCH /api/v1/reports/{reportId}/resolve | processorId, action, resolutionReason | 신고 처리, 200 |
+| POST /api/v2/posts/{postId}/reports | reporterId, reason | 게시글 신고 생성, 201 |
+| POST /api/v2/comments/{commentId}/reports | reporterId, reason | 댓글 신고 생성, 201 |
+| GET /api/v2/posts/{postId}/comments | page, size, keyword | 해당 게시글의 댓글 목록·본문 검색 |
+| GET /api/v2/reports | page, size, status, targetType, targetId, keyword | 신고 목록·스냅샷 검색 |
+| PATCH /api/v2/reports/{reportId}/resolve | processorId, action, resolutionReason | 신고 처리, 200 |
 
-reason과 resolutionReason은 공백 불가·최대 255자다. 사용자·대상 ID는 양수여야 한다. 모든 응답은 success, 문자열 code, message, data를 사용한다. 성공 코드는 S200/S201이며 실패 시 data는 null이다.
+reason과 resolutionReason은 공백 불가·최대 255자다. 사용자·대상 ID는 양수여야 한다. 공통 응답은 success, 의미 코드 enum, message, data를 사용하며 JSON에는 enum 이름이 문자열로 직렬화된다. 성공 코드는 SUCCESS/RESOURCE_CREATED이고 실패 시 data는 null이다.
 
 게시글·댓글·신고 목록의 data는 items, page, size, totalElements, totalPages로 통일한다. page는 1부터, size는 기본 10·최대 100이다. 생성 시각과 ID 내림차순으로 정렬한다. 기존 게시글 목록의 data 배열은 이 페이징 객체로 변경되었다.
 
@@ -100,18 +102,19 @@ stateDiagram-v2
     ACTIVE --> HIDDEN: HIDE
     HIDDEN --> HIDDEN: HIDE 또는 KEEP
     HIDDEN --> HIDDEN: 작성자의 본문 수정
-    ACTIVE --> RemovedPost: 작성자 삭제
-    HIDDEN --> RemovedPost: 작성자 삭제
+    ACTIVE --> DELETED: 작성자 삭제
+    HIDDEN --> DELETED: 작성자 삭제
 
-    state "삭제됨 (DB 행 제거)" as RemovedPost
     note right of HIDDEN
         목록과 검색에서 제외한다.
         상세 및 댓글 조회는 404다.
         ACTIVE로 복원하는 기능은 없다.
     end note
-    note right of RemovedPost
-        PostStatus의 값이 아니다.
-        연관 댓글도 물리 삭제된다.
+    note right of DELETED
+        PostStatus의 terminal 상태다.
+        게시글과 댓글 행은 보존한다.
+        목록·검색에서 제외하고 상세 및 댓글 조회는 404다.
+        복원 기능은 없다.
         신고와 스냅샷은 보존한다.
     end note
 ```
@@ -146,7 +149,7 @@ stateDiagram-v2
     }
 ```
 
-isDeleted가 true이면 공개 상태와 관계없이 삭제 표시가 우선한다. 삭제된 댓글의 신고도 KEEP로 종결할 수 있지만 HIDE는 409다. 부모 게시글이 물리 삭제되면 댓글 행도 제거되며, 위 두 필드의 상태 전이와는 구분한다.
+isDeleted가 true이면 공개 상태와 관계없이 삭제 표시가 우선한다. 삭제된 댓글의 신고도 KEEP로 종결할 수 있지만 HIDE는 409다. 부모 게시글이 DELETED여도 댓글 행은 보존되지만 댓글 조회·검색·신고는 차단된다. 부모의 DELETED 상태와 댓글 자체의 공개 상태·삭제 여부는 구분한다.
 
 | 댓글 공개 상태 | 삭제 여부 | 일반 목록 | 본문 검색 |
 | --- | --- | --- | --- |
@@ -156,9 +159,9 @@ isDeleted가 true이면 공개 상태와 관계없이 삭제 표시가 우선한
 
 부모 게시글이 HIDDEN이면 댓글 목록·검색 전체를 404로 차단한다.
 
-신고 접수는 대상 공개 상태를 바꾸지 않는다. 신고 당시 스냅샷은 대상이 수정·삭제되어도 보존한다. HIDE는 수정된 현재 대상을 숨긴다. 대상이 삭제되었으면 KEEP로 종결할 수 있지만 HIDE는 409다. 삭제 대상 처리 응답은 targetAvailable=false, targetHidden=null이다.
+신고 접수는 대상 공개 상태를 바꾸지 않는다. 신고 당시 스냅샷은 대상이 수정·삭제되어도 보존한다. HIDE는 수정된 현재 대상을 숨긴다. 게시글이 DELETED이거나 댓글이 논리 삭제되었으면 KEEP로 종결할 수 있지만 HIDE는 409다. 삭제 대상 처리 응답은 targetAvailable=false, targetHidden=null이다.
 
-숨김 게시글은 목록·제목 검색에서 제외하고 상세·댓글 조회는 404로 응답한다. 숨김 후 작성자가 수정해도 HIDDEN을 유지한다. 기존 작성자 삭제 권한은 유지한다. 과거 검색 이력·검색어 사전·집계 검색량은 유지하므로 숨겨진 게시글과 같은 문자열이 검색어 추천에 남을 수 있다.
+숨김 게시글은 목록·제목 검색에서 제외하고 상세·댓글 조회는 404로 응답한다. 숨김 후 작성자가 수정해도 HIDDEN을 유지한다. 작성자가 숨김 게시글을 삭제하면 DELETED로 전환한다. DELETED 게시글은 DB 행을 보존하지만 목록·검색·상세·댓글·신고 대상 조회에서 제외하고 검색 프로젝션에서 제거한다. 연관 댓글도 DB에 보존하되 공개 조회와 신고 접수를 차단한다. 게시글 수정·재삭제는 404이며 복원 기능은 없다. 과거 검색 이력·검색어 사전·집계 검색량은 유지하므로 숨김·삭제 게시글과 같은 문자열이 검색어 추천에 남을 수 있다.
 
 ## 중복과 동시성
 
@@ -170,14 +173,14 @@ isDeleted가 true이면 공개 상태와 관계없이 삭제 표시가 우선한
 
 | 조건 | HTTP / code |
 | --- | --- |
-| 잘못된 입력·페이징 | 400 / COMMON400_VALIDATION 또는 COMMON400_TYPE |
-| 본인 콘텐츠 신고 | 403 / REPORT4031 |
-| 없는 사용자·게시글·댓글·신고 | 404 / USER4001, POST4001, COMMENT4001, REPORT4001 |
-| 숨김 콘텐츠 신규 신고 | 404 / POST4001 또는 COMMENT4001 |
-| 중복 신고 | 409 / REPORT4091 |
-| 삭제 댓글 신고 | 409 / REPORT4092 |
-| 이미 처리된 신고 | 409 / REPORT4093 |
-| 삭제 대상 HIDE | 409 / REPORT4094 |
+| 잘못된 입력·페이징 | 400 / INVALID_INPUT_VALUE 또는 TYPE_MISMATCH |
+| 본인 콘텐츠 신고 | 403 / SELF_REPORT_FORBIDDEN |
+| 없는 사용자·게시글·댓글·신고 | 404 / USER_NOT_FOUND, POST_NOT_FOUND, COMMENT_NOT_FOUND, REPORT_NOT_FOUND |
+| 숨김 콘텐츠 신규 신고 | 404 / POST_NOT_FOUND 또는 COMMENT_NOT_FOUND |
+| 중복 신고 | 409 / DUPLICATE_RESOURCE |
+| 삭제 댓글 신고 | 409 / RESOURCE_DELETED |
+| 이미 처리된 신고 | 409 / REPORT_ALREADY_RESOLVED |
+| 삭제 대상 HIDE | 409 / RESOURCE_DELETED |
 
 ## 기존 영구 H2 데이터
 
@@ -222,9 +225,9 @@ Datafaker 2.7.0으로 이름·제목·본문을 생성한다. locale은 ko, 난�
 
 조회 예시:
 
-- 게시글 목록: GET /api/v1/posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
-- 댓글 목록: GET /api/v1/posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
-- 댓글 검색: GET /api/v1/posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
+- 게시글 목록: GET /api/v2/posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
+- 댓글 목록: GET /api/v2/posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
+- 댓글 검색: GET /api/v2/posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
 
 ## Swagger 시연
 

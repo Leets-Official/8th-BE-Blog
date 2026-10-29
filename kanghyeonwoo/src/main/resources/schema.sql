@@ -26,3 +26,13 @@ CREATE TABLE IF NOT EXISTS search_keyword_buckets (
     UNIQUE(keyword_id, bucket_start)
 );
 CREATE INDEX IF NOT EXISTS idx_search_bucket_time_keyword ON search_keyword_buckets(bucket_start, keyword_id);
+CREATE TABLE IF NOT EXISTS search_post_projections (
+    post_id BIGINT PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    normalized_title VARCHAR(450) NOT NULL,
+    author_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    visible BOOLEAN NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_search_post_projection_visible_created
+    ON search_post_projections(visible, created_at, post_id);
