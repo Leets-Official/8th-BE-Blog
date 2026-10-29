@@ -3,7 +3,7 @@ package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.PageResponse;
-import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
+import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.PostSummaryResponse;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPostPage;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RecordSearchUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchPostsUseCase;

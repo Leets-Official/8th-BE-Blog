@@ -1,8 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 
-import com.leets_8th_be.kanghyeonwoo.dto.SearchSuggestionResponse;
-import com.leets_8th_be.kanghyeonwoo.dto.SearchTrendResponse;
-import com.leets_8th_be.kanghyeonwoo.dto.SearchKeywordStatsResponse;
+import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchSuggestionResponse;
+import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchTrendResponse;
+import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchKeywordStatsResponse;
 
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
@@ -10,7 +10,7 @@ import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchSuggest
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchTrendsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchKeywordStatsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchKeywordStats;
-import com.leets_8th_be.kanghyeonwoo.dto.SearchHourlyCountResponse;
+import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchHourlyCountResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;

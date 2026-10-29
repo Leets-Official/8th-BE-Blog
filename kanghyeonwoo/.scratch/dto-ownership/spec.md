@@ -1,6 +1,6 @@
 # 기능별 웹 DTO 소유권 정리
 
-Status: in progress
+Status: complete
 
 ## Problem
 

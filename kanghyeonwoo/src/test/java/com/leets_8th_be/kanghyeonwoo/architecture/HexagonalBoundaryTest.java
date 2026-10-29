@@ -90,6 +90,21 @@ class HexagonalBoundaryTest {
                         || type.getPackageName().startsWith(ROOT + ".repository"))).isTrue();
     }
 
+    @Test
+    void featureWebDtosAreOwnedByTheirFeatureAdapters() {
+        assertThat(applicationClasses().stream().noneMatch(type ->
+                type.getPackageName().equals(ROOT + ".dto"))).isTrue();
+
+        assertThat(applicationClasses().stream().filter(type -> type.getSimpleName().endsWith("Request")
+                        || type.getSimpleName().endsWith("Response"))
+                .filter(type -> type.getPackageName().startsWith(ROOT + ".blog.")
+                        || type.getPackageName().startsWith(ROOT + ".report.")
+                        || type.getPackageName().startsWith(ROOT + ".search."))
+                .filter(type -> !type.getPackageName().endsWith(".exception"))
+                .filter(type -> !type.getPackageName().contains(".adapter.in.web"))
+                .map(type -> type.getName()).toList()).isEmpty();
+    }
+
     private static com.tngtech.archunit.core.domain.JavaClasses applicationClasses() {
         return new ClassFileImporter().importPath("build/classes/java/main");
     }
