@@ -58,6 +58,10 @@ class ModerationDemoTest {
                 .andExpect(jsonPath("$.paths['/api/v2/posts'].post.responses['201']").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts'].post.responses['400']").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts/{postId}/reports'].post.responses['409']").exists())
+                .andExpect(jsonPath("$.components.responses.BadRequest").exists())
+                .andExpect(jsonPath("$.components.responses.Forbidden").exists())
+                .andExpect(jsonPath("$.components.responses.NotFound").exists())
+                .andExpect(jsonPath("$.components.responses.Conflict").exists())
                 .andExpect(jsonPath("$.components.responses.InternalServerError").exists())
                 .andReturn().getResponse().getContentAsString();
 
@@ -75,7 +79,20 @@ class ModerationDemoTest {
                 "$.components.schemas.ApiResponseVoid.properties.code.$ref"))
                 .isEqualTo("#/components/schemas/ApiResponseCode");
         assertThat(JsonPath.<String>read(specification,
-                "$.components.schemas.ApiResponseVoid.properties.code.example")).isEqualTo("POST_NOT_FOUND");
+                "$.components.responses.BadRequest.content['application/json'].examples.INVALID_INPUT_VALUE.value.code"))
+                .isEqualTo("INVALID_INPUT_VALUE");
+        assertThat(JsonPath.<String>read(specification,
+                "$.components.responses.Forbidden.content['application/json'].examples.SELF_REPORT_FORBIDDEN.value.code"))
+                .isEqualTo("SELF_REPORT_FORBIDDEN");
+        assertThat(JsonPath.<String>read(specification,
+                "$.components.responses.NotFound.content['application/json'].examples.POST_NOT_FOUND.value.code"))
+                .isEqualTo("POST_NOT_FOUND");
+        assertThat(JsonPath.<String>read(specification,
+                "$.components.responses.Conflict.content['application/json'].examples.DUPLICATE_RESOURCE.value.code"))
+                .isEqualTo("DUPLICATE_RESOURCE");
+        assertThat(JsonPath.<String>read(specification,
+                "$.components.responses.InternalServerError.content['application/json'].examples.INTERNAL_SERVER_ERROR.value.code"))
+                .isEqualTo("INTERNAL_SERVER_ERROR");
         assertThat(JsonPath.<String>read(specification,
                 "$.components.schemas.ReportCreateRequest.properties.reason.description")).isNotBlank();
 

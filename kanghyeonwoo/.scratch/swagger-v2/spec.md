@@ -24,6 +24,7 @@ Status: ready-for-agent
 - 공통 오류 코드는 `INVALID_INPUT_VALUE`, `TYPE_MISMATCH`, `MISSING_REQUEST_BODY`, `ENDPOINT_NOT_FOUND`, `METHOD_NOT_ALLOWED`, `INTERNAL_SERVER_ERROR`다.
 - 리소스 및 업무 오류는 의미에 따라 `USER_NOT_FOUND`, `POST_NOT_FOUND`, `COMMENT_NOT_FOUND`, `REPORT_NOT_FOUND`, `SEARCH_KEYWORD_NOT_FOUND`, `POST_ACCESS_DENIED`, `SELF_REPORT_FORBIDDEN`, `DUPLICATE_RESOURCE`, `REPORT_ALREADY_RESOLVED`, `RESOURCE_DELETED`로 구분한다.
 - 오류 응답은 기존 `ApiResponse<Void>` 형식으로 명세한다. 클라이언트는 안정적인 `code`로 분기하고 `message`는 표시 문구로 사용한다.
+- Swagger 오류 응답 예시는 HTTP 상태별 공통 컴포넌트로 묶고, 각 컴포넌트에 해당 상태로 반환 가능한 코드·메시지 예시를 이름별로 제공한다. 예시 메시지는 `ApiResponseCode`의 기본 메시지를 사용해 런타임 정의와 따로 복제하지 않는다.
 - `@ApiResponse` Swagger 어노테이션과 `ApiResponse<T>` 응답 DTO는 이름은 같지만 다른 타입이다. 코드에서 단순 이름이 충돌하면 Swagger 어노테이션의 완전한 이름을 사용한다.
 - 엔드포인트별 업무 오류는 각 작업에 관련된 것만 선언하고, 405·500 등 공통 오류 응답은 재사용 가능한 OpenAPI 응답 컴포넌트로 제공한다.
 - OpenAPI `info.version`은 `2.0.0`으로 표기한다. Swagger UI 경로 `/swagger-ui.html`, JSON 경로 `/v3/api-docs`는 유지한다.
