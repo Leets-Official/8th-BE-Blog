@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.dto;
+package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
 
