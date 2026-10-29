@@ -93,7 +93,7 @@ class HexagonalBoundaryTest {
     @Test
     void featureWebDtosAreOwnedByTheirFeatureAdapters() {
         assertThat(applicationClasses().stream().noneMatch(type ->
-                type.getPackageName().equals(ROOT + ".dto"))).isTrue();
+                type.getPackageName().startsWith(ROOT + ".dto"))).isTrue();
 
         assertThat(applicationClasses().stream().filter(type -> type.getSimpleName().endsWith("Request")
                         || type.getSimpleName().endsWith("Response"))
