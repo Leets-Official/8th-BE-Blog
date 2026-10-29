@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import org.junit.jupiter.api.Test;
+import com.example.demo.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +56,92 @@ class SwaggerDocumentationTests {
             for (var operation : path) assertThat(operation.path("summary").asText()).isNotBlank();
         }
         assertThat(document.at("/components/schemas/PostCreateRequest/properties/title/description").asText()).isNotBlank();
+    }
+
+    @Test
+    void documentsRequestAndSuccessResponseDetails() throws Exception {
+        var result = mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
+        var doc = mapper.readTree(result.getResponse().getContentAsString());
+        var schemas = doc.at("/components/schemas");
+        for (String name : new String[] {"PostCreateRequest", "PostUpdateRequest", "ReportCreateRequest",
+                "PostResponse", "PostListResponse", "LikeResponse", "ReportResponse"}) {
+            var properties = schemas.path(name).path("properties");
+            assertThat(properties.size()).isPositive();
+            for (var field : properties) assertThat(field.path("description").asText()).isNotBlank();
+        }
+        var create = schemas.path("PostCreateRequest");
+        assertThat(create.path("required").toString()).contains("title", "content").doesNotContain("isPrivate");
+        assertThat(create.at("/properties/title/maxLength").asInt()).isEqualTo(50);
+        assertThat(schemas.at("/ReportCreateRequest/properties/reason/maxLength").asInt()).isEqualTo(255);
+        for (var path : doc.path("paths")) {
+            for (var operation : path) {
+                for (var parameter : operation.path("parameters")) {
+                    assertThat(parameter.path("in").asText()).isIn("path", "header");
+                    assertThat(parameter.path("description").asText()).isNotBlank();
+                }
+                var responseEntries = operation.path("responses").fields();
+                while (responseEntries.hasNext()) {
+                    var entry = responseEntries.next();
+                    if (entry.getKey().equals("204")) {
+                        assertThat(entry.getValue().has("content")).isFalse();
+                    } else if (entry.getKey().startsWith("2")) {
+                        assertThat(entry.getValue().path("content").size()).isPositive();
+                    }
+                }
+                if (operation.has("requestBody")) {
+                    assertThat(operation.at("/requestBody/required").asBoolean()).isTrue();
+                    assertThat(operation.at("/requestBody/content/application~1json/schema/$ref").asText()).isNotBlank();
+                }
+            }
+        }
+    }
+
+    @Test
+    void documentsErrorSchemasAndMatchesActualErrorResponses() throws Exception {
+        var result = mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
+        var document = mapper.readTree(result.getResponse().getContentAsString());
+        var paths = document.path("paths");
+        for (var path : paths) {
+            for (var operation : path) {
+                var responses = operation.path("responses");
+                var codes = responses.fieldNames();
+                while (codes.hasNext()) {
+                    String code = codes.next();
+                    if (Integer.parseInt(code) >= 400) {
+                        assertThat(responses.path(code).at("/content/application~1json/schema/$ref").asText())
+                                .isEqualTo("#/components/schemas/ErrorResponse");
+                        var examples = responses.path(code).at("/content/application~1json/examples");
+                        assertThat(examples.size()).isPositive();
+                        for (var example : examples) {
+                            var value = example.path("value");
+                            var error = ErrorCode.valueOf(value.path("code").asText());
+                            assertThat(value.path("status").asInt()).isEqualTo(Integer.parseInt(code));
+                            assertThat(value.path("message").asText()).isEqualTo(error.getMessage());
+                        }
+                    }
+                }
+            }
+        }
+        var reports = paths.path("/posts/{postId}/reports").path("post").path("responses");
+        assertThat(reports.has("400")).isTrue();
+        assertThat(reports.has("403")).isTrue();
+        assertThat(reports.has("404")).isTrue();
+        assertThat(reports.has("409")).isTrue();
+        var errors = document.at("/components/schemas/ErrorResponse/properties");
+        assertThat(errors.has("code")).isTrue();
+        assertThat(errors.has("message")).isTrue();
+        assertThat(errors.has("errors")).isTrue();
+        mvc.perform(post("/posts/1/reports").contentType("application/json")
+                        .content("{\"reason\":\"spam\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
+                .andExpect(jsonPath("$.message").isString());
+        mvc.perform(get("/posts/999999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("POST_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").isString());
     }
 
     @Test
