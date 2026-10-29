@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.dto;
+package com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

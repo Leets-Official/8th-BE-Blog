@@ -1,6 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.report.adapter.in.web;
 
-import com.leets_8th_be.kanghyeonwoo.dto.*;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.*;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.PageResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
@@ -98,14 +98,14 @@ public class ReportController {
                 ReportTargetType.valueOf(report.target().name()), report.targetId(),
                 ReportStatus.valueOf(report.state().name()), report.reason(), report.titleSnapshot(),
                 report.contentSnapshot(), report.createdAt(), report.action() == null ? null
-                : com.leets_8th_be.kanghyeonwoo.dto.ReportResolutionAction.valueOf(report.action().name()),
+                : com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolutionAction.valueOf(report.action().name()),
                 report.resolutionReason(), report.processorId() == null ? null : report.processorId().value(),
                 report.resolvedAt());
     }
 
     private static ReportResolveResponse toResolveResponse(ReportResolutionView report) {
         return new ReportResolveResponse(report.id().value(), ReportStatus.valueOf(report.state().name()),
-                com.leets_8th_be.kanghyeonwoo.dto.ReportResolutionAction.valueOf(report.action().name()),
+                com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolutionAction.valueOf(report.action().name()),
                 report.processorId().value(), report.resolvedAt(), report.targetAvailable(), report.targetHidden());
     }
 
