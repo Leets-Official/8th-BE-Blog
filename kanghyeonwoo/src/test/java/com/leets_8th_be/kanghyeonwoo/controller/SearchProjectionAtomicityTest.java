@@ -31,7 +31,7 @@ class SearchProjectionAtomicityTest {
         String title = "projection-failure-" + UUID.randomUUID();
         jdbc.execute("ALTER TABLE search_post_projections ADD CONSTRAINT test_projection_failure CHECK (title <> '" + title + "')");
         try {
-            mvc.perform(post("/api/v1/posts").contentType(MediaType.APPLICATION_JSON)
+            mvc.perform(post("/api/v2/posts").contentType(MediaType.APPLICATION_JSON)
                             .content(json.writeValueAsString(Map.of("title", title, "content", "본문", "authorId", author.getId()))))
                     .andExpect(status().isInternalServerError());
             Integer persistedPosts = jdbc.queryForObject("SELECT COUNT(*) FROM posts WHERE title = ?", Integer.class, title);

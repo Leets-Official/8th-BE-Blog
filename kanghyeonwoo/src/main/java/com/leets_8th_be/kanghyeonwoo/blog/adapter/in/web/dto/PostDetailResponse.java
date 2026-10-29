@@ -25,10 +25,10 @@ public class PostDetailResponse {
     @Schema(description = "작성자 회원 ID", example = "1")
     private Long authorId;
 
-    @Schema(description = "작성 일시")
+    @Schema(description = "작성 일시", example = "2026-10-29T11:30:00")
     private LocalDateTime createdAt;
 
-    @Schema(description = "최종 수정 일시")
+    @Schema(description = "최종 수정 일시", example = "2026-10-29T12:00:00")
     private LocalDateTime updatedAt;
 
 }

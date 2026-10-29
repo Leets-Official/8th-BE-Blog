@@ -19,12 +19,12 @@ class AssignmentControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("GET /api/v1/health 요청 시 ApiResponse envelope으로 감싼 ok 응답을 반환한다")
+    @DisplayName("GET /api/v2/health 요청 시 ApiResponse envelope으로 감싼 ok 응답을 반환한다")
     void healthCheck() throws Exception {
-        mockMvc.perform(get("/api/v1/health"))
+        mockMvc.perform(get("/api/v2/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").value("ok"));
 
     }

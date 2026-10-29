@@ -46,11 +46,11 @@ class SearchAnalyticsTest {
     @Test
     void ranksAKeywordAfterSixIndependentSearchesEvenWithoutResults() throws Exception {
         for (int i = 0; i < 6; i++) {
-            mvc.perform(get("/api/v1/posts").param("keyword", "risingword").session(new MockHttpSession()))
+            mvc.perform(get("/api/v2/posts").param("keyword", "risingword").session(new MockHttpSession()))
                     .andExpect(status().isOk());
         }
         clock.set(NOW);
-        mvc.perform(get("/api/v1/search/trends"))
+        mvc.perform(get("/api/v2/search/trends"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("risingword"))
                 .andExpect(jsonPath("$.data[0].currentCount").value(6))
@@ -61,17 +61,17 @@ class SearchAnalyticsTest {
     void countsAgainAtFiveMinutesAndFillsTwentyFourHourlyIntervals() throws Exception {
         MockHttpSession session = new MockHttpSession();
         clock.set(NOW.minusSeconds(600));
-        mvc.perform(get("/api/v1/posts").param("keyword", "spring").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(session)).andExpect(status().isOk());
         clock.set(NOW.minusSeconds(301));
-        mvc.perform(get("/api/v1/posts").param("keyword", " SPRING ").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").param("keyword", " SPRING ").session(session)).andExpect(status().isOk());
         clock.set(NOW.minusSeconds(300));
-        mvc.perform(get("/api/v1/posts").param("keyword", "spring").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(session)).andExpect(status().isOk());
         clock.set(NOW);
-        String body = mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
+        String body = mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(2))
                 .andReturn().getResponse().getContentAsString();
         Number id = com.jayway.jsonpath.JsonPath.read(body, "$.data[0].keywordId");
-        mvc.perform(get("/api/v1/search/keywords/" + id + "/stats"))
+        mvc.perform(get("/api/v2/search/keywords/" + id + "/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.currentCount").value(2))
                 .andExpect(jsonPath("$.data.previousCount").value(0))
@@ -87,14 +87,14 @@ class SearchAnalyticsTest {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Integer>>();
             for (int i = 0; i < 12; i++) requests.add(() -> mvc.perform(
-                    get("/api/v1/posts").param("keyword", "spring").session(session))
+                    get("/api/v2/posts").param("keyword", "spring").session(session))
                     .andReturn().getResponse().getStatus());
             for (var result : executor.invokeAll(requests)) {
                 org.assertj.core.api.Assertions.assertThat(result.get()).isEqualTo(200);
             }
         }
         clock.set(NOW);
-        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(1));
     }
 
@@ -104,7 +104,7 @@ class SearchAnalyticsTest {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Void>>();
             for (int i = 0; i < 12; i++) requests.add(() -> {
-                mvc.perform(get("/api/v1/search/suggestions").param("keyword", "concurrentsprng"))
+                mvc.perform(get("/api/v2/search/suggestions").param("keyword", "concurrentsprng"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.data[0].keyword").value("concurrentspring"));
                 return null;
@@ -116,13 +116,13 @@ class SearchAnalyticsTest {
     @Test
     void excludesListPaginationAndSuggestionRequestsFromSearchCounts() throws Exception {
         MockHttpSession session = new MockHttpSession();
-        mvc.perform(get("/api/v1/posts").session(session)).andExpect(status().isOk());
-        mvc.perform(get("/api/v1/posts").param("keyword", "spring").param("page", "2").session(session))
+        mvc.perform(get("/api/v2/posts").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").param("keyword", "spring").param("page", "2").session(session))
                 .andExpect(status().isOk());
-        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "spring").session(session))
+        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "spring").session(session))
                 .andExpect(status().isOk());
         clock.set(NOW);
-        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(0));
     }
 
@@ -136,7 +136,7 @@ class SearchAnalyticsTest {
         searchAt(anchor.minusSeconds(1), 3);
         searchAt(anchor, 1);
         clock.set(anchor);
-        mvc.perform(get("/api/v1/search/trends"))
+        mvc.perform(get("/api/v2/search/trends"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("spring"))
                 .andExpect(jsonPath("$.data[0].currentCount").value(6))
@@ -146,12 +146,12 @@ class SearchAnalyticsTest {
 
     @Test
     void rejectsInvalidInputsAndUnknownKeywordIds() throws Exception {
-        mvc.perform(get("/api/v1/search/suggestions")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "a")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v1/posts").param("keyword", "x".repeat(51))).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v1/posts").param("size", "0")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v1/search/keywords/999999/stats"))
-                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("SEARCH4001"));
+        mvc.perform(get("/api/v2/search/suggestions")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "a")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/posts").param("keyword", "x".repeat(51))).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/posts").param("size", "0")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/search/keywords/999999/stats"))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("SEARCH_KEYWORD_NOT_FOUND"));
     }
 
     @Test
@@ -175,7 +175,7 @@ class SearchAnalyticsTest {
         searchAt("sprang", NOW.minusSeconds(600), 2);
         searchAt("sprung", NOW.minusSeconds(600), 3);
         clock.set(NOW);
-        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("sprung"))
                 .andExpect(jsonPath("$.data[1].keyword").value("sprang"))
@@ -189,7 +189,7 @@ class SearchAnalyticsTest {
         searchAt("jpa", NOW.minusSeconds(1200), 5);
         searchAt("java", NOW.minusSeconds(1200), 5);
         clock.set(NOW);
-        mvc.perform(get("/api/v1/search/trends"))
+        mvc.perform(get("/api/v2/search/trends"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("spring"))
                 .andExpect(jsonPath("$.data[0].riseScore").value(1.0))
@@ -203,18 +203,18 @@ class SearchAnalyticsTest {
         MockHttpSession retrySession = new MockHttpSession();
         jdbc.execute("ALTER TABLE search_keyword_buckets ADD CONSTRAINT test_bucket_failure CHECK (search_count <= 1)");
         try {
-            mvc.perform(get("/api/v1/posts").param("keyword", "spring").session(retrySession))
+            mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(retrySession))
                     .andExpect(status().isInternalServerError());
             clock.set(NOW);
-            mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
+            mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
                     .andExpect(jsonPath("$.data[?(@.keyword == 'spring')].recentSearchCount").value(org.hamcrest.Matchers.contains(1)));
         } finally {
             jdbc.execute("ALTER TABLE search_keyword_buckets DROP CONSTRAINT test_bucket_failure");
         }
         clock.set(NOW.minusSeconds(120));
-        mvc.perform(get("/api/v1/posts").param("keyword", "spring").session(retrySession)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(retrySession)).andExpect(status().isOk());
         clock.set(NOW);
-        mvc.perform(get("/api/v1/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[?(@.keyword == 'spring')].recentSearchCount").value(org.hamcrest.Matchers.contains(2)));
     }
 
@@ -224,7 +224,7 @@ class SearchAnalyticsTest {
 
     private void searchAt(String keyword, Instant at, int count) throws Exception {
         clock.set(at);
-        for (int i = 0; i < count; i++) mvc.perform(get("/api/v1/posts").param("keyword", keyword)
+        for (int i = 0; i < count; i++) mvc.perform(get("/api/v2/posts").param("keyword", keyword)
                 .session(new MockHttpSession())).andExpect(status().isOk());
     }
 

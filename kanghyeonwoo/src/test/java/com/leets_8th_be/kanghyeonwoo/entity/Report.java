@@ -3,7 +3,7 @@ package com.leets_8th_be.kanghyeonwoo.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
-import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -59,7 +59,7 @@ public class Report extends BaseTimeEntity {
     private LocalDateTime resolvedAt;
 
     public void resolve(ReportResolutionAction action, String reason, User processor, LocalDateTime resolvedAt) {
-        if (status != ReportStatus.PENDING) throw new CustomException(ErrorCode.REPORT_ALREADY_RESOLVED);
+        if (status != ReportStatus.PENDING) throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
         this.status = ReportStatus.RESOLVED;
         this.action = action;
         this.resolutionReason = reason;

@@ -13,11 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Assignment", description = "기본 과제 및 헬스체크 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(ApiPaths.API_V1)
+@RequestMapping(ApiPaths.API_V2)
 public class HealthController {
 
 
     @Operation(summary = "서버 헬스체크", description = "서버 정상 구동 상태를 확인합니다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "서버 정상", useReturnTypeSchema = true),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
+    })
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<String>> healthCheck() {
         return ResponseEntity.ok(ApiResponse.success("ok"));

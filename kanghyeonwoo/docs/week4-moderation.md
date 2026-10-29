@@ -8,13 +8,13 @@
 
 | 요청 | 입력 | 결과 |
 | --- | --- | --- |
-| POST /api/v1/posts/{postId}/reports | reporterId, reason | 게시글 신고 생성, 201 |
-| POST /api/v1/comments/{commentId}/reports | reporterId, reason | 댓글 신고 생성, 201 |
-| GET /api/v1/posts/{postId}/comments | page, size, keyword | 해당 게시글의 댓글 목록·본문 검색 |
-| GET /api/v1/reports | page, size, status, targetType, targetId, keyword | 신고 목록·스냅샷 검색 |
-| PATCH /api/v1/reports/{reportId}/resolve | processorId, action, resolutionReason | 신고 처리, 200 |
+| POST /api/v2/posts/{postId}/reports | reporterId, reason | 게시글 신고 생성, 201 |
+| POST /api/v2/comments/{commentId}/reports | reporterId, reason | 댓글 신고 생성, 201 |
+| GET /api/v2/posts/{postId}/comments | page, size, keyword | 해당 게시글의 댓글 목록·본문 검색 |
+| GET /api/v2/reports | page, size, status, targetType, targetId, keyword | 신고 목록·스냅샷 검색 |
+| PATCH /api/v2/reports/{reportId}/resolve | processorId, action, resolutionReason | 신고 처리, 200 |
 
-reason과 resolutionReason은 공백 불가·최대 255자다. 사용자·대상 ID는 양수여야 한다. 모든 응답은 success, 문자열 code, message, data를 사용한다. 성공 코드는 S200/S201이며 실패 시 data는 null이다.
+reason과 resolutionReason은 공백 불가·최대 255자다. 사용자·대상 ID는 양수여야 한다. 공통 응답은 success, 의미 코드 enum, message, data를 사용하며 JSON에는 enum 이름이 문자열로 직렬화된다. 성공 코드는 SUCCESS/RESOURCE_CREATED이고 실패 시 data는 null이다.
 
 게시글·댓글·신고 목록의 data는 items, page, size, totalElements, totalPages로 통일한다. page는 1부터, size는 기본 10·최대 100이다. 생성 시각과 ID 내림차순으로 정렬한다. 기존 게시글 목록의 data 배열은 이 페이징 객체로 변경되었다.
 
@@ -173,14 +173,14 @@ isDeleted가 true이면 공개 상태와 관계없이 삭제 표시가 우선한
 
 | 조건 | HTTP / code |
 | --- | --- |
-| 잘못된 입력·페이징 | 400 / COMMON400_VALIDATION 또는 COMMON400_TYPE |
-| 본인 콘텐츠 신고 | 403 / REPORT4031 |
-| 없는 사용자·게시글·댓글·신고 | 404 / USER4001, POST4001, COMMENT4001, REPORT4001 |
-| 숨김 콘텐츠 신규 신고 | 404 / POST4001 또는 COMMENT4001 |
-| 중복 신고 | 409 / REPORT4091 |
-| 삭제 댓글 신고 | 409 / REPORT4092 |
-| 이미 처리된 신고 | 409 / REPORT4093 |
-| 삭제 대상 HIDE | 409 / REPORT4094 |
+| 잘못된 입력·페이징 | 400 / INVALID_INPUT_VALUE 또는 TYPE_MISMATCH |
+| 본인 콘텐츠 신고 | 403 / SELF_REPORT_FORBIDDEN |
+| 없는 사용자·게시글·댓글·신고 | 404 / USER_NOT_FOUND, POST_NOT_FOUND, COMMENT_NOT_FOUND, REPORT_NOT_FOUND |
+| 숨김 콘텐츠 신규 신고 | 404 / POST_NOT_FOUND 또는 COMMENT_NOT_FOUND |
+| 중복 신고 | 409 / DUPLICATE_RESOURCE |
+| 삭제 댓글 신고 | 409 / RESOURCE_DELETED |
+| 이미 처리된 신고 | 409 / REPORT_ALREADY_RESOLVED |
+| 삭제 대상 HIDE | 409 / RESOURCE_DELETED |
 
 ## 기존 영구 H2 데이터
 
@@ -225,9 +225,9 @@ Datafaker 2.7.0으로 이름·제목·본문을 생성한다. locale은 ko, 난�
 
 조회 예시:
 
-- 게시글 목록: GET /api/v1/posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
-- 댓글 목록: GET /api/v1/posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
-- 댓글 검색: GET /api/v1/posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
+- 게시글 목록: GET /api/v2/posts?keyword=MOCK&page=1&size=3 — 숨김 게시글을 제외한 10개를 페이징한다.
+- 댓글 목록: GET /api/v2/posts/{postId}/comments — 대댓글 관계와 숨김·삭제 안내 문구를 확인한다.
+- 댓글 검색: GET /api/v2/posts/{postId}/comments?keyword=질문 — 숨김·삭제 댓글을 제외한다.
 
 ## Swagger 시연
 
