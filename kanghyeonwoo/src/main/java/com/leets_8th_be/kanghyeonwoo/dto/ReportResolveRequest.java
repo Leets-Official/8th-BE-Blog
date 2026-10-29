@@ -1,6 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.dto;
 
-import com.leets_8th_be.kanghyeonwoo.entity.ReportResolutionAction;
 import jakarta.validation.constraints.*;
 
 public record ReportResolveRequest(@NotNull @Positive Long processorId,

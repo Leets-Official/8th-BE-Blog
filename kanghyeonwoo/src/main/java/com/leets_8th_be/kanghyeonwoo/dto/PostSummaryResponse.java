@@ -1,6 +1,5 @@
 package com.leets_8th_be.kanghyeonwoo.dto;
 
-import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,12 +25,4 @@ public class PostSummaryResponse {
     @Schema(description = "작성 일시")
     private LocalDateTime createdAt;
 
-    public static PostSummaryResponse from(Post post) {
-        return new PostSummaryResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getUser().getId(),
-                post.getCreatedAt()
-        );
-    }
 }

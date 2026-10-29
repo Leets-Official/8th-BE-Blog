@@ -1,6 +1,23 @@
 package com.leets_8th_be.kanghyeonwoo.exception;
 
 import com.leets_8th_be.kanghyeonwoo.dto.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.AuthorNotFound;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.InvalidCommentQuery;
+import com.leets_8th_be.kanghyeonwoo.blog.application.exception.CommentNotFound;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateReport;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFound;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedCommentReport;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportQuery;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReportNotFound;
+import com.leets_8th_be.kanghyeonwoo.search.application.exception.SearchKeywordNotFound;
+import com.leets_8th_be.kanghyeonwoo.search.application.exception.InvalidSearchRequest;
+import com.leets_8th_be.kanghyeonwoo.search.domain.InvalidSearchKeyword;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.DeletedReportTarget;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAlreadyResolved;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +48,91 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ex.getErrorCode();
         ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), ex.getMessage());
         return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(AuthorNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthorNotFound(AuthorNotFound ex) {
+        return errorResponse(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @ExceptionHandler(PostNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handlePostNotFound(PostNotFound ex) {
+        return errorResponse(ErrorCode.POST_NOT_FOUND);
+    }
+
+    @ExceptionHandler(PostAccessDenied.class)
+    public ResponseEntity<ApiResponse<Void>> handlePostAccessDenied(PostAccessDenied ex) {
+        return errorResponse(ErrorCode.FORBIDDEN_POST_ACCESS);
+    }
+
+    @ExceptionHandler(InvalidCommentQuery.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCommentQuery(InvalidCommentQuery ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(CommentNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleCommentNotFound(CommentNotFound ex) {
+        return errorResponse(ErrorCode.COMMENT_NOT_FOUND);
+    }
+
+    @ExceptionHandler(ReporterNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleReporterNotFound(ReporterNotFound ex) {
+        return errorResponse(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @ExceptionHandler(DuplicateReport.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateReport(DuplicateReport ex) {
+        return errorResponse(ErrorCode.DUPLICATE_REPORT);
+    }
+
+    @ExceptionHandler(SelfReportForbidden.class)
+    public ResponseEntity<ApiResponse<Void>> handleSelfReportForbidden(SelfReportForbidden ex) {
+        return errorResponse(ErrorCode.SELF_REPORT_FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidReportRequest.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidReportRequest(InvalidReportRequest ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(DeletedCommentReport.class)
+    public ResponseEntity<ApiResponse<Void>> handleDeletedCommentReport(DeletedCommentReport ex) {
+        return errorResponse(ErrorCode.DELETED_COMMENT_REPORT);
+    }
+
+    @ExceptionHandler(InvalidReportQuery.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidReportQuery(InvalidReportQuery ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(ReportNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleReportNotFound(ReportNotFound ex) {
+        return errorResponse(ErrorCode.REPORT_NOT_FOUND);
+    }
+
+    @ExceptionHandler(SearchKeywordNotFound.class)
+    public ResponseEntity<ApiResponse<Void>> handleSearchKeywordNotFound(SearchKeywordNotFound ex) {
+        return errorResponse(ErrorCode.SEARCH_KEYWORD_NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidSearchRequest.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidSearchRequest(InvalidSearchRequest ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(InvalidSearchKeyword.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidSearchKeyword(InvalidSearchKeyword ex) {
+        return errorResponse(ErrorCode.INVALID_INPUT_VALUE);
+    }
+
+    @ExceptionHandler(ReportAlreadyResolved.class)
+    public ResponseEntity<ApiResponse<Void>> handleReportAlreadyResolved(ReportAlreadyResolved ex) {
+        return errorResponse(ErrorCode.REPORT_ALREADY_RESOLVED);
+    }
+
+    @ExceptionHandler(DeletedReportTarget.class)
+    public ResponseEntity<ApiResponse<Void>> handleDeletedReportTarget(DeletedReportTarget ex) {
+        return errorResponse(ErrorCode.REPORT_TARGET_DELETED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -79,5 +181,10 @@ public class GlobalExceptionHandler {
         log.error("처리되지 않은 서버 오류", ex);
         ApiResponse<Void> response = ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), ErrorCode.INTERNAL_SERVER_ERROR.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    private ResponseEntity<ApiResponse<Void>> errorResponse(ErrorCode errorCode) {
+        ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }
 }
