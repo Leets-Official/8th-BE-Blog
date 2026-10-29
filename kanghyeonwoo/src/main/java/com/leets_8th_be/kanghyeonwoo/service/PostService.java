@@ -1,24 +1,25 @@
 package com.leets_8th_be.kanghyeonwoo.service;
 
+import com.leets_8th_be.kanghyeonwoo.dto.PageResponse;
+import com.leets_8th_be.kanghyeonwoo.util.Pagination;
 import com.leets_8th_be.kanghyeonwoo.dto.PostCreateRequest;
 import com.leets_8th_be.kanghyeonwoo.dto.PostDetailResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostResponse;
 import com.leets_8th_be.kanghyeonwoo.dto.PostSummaryResponse;
 import com.leets_8th_be.kanghyeonwoo.entity.Post;
+import com.leets_8th_be.kanghyeonwoo.entity.PostStatus;
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.exception.ErrorCode;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,29 +41,28 @@ public class PostService {
 
     public PostDetailResponse getPostById(Long postId) {
         Post post = postRepository.findById(postId)
+                .filter(p -> p.getStatus() == PostStatus.ACTIVE)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         return PostDetailResponse.from(post);
     }
 
-    public List<PostSummaryResponse> getPosts(int page, int size, String keyword) {
-        int pageIndex = Math.max(0, page - 1);
-        Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+    public PageResponse<PostSummaryResponse> getPosts(int page, int size, String keyword) {
+        Pageable pageable = Pagination.newestFirst(page, size);
 
         Page<Post> postPage;
-        if (keyword != null && !keyword.isBlank()) {
-            postPage = postRepository.findByTitleContainingIgnoreCase(keyword.trim(), pageable);
+        if (!SearchNormalization.normalize(keyword).isEmpty()) {
+            postPage = postRepository.findByStatusAndNormalizedTitleContaining(
+                    PostStatus.ACTIVE, SearchNormalization.requireKeyword(keyword), pageable);
         } else {
-            postPage = postRepository.findAll(pageable);
+            postPage = postRepository.findByStatus(PostStatus.ACTIVE, pageable);
         }
 
-        return postPage.getContent().stream()
-                .map(PostSummaryResponse::from)
-                .toList();
+        return PageResponse.from(postPage.map(PostSummaryResponse::from));
     }
 
     @Transactional
     public PostDetailResponse updatePost(Long postId, com.leets_8th_be.kanghyeonwoo.dto.PostUpdateRequest request) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findForUpdate(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.getUser().getId().equals(request.getAuthorId())) {
@@ -75,7 +75,7 @@ public class PostService {
 
     @Transactional
     public com.leets_8th_be.kanghyeonwoo.dto.PostDeleteResponse deletePost(Long postId, Long authorId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findForUpdate(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.getUser().getId().equals(authorId)) {

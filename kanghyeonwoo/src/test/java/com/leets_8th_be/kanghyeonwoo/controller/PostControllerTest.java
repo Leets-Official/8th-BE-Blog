@@ -62,7 +62,7 @@ class PostControllerTest {
         request.put("content", "테스트 본문 내용입니다.");
         request.put("authorId", testUser.getId());
 
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -84,7 +84,7 @@ class PostControllerTest {
         request.put("content", "본문 내용");
         request.put("authorId", testUser.getId());
 
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -100,7 +100,7 @@ class PostControllerTest {
         request.put("content", "본문");
         request.put("authorId", 999999L);
 
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -115,7 +115,7 @@ class PostControllerTest {
                 com.leets_8th_be.kanghyeonwoo.entity.Post.create("상세 제목", "상세 본문", testUser)
         );
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts/" + post.getId()))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts/" + post.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("S200"))
@@ -131,7 +131,7 @@ class PostControllerTest {
     @Test
     @DisplayName("존재하지 않는 게시글 ID로 상세 조회 시 404 Not Found와 POST4001을 반환한다.")
     void getPostDetailNotFound() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts/999999"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts/999999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST4001"))
@@ -141,29 +141,29 @@ class PostControllerTest {
     @Test
     @DisplayName("게시글 ID에 문자가 전달되면 400 Bad Request와 COMMON400_TYPE을 반환한다.")
     void getPostDetailTypeMismatch() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts/invalid-id"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts/invalid-id"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("COMMON400_TYPE"));
     }
 
     @Test
-    @DisplayName("게시글 목록 조회 시 200 OK와 최신순 정렬된 요약 목록 배열을 반환한다.")
+    @DisplayName("게시글 목록 조회 시 200 OK와 최신순 정렬된 요약 목록과 페이징 정보를 반환한다.")
     void getPostsSuccess() throws Exception {
         postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("첫 번째 글", "본문 1", testUser));
         postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("두 번째 글", "본문 2", testUser));
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts")
                         .param("page", "1")
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.message").value("게시글 목록 조회가 완료되었습니다."))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].title").value("두 번째 글"))
-                .andExpect(jsonPath("$.data[1].title").value("첫 번째 글"));
+                .andExpect(jsonPath("$.data.items").isArray())
+                .andExpect(jsonPath("$.data.items.length()").value(2))
+                .andExpect(jsonPath("$.data.items[0].title").value("두 번째 글"))
+                .andExpect(jsonPath("$.data.items[1].title").value("첫 번째 글"));
     }
 
     @Test
@@ -172,13 +172,13 @@ class PostControllerTest {
         postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("Spring REST API", "RESTful 설계", testUser));
         postRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Post.create("JPA Study", "엔티티 매핑", testUser));
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/posts")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts")
                         .param("keyword", "REST"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("S200"))
-                .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("Spring REST API"));
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].title").value("Spring REST API"));
     }
 
     @Test
@@ -193,7 +193,7 @@ class PostControllerTest {
         updateRequest.put("title", "수정된 제목");
         updateRequest.put("content", "수정된 본문");
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/posts/" + post.getId())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/posts/" + post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
@@ -221,7 +221,7 @@ class PostControllerTest {
         updateRequest.put("title", "해킹 시도");
         updateRequest.put("content", "내용 변경 시도");
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/posts/" + post.getId())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/posts/" + post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isForbidden())
@@ -238,7 +238,7 @@ class PostControllerTest {
         updateRequest.put("title", "수정 제목");
         updateRequest.put("content", "수정 본문");
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/posts/999999")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/posts/999999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isNotFound())
@@ -253,7 +253,7 @@ class PostControllerTest {
                 com.leets_8th_be.kanghyeonwoo.entity.Post.create("삭제할 글", "삭제할 본문", testUser)
         );
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/" + post.getId())
                         .param("authorId", String.valueOf(testUser.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -271,7 +271,7 @@ class PostControllerTest {
 
         User anotherUser = userRepository.save(User.builder().username("타인2").email("other2@example.com").build());
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/" + post.getId())
                         .param("authorId", String.valueOf(anotherUser.getId())))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
@@ -282,7 +282,7 @@ class PostControllerTest {
     @Test
     @DisplayName("존재하지 않는 게시글 삭제를 시도하면 404 Not Found와 POST4001을 반환한다.")
     void deletePostNotFound() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/999999")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/999999")
                         .param("authorId", String.valueOf(testUser.getId())))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -303,7 +303,7 @@ class PostControllerTest {
         );
 
         // when: 게시글 삭제 요청
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/" + post.getId())
                         .param("authorId", String.valueOf(testUser.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -336,7 +336,7 @@ class PostControllerTest {
         );
 
         // when: 게시글 삭제 요청 (연쇄적으로 댓글까지 삭제됨)
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/posts/" + post.getId())
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/posts/" + post.getId())
                         .param("authorId", String.valueOf(testUser.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
@@ -350,4 +350,27 @@ class PostControllerTest {
         org.assertj.core.api.Assertions.assertThat(commentReports).hasSize(1);
         org.assertj.core.api.Assertions.assertThat(commentReports.get(0).getTargetContentSnapshot()).isEqualTo("신고 대상 욕설 댓글");
     }
+    @Test
+    void paginatesSearchResultsWithTotalCountsAndRejectsInvalidPages() throws Exception {
+        for (int i = 1; i <= 3; i++) postRepository.save(
+                com.leets_8th_be.kanghyeonwoo.entity.Post.create("pagination " + i, "본문", testUser));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts")
+                        .param("keyword", "pagination").param("page", "2").param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items.length()").value(1))
+                .andExpect(jsonPath("$.data.items[0].title").value("pagination 1"))
+                .andExpect(jsonPath("$.data.page").value(2))
+                .andExpect(jsonPath("$.data.size").value(2))
+                .andExpect(jsonPath("$.data.totalElements").value(3))
+                .andExpect(jsonPath("$.data.totalPages").value(2));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts")
+                        .param("keyword", "no-results"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items").isEmpty())
+                .andExpect(jsonPath("$.data.totalElements").value(0))
+                .andExpect(jsonPath("$.data.totalPages").value(0));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/posts")
+                        .param("page", "0")).andExpect(status().isBadRequest());
+    }
+
 }

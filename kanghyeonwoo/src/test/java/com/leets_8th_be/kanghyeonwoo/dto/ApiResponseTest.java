@@ -2,7 +2,6 @@ package com.leets_8th_be.kanghyeonwoo.dto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,12 +19,12 @@ class ApiResponseTest {
     }
 
     @Test
-    @DisplayName("기존 숫자 코드(200)로 성공 응답을 생성해도 호환된다.")
-    void successWithIntCode() {
+    @DisplayName("기본 성공 응답도 문자열 코드(S200)를 사용한다.")
+    void successWithDefaultCode() {
         ApiResponse<String> response = ApiResponse.success("data");
 
         assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getCode()).isEqualTo(200);
+        assertThat(response.getCode()).isEqualTo("S200");
         assertThat(response.getData()).isEqualTo("data");
     }
 

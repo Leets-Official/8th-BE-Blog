@@ -1,5 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
+import com.leets_8th_be.kanghyeonwoo.util.SearchNormalization;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -15,9 +16,22 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseTimeEntity {
 
+    @Column(name = "normalized_title", length = 450)
+    private String normalizedTitle;
+
+    @PrePersist
+    @PreUpdate
+    public void normalizeTitle() {
+        normalizedTitle = SearchNormalization.normalize(title);
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20) default 'ACTIVE'")
+    private PostStatus status = PostStatus.ACTIVE;
 
     @Column(nullable = false, length = 150)
     private String title;
@@ -46,6 +60,10 @@ public class Post extends BaseTimeEntity {
                 .content(content)
                 .user(user)
                 .build();
+    }
+
+    public void hide() {
+        this.status = PostStatus.HIDDEN;
     }
 
     public void update(String title, String content) {
