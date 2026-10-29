@@ -19,8 +19,9 @@ public record PostResponse(
         LocalDateTime createdAt,
         @Schema(description = "수정 시각", example = "2026-10-30T12:00:00")
         LocalDateTime updatedAt,
-        @Schema(description = "비공개 여부. 생성 요청에서 생략하거나 null이면 false", example = "false")
+        @Schema(description = "비공개 여부. true이면 작성자만 조회할 수 있습니다.", example = "false")
         boolean isPrivate,
+        @Schema(description = "삭제 시각. 삭제되지 않은 게시글은 null입니다.", nullable = true)
         LocalDateTime deletedAt
 ) {
 

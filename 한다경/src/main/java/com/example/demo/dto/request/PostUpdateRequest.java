@@ -12,6 +12,7 @@ public record PostUpdateRequest(
         String title,
 
         @NotBlank(message = "INVALID_INPUT")
+        @Schema(description = "게시글 본문 (필수, 공백 불가)", example = "수정한 본문입니다")
         String content
 ) {
 }

@@ -15,6 +15,7 @@ public record PostCreateRequest(
         @Schema(description = "게시글 본문 (필수, 공백 불가)", example = "안녕하세요")
         String content,
 
+        @Schema(description = "비공개 여부 (선택). 생략하거나 null이면 공개 게시글로 생성합니다.", example = "false")
         Boolean isPrivate
 ) {
 
