@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS `member` (
     `email` VARCHAR(255) NOT NULL,
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NULL,
-    PRIMARY KEY (`member_id`)
+    PRIMARY KEY (`member_id`),
+    CONSTRAINT `uk_member_email` UNIQUE (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `post` (

@@ -33,8 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:post-api;DB_CLOSE_DELAY=-1",
         "spring.datasource.username=sa", "spring.datasource.password=",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-        // , "jwt.secret=integration-test-secret-32-bytes-long"
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "jwt.secret=integration-test-secret-32-bytes-long"
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

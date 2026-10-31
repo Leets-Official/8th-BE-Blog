@@ -14,11 +14,21 @@ public class ApiException extends RuntimeException {
         this.code = code;
     }
 
-    /* 로그인 인증 복원 시 사용합니다.
     public static ApiException unauthorized() {
         return new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_401_1", "로그인이 필요한 서비스입니다.");
     }
-    */
+
+    public static ApiException loginFailed() {
+        return new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_401_2", "이메일 또는 비밀번호가 올바르지 않습니다.");
+    }
+
+    public static ApiException duplicateEmail() {
+        return new ApiException(HttpStatus.CONFLICT, "AUTH_409_1", "이미 가입된 이메일입니다.");
+    }
+
+    public static ApiException passwordTooLong() {
+        return new ApiException(HttpStatus.BAD_REQUEST, "AUTH_400_1", "비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.");
+    }
 
     public static ApiException postNotFound() {
         return new ApiException(HttpStatus.NOT_FOUND, "POST_404_1", "존재하지 않는 게시글입니다.");
