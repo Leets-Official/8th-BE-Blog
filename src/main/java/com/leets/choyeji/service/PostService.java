@@ -35,30 +35,26 @@ public class PostService {
     }
 
     @Transactional
-    // 인증 복원 시: public PostResponse create(Long memberId, PostRequest request)
-    public PostResponse create(PostRequest request) {
-        // Member member = findMember(memberId);
-        Member member = findOrCreateAnonymousMember();
+    public PostResponse create(Long memberId, PostRequest request) {
+        Member member = findMember(memberId);
         Post post = postRepository.save(new Post(member, request.title(), request.content()));
         return PostResponse.from(post);
     }
 
     @Transactional
-    // 인증 복원 시: public PostUpdateResponse update(Long memberId, Long postId, PostRequest request)
-    public PostUpdateResponse update(Long postId, PostRequest request) {
-        // findMember(memberId);
+    public PostUpdateResponse update(Long memberId, Long postId, PostRequest request) {
+        findMember(memberId);
         Post post = findPost(postId);
-        // checkOwner(post, memberId);
+        checkOwner(post, memberId);
         post.update(request.title(), request.content());
         return PostUpdateResponse.from(post);
     }
 
     @Transactional
-    // 인증 복원 시: public void delete(Long memberId, Long postId)
-    public void delete(Long postId) {
-        // findMember(memberId);
+    public void delete(Long memberId, Long postId) {
+        findMember(memberId);
         Post post = findPost(postId);
-        // checkOwner(post, memberId);
+        checkOwner(post, memberId);
         commentRepository.deleteAllByPostId(postId);
         postRepository.delete(post);
     }
@@ -67,14 +63,6 @@ public class PostService {
         return postRepository.findById(postId).orElseThrow(ApiException::postNotFound);
     }
 
-    private Member findOrCreateAnonymousMember() {
-        // Post.member가 필수이므로 로그인 비활성화 중에는 공용 익명 작성자를 사용합니다.
-        return memberRepository.findFirstByEmailOrderByIdAsc("anonymous@local.invalid")
-                .orElseGet(() -> memberRepository.save(
-                        new Member("!LOGIN_DISABLED!", "익명", "anonymous@local.invalid")));
-    }
-
-    /* 로그인 및 작성자 권한 검사: 로그인 기능 연결 시 복원합니다.
     private Member findMember(Long memberId) {
         if (memberId == null) {
             throw ApiException.unauthorized();
@@ -87,5 +75,4 @@ public class PostService {
             throw ApiException.forbidden();
         }
     }
-    */
 }

@@ -34,9 +34,7 @@ public class ApiException extends RuntimeException {
         return new ApiException(HttpStatus.NOT_FOUND, "POST_404_1", "존재하지 않는 게시글입니다.");
     }
 
-    /* 작성자 권한 검사 복원 시 사용합니다.
     public static ApiException forbidden() {
         return new ApiException(HttpStatus.FORBIDDEN, "POST_403_1", "게시글 접근 권한이 없습니다.");
     }
-    */
 }
