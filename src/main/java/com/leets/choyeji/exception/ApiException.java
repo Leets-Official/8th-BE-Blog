@@ -37,4 +37,8 @@ public class ApiException extends RuntimeException {
     public static ApiException forbidden() {
         return new ApiException(HttpStatus.FORBIDDEN, "POST_403_1", "게시글 접근 권한이 없습니다.");
     }
+
+    public static ApiException duplicateReport() {
+        return new ApiException(HttpStatus.CONFLICT, "REPORT_409_1", "이미 신고한 게시글입니다.");
+    }
 }

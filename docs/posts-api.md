@@ -11,7 +11,7 @@ Swagger UI: `http://localhost:8080/swagger-ui/index.html`.
 | GET | `/posts?page=0&size=10` | 최신 게시글부터 목록 조회 |
 | POST | `/posts` | 게시글 생성 |
 | PATCH | `/posts/{postId}` | 제목과 내용 수정 |
-| DELETE | `/posts/{postId}` | 게시글 및 연결된 댓글 삭제 |
+| DELETE | `/posts/{postId}` | 게시글 및 연결된 댓글·신고 삭제 |
 
 게시글 조회·목록은 인증 없이 사용할 수 있습니다. 생성·수정·삭제는 로그인이 필요하며,
 수정·삭제는 작성자만 가능합니다. POST/PATCH 요청에는 `title`, `content`가 모두

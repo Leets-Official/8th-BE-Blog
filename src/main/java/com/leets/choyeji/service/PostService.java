@@ -10,6 +10,7 @@ import com.leets.choyeji.exception.ApiException;
 import com.leets.choyeji.repository.CommentRepository;
 import com.leets.choyeji.repository.MemberRepository;
 import com.leets.choyeji.repository.PostRepository;
+import com.leets.choyeji.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,6 +24,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
 
     public PostResponse get(Long postId) {
         return PostResponse.from(findPost(postId));
@@ -56,6 +58,7 @@ public class PostService {
         Post post = findPost(postId);
         checkOwner(post, memberId);
         commentRepository.deleteAllByPostId(postId);
+        reportRepository.deleteAllByPostId(postId);
         postRepository.delete(post);
     }
 

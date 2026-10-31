@@ -220,7 +220,7 @@ class PostApiIntegrationTest {
         assertThat(spec.has("security")).isFalse();
         JsonNode paths = spec.path("paths");
         for (String[] operation : new String[][]{
-                {"/posts", "post"}, {"/posts/{postId}", "patch"}, {"/posts/{postId}", "delete"}, {"/posts/{postId}/comments", "post"}}) {
+                {"/posts", "post"}, {"/posts/{postId}", "patch"}, {"/posts/{postId}", "delete"}, {"/posts/{postId}/comments", "post"}, {"/posts/{postId}/reports", "post"}}) {
             JsonNode endpoint = paths.path(operation[0]).path(operation[1]);
             assertThat(endpoint.path("security").get(0).has("bearerAuth")).isTrue();
             for (JsonNode parameter : endpoint.path("parameters")) {
