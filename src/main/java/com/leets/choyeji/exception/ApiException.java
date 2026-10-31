@@ -41,4 +41,16 @@ public class ApiException extends RuntimeException {
     public static ApiException duplicateReport() {
         return new ApiException(HttpStatus.CONFLICT, "REPORT_409_1", "이미 신고한 게시글입니다.");
     }
+
+    public static ApiException adminRequired() {
+        return new ApiException(HttpStatus.FORBIDDEN, "AUTH_403_1", "관리자만 사용할 수 있습니다.");
+    }
+
+    public static ApiException reportNotFound() {
+        return new ApiException(HttpStatus.NOT_FOUND, "REPORT_404_1", "존재하지 않는 신고입니다.");
+    }
+
+    public static ApiException reportAlreadyResolved() {
+        return new ApiException(HttpStatus.CONFLICT, "REPORT_409_2", "이미 처리한 신고입니다.");
+    }
 }

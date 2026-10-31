@@ -5,6 +5,7 @@ import com.leets.choyeji.dto.CommentResponse;
 import com.leets.choyeji.entity.Comment;
 import com.leets.choyeji.entity.Member;
 import com.leets.choyeji.entity.Post;
+import com.leets.choyeji.entity.PostStatus;
 import com.leets.choyeji.exception.ApiException;
 import com.leets.choyeji.repository.CommentRepository;
 import com.leets.choyeji.repository.MemberRepository;
@@ -25,13 +26,14 @@ public class CommentService {
     @Transactional
     public CommentResponse create(Long memberId, Long postId, CommentRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow(ApiException::unauthorized);
-        Post post = postRepository.findById(postId).orElseThrow(ApiException::postNotFound);
+        Post post = postRepository.findByIdForUpdate(postId).orElseThrow(ApiException::postNotFound);
+        post.requireActive();
         Comment comment = commentRepository.save(new Comment(post, member, request.content()));
         return CommentResponse.from(comment);
     }
 
     public List<CommentResponse> list(Long postId) {
-        postRepository.findById(postId).orElseThrow(ApiException::postNotFound);
+        postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE).orElseThrow(ApiException::postNotFound);
         return commentRepository.findAllByPostIdOrderByIdAsc(postId).stream()
                 .map(CommentResponse::from).toList();
     }

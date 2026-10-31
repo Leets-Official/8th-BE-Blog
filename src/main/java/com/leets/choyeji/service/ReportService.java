@@ -26,7 +26,8 @@ public class ReportService {
     @Transactional
     public ReportResponse create(Long memberId, Long postId, ReportRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow(ApiException::unauthorized);
-        Post post = postRepository.findById(postId).orElseThrow(ApiException::postNotFound);
+        Post post = postRepository.findByIdForUpdate(postId).orElseThrow(ApiException::postNotFound);
+        post.requireActive();
         if (reportRepository.existsByPostIdAndMemberId(postId, memberId)) {
             throw ApiException.duplicateReport();
         }

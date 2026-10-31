@@ -220,7 +220,10 @@ class PostApiIntegrationTest {
         assertThat(spec.has("security")).isFalse();
         JsonNode paths = spec.path("paths");
         for (String[] operation : new String[][]{
-                {"/posts", "post"}, {"/posts/{postId}", "patch"}, {"/posts/{postId}", "delete"}, {"/posts/{postId}/comments", "post"}, {"/posts/{postId}/reports", "post"}}) {
+                {"/posts", "post"}, {"/posts/{postId}", "patch"}, {"/posts/{postId}", "delete"},
+                {"/posts/{postId}/comments", "post"}, {"/posts/{postId}/reports", "post"},
+                {"/admin/reports", "get"}, {"/admin/reports/{id}/resolve", "patch"},
+                {"/admin/posts/{postId}/restore", "patch"}}) {
             JsonNode endpoint = paths.path(operation[0]).path(operation[1]);
             assertThat(endpoint.path("security").get(0).has("bearerAuth")).isTrue();
             for (JsonNode parameter : endpoint.path("parameters")) {
@@ -228,7 +231,9 @@ class PostApiIntegrationTest {
             }
         }
         for (String[] operation : new String[][]{
-                {"/posts", "get"}, {"/posts/{postId}", "get"}, {"/posts/{postId}/comments", "get"}, {"/auth/login", "post"}, {"/auth/signup", "post"}}) {
+                {"/posts", "get"}, {"/posts/{postId}", "get"},
+                {"/posts/{postId}/comments", "get"},
+                {"/auth/login", "post"}, {"/auth/signup", "post"}}) {
             assertThat(paths.path(operation[0]).path(operation[1]).has("security")).isFalse();
         }
         mvc.perform(get("/swagger-ui/index.html")).andExpect(status().isOk());

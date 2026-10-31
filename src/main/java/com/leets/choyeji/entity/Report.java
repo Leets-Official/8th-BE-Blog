@@ -15,6 +15,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.leets.choyeji.exception.ApiException;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -49,6 +50,14 @@ public class Report extends BaseTimeEntity {
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(length = 20)
     private ReportResult result;
+
+    public void resolve(ReportResult result) {
+        if (status != ReportStatus.PENDING) {
+            throw ApiException.reportAlreadyResolved();
+        }
+        this.status = ReportStatus.RESOLVED;
+        this.result = result;
+    }
 
     public Report(Post post, Member member, String reason) {
         this.post = post;

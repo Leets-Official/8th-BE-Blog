@@ -6,6 +6,7 @@ import com.leets.choyeji.dto.PostResponse;
 import com.leets.choyeji.dto.PostUpdateResponse;
 import com.leets.choyeji.entity.Member;
 import com.leets.choyeji.entity.Post;
+import com.leets.choyeji.entity.PostStatus;
 import com.leets.choyeji.exception.ApiException;
 import com.leets.choyeji.repository.CommentRepository;
 import com.leets.choyeji.repository.MemberRepository;
@@ -33,7 +34,7 @@ public class PostService {
     public PostListResponse list(int page, int size) {
         PageRequest pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)),
                 Sort.by(Sort.Direction.DESC, "id"));
-        return PostListResponse.from(postRepository.findAll(pageable).map(PostResponse::from));
+        return PostListResponse.from(postRepository.findAllByStatus(PostStatus.ACTIVE, pageable).map(PostResponse::from));
     }
 
     @Transactional
@@ -46,7 +47,7 @@ public class PostService {
     @Transactional
     public PostUpdateResponse update(Long memberId, Long postId, PostRequest request) {
         findMember(memberId);
-        Post post = findPost(postId);
+        Post post = findActivePostForUpdate(postId);
         checkOwner(post, memberId);
         post.update(request.title(), request.content());
         return PostUpdateResponse.from(post);
@@ -55,7 +56,7 @@ public class PostService {
     @Transactional
     public void delete(Long memberId, Long postId) {
         findMember(memberId);
-        Post post = findPost(postId);
+        Post post = findActivePostForUpdate(postId);
         checkOwner(post, memberId);
         commentRepository.deleteAllByPostId(postId);
         reportRepository.deleteAllByPostId(postId);
@@ -63,7 +64,13 @@ public class PostService {
     }
 
     private Post findPost(Long postId) {
-        return postRepository.findById(postId).orElseThrow(ApiException::postNotFound);
+        return postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE).orElseThrow(ApiException::postNotFound);
+    }
+
+    private Post findActivePostForUpdate(Long postId) {
+        Post post = postRepository.findByIdForUpdate(postId).orElseThrow(ApiException::postNotFound);
+        post.requireActive();
+        return post;
     }
 
     private Member findMember(Long memberId) {
