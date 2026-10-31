@@ -1,4 +1,3 @@
-/* 로그인 기능 연결 전까지 JWT 인증 코드를 비활성화합니다.
 package com.leets.choyeji.auth;
 
 import com.leets.choyeji.exception.ApiException;
@@ -51,4 +50,3 @@ public class JwtMemberResolver {
         }
     }
 }
-*/

@@ -1,7 +1,10 @@
 package com.leets.choyeji.entity;
 
+import com.leets.choyeji.exception.ApiException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,6 +15,8 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "post")
@@ -33,6 +38,25 @@ public class Post extends BaseTimeEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVE'")
+    private PostStatus status = PostStatus.ACTIVE;
+
+    public void requireActive() {
+        if (status != PostStatus.ACTIVE) {
+            throw ApiException.postNotFound();
+        }
+    }
+
+    public void hide() {
+        status = PostStatus.HIDDEN;
+    }
+
+    public void restore() {
+        status = PostStatus.ACTIVE;
+    }
 
     public Post(Member member, String title, String content) {
         this.member = member;

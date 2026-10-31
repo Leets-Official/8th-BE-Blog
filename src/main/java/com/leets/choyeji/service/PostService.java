@@ -6,10 +6,12 @@ import com.leets.choyeji.dto.PostResponse;
 import com.leets.choyeji.dto.PostUpdateResponse;
 import com.leets.choyeji.entity.Member;
 import com.leets.choyeji.entity.Post;
+import com.leets.choyeji.entity.PostStatus;
 import com.leets.choyeji.exception.ApiException;
 import com.leets.choyeji.repository.CommentRepository;
 import com.leets.choyeji.repository.MemberRepository;
 import com.leets.choyeji.repository.PostRepository;
+import com.leets.choyeji.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,6 +25,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
 
     public PostResponse get(Long postId) {
         return PostResponse.from(findPost(postId));
@@ -31,50 +34,45 @@ public class PostService {
     public PostListResponse list(int page, int size) {
         PageRequest pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)),
                 Sort.by(Sort.Direction.DESC, "id"));
-        return PostListResponse.from(postRepository.findAll(pageable).map(PostResponse::from));
+        return PostListResponse.from(postRepository.findAllByStatus(PostStatus.ACTIVE, pageable).map(PostResponse::from));
     }
 
     @Transactional
-    // 인증 복원 시: public PostResponse create(Long memberId, PostRequest request)
-    public PostResponse create(PostRequest request) {
-        // Member member = findMember(memberId);
-        Member member = findOrCreateAnonymousMember();
+    public PostResponse create(Long memberId, PostRequest request) {
+        Member member = findMember(memberId);
         Post post = postRepository.save(new Post(member, request.title(), request.content()));
         return PostResponse.from(post);
     }
 
     @Transactional
-    // 인증 복원 시: public PostUpdateResponse update(Long memberId, Long postId, PostRequest request)
-    public PostUpdateResponse update(Long postId, PostRequest request) {
-        // findMember(memberId);
-        Post post = findPost(postId);
-        // checkOwner(post, memberId);
+    public PostUpdateResponse update(Long memberId, Long postId, PostRequest request) {
+        findMember(memberId);
+        Post post = findActivePostForUpdate(postId);
+        checkOwner(post, memberId);
         post.update(request.title(), request.content());
         return PostUpdateResponse.from(post);
     }
 
     @Transactional
-    // 인증 복원 시: public void delete(Long memberId, Long postId)
-    public void delete(Long postId) {
-        // findMember(memberId);
-        Post post = findPost(postId);
-        // checkOwner(post, memberId);
+    public void delete(Long memberId, Long postId) {
+        findMember(memberId);
+        Post post = findActivePostForUpdate(postId);
+        checkOwner(post, memberId);
         commentRepository.deleteAllByPostId(postId);
+        reportRepository.deleteAllByPostId(postId);
         postRepository.delete(post);
     }
 
     private Post findPost(Long postId) {
-        return postRepository.findById(postId).orElseThrow(ApiException::postNotFound);
+        return postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE).orElseThrow(ApiException::postNotFound);
     }
 
-    private Member findOrCreateAnonymousMember() {
-        // Post.member가 필수이므로 로그인 비활성화 중에는 공용 익명 작성자를 사용합니다.
-        return memberRepository.findFirstByEmailOrderByIdAsc("anonymous@local.invalid")
-                .orElseGet(() -> memberRepository.save(
-                        new Member("!LOGIN_DISABLED!", "익명", "anonymous@local.invalid")));
+    private Post findActivePostForUpdate(Long postId) {
+        Post post = postRepository.findByIdForUpdate(postId).orElseThrow(ApiException::postNotFound);
+        post.requireActive();
+        return post;
     }
 
-    /* 로그인 및 작성자 권한 검사: 로그인 기능 연결 시 복원합니다.
     private Member findMember(Long memberId) {
         if (memberId == null) {
             throw ApiException.unauthorized();
@@ -87,5 +85,4 @@ public class PostService {
             throw ApiException.forbidden();
         }
     }
-    */
 }
