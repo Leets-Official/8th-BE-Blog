@@ -19,13 +19,13 @@ public class ErrorResponse {
     @Schema(description = "오류 코드")
     private final String code;
 
-    @Schema(description = "오류 메시지", example = "유효하지 않은 입력값입니다.")
+    @Schema(description = "오류 메시지")
     private final String message;
 
     @Schema(description = "필드별 검증 오류")
     private final List<FieldErrorDetail> errors;
 
-    @Schema(description = "오류 발생 시각", example = "2026-11-02T12:30:00")
+    @Schema(description = "오류 발생 시각")
     private final LocalDateTime timestamp;
 
     public static ErrorResponse of(ErrorCode errorCode) {
@@ -51,13 +51,13 @@ public class ErrorResponse {
     @Builder
     @Schema(description = "개별 필드 검증 오류")
     public static class FieldErrorDetail {
-        @Schema(description = "오류가 발생한 필드", example = "title")
+        @Schema(description = "오류가 발생한 필드")
         private String field;
 
-        @Schema(description = "거부된 입력값", example = "")
+        @Schema(description = "거부된 입력값")
         private String rejectedValue;
 
-        @Schema(description = "오류 사유", example = "제목은 필수 항목입니다.")
+        @Schema(description = "오류 사유")
         private String reason;
     }
 }
