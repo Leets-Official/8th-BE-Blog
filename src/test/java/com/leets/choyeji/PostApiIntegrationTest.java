@@ -8,6 +8,7 @@ import com.leets.choyeji.entity.Post;
 import com.leets.choyeji.repository.CommentRepository;
 import com.leets.choyeji.repository.MemberRepository;
 import com.leets.choyeji.repository.PostRepository;
+import com.leets.choyeji.repository.ReportRepository;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -44,12 +45,14 @@ class PostApiIntegrationTest {
     @Autowired PostRepository posts;
     @Autowired MemberRepository members;
     @Autowired CommentRepository comments;
+    @Autowired ReportRepository reports;
     @Autowired PasswordEncoder passwordEncoder;
     private Member owner;
     private String authorization;
 
     @BeforeEach
     void setUp() throws Exception {
+        reports.deleteAll();
         comments.deleteAll();
         posts.deleteAll();
         members.deleteAll();
@@ -237,5 +240,79 @@ class PostApiIntegrationTest {
             assertThat(paths.path(operation[0]).path(operation[1]).has("security")).isFalse();
         }
         mvc.perform(get("/swagger-ui/index.html")).andExpect(status().isOk());
+    }
+
+    @Test
+    void swaggerDocumentsApplicableErrorsWithJsonExamplesAndKeepsSuccessSchemas() throws Exception {
+        String document = mvc.perform(get("/v3/api-docs")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        JsonNode paths = mapper.readTree(document).path("paths");
+        String[][] endpoints = {
+                {"/auth/signup", "post", "400,409"},
+                {"/auth/login", "post", "400,401"},
+                {"/posts", "get", "400"},
+                {"/posts", "post", "400,401"},
+                {"/posts/{postId}", "get", "400,404"},
+                {"/posts/{postId}", "patch", "400,401,403,404"},
+                {"/posts/{postId}", "delete", "400,401,403,404"},
+                {"/posts/{postId}/comments", "get", "400,404"},
+                {"/posts/{postId}/comments", "post", "400,401,404"},
+                {"/posts/{postId}/reports", "post", "400,401,404,409"},
+                {"/admin/reports", "get", "400,401,403"},
+                {"/admin/reports/{id}/resolve", "patch", "400,401,403,404,409"},
+                {"/admin/posts/{postId}/restore", "patch", "400,401,403,404"},
+                {"/string/repeat", "post", "400"}
+        };
+        for (String[] endpoint : endpoints) {
+            JsonNode responses = paths.path(endpoint[0]).path(endpoint[1]).path("responses");
+            JsonNode successContent = responses.path("200").path("content");
+            assertThat(successContent.isEmpty()).as("%s %s 성공 응답", endpoint[1], endpoint[0]).isFalse();
+            for (JsonNode media : successContent) {
+                assertThat(media.has("schema")).isTrue();
+            }
+            for (String status : endpoint[2].split(",")) {
+                JsonNode response = responses.path(status);
+                assertThat(response.path("description").asText()).isNotBlank();
+                JsonNode media = response.path("content").path("application/json");
+                assertThat(media.path("schema").path("properties").has("code")).isTrue();
+                assertThat(media.path("examples").isEmpty()).isFalse();
+                for (JsonNode example : media.path("examples")) {
+                    assertThat(example.path("value").path("isSuccess").asBoolean(true)).isFalse();
+                    assertThat(example.path("value").path("code").asText()).contains("_" + status + "_");
+                    assertThat(example.path("value").has("data")).isTrue();
+                }
+            }
+        }
+        JsonNode signupExamples = paths.path("/auth/signup").path("post").path("responses").path("400")
+                .path("content").path("application/json").path("examples");
+        assertThat(signupExamples.has("INVALID_REQUEST")).isTrue();
+        assertThat(signupExamples.has("SIGNUP_INPUT")).isTrue();
+        assertThat(signupExamples.has("PASSWORD_TOO_LONG")).isTrue();
+        assertThat(paths.path("/auth/login").path("post").path("responses").has("409")).isFalse();
+        assertThat(paths.path("/posts/{postId}/reports").path("post").path("responses").has("403")).isFalse();
+    }
+
+    @Test
+    void swaggerExamplesMatchActualValidationAndDuplicateReportErrors() throws Exception {
+        String document = mvc.perform(get("/v3/api-docs")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        JsonNode responses = mapper.readTree(document).path("paths").path("/posts/{postId}/reports")
+                .path("post").path("responses");
+        long postId = posts.save(new Post(owner, "title", "content")).getId();
+        String invalid = mvc.perform(post("/posts/{id}/reports", postId).header("Authorization", authorization)
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+        JsonNode validationExample = responses.path("400").path("content").path("application/json")
+                .path("examples").path("REPORT_INPUT").path("value");
+        assertThat(mapper.readTree(invalid)).isEqualTo(validationExample);
+        mvc.perform(post("/posts/{id}/reports", postId).header("Authorization", authorization)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"신고 사유\"}"))
+                .andExpect(status().isOk());
+        String duplicate = mvc.perform(post("/posts/{id}/reports", postId).header("Authorization", authorization)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"신고 사유\"}"))
+                .andExpect(status().isConflict()).andReturn().getResponse().getContentAsString();
+        JsonNode duplicateExample = responses.path("409").path("content").path("application/json")
+                .path("examples").path("DUPLICATE_REPORT").path("value");
+        assertThat(mapper.readTree(duplicate)).isEqualTo(duplicateExample);
     }
 }
