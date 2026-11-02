@@ -2,6 +2,7 @@ package com.leets.mission.controller;
 
 import com.leets.mission.dto.RepeatStringRequest;
 import com.leets.mission.dto.RepeatStringResponse;
+import com.leets.mission.global.apiPayload.ApiResponse;
 import com.leets.mission.service.AssignmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ public class AssignmentController {
     }
 
     @PostMapping("/string/repeat")
-    public RepeatStringResponse repeat(@RequestBody RepeatStringRequest request){
-        return assignmentService.repeat(request.value());
+    public ApiResponse<RepeatStringResponse> repeat(@RequestBody RepeatStringRequest request){
+        return ApiResponse.onSuccess(assignmentService.repeat(request.value()));
     }
 }
