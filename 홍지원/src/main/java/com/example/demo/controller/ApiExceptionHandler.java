@@ -7,11 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-@RestControllerAdvice(assignableTypes = PostController.class)
+@RestControllerAdvice(assignableTypes = {PostController.class, ModerationController.class})
 public class ApiExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
@@ -33,9 +34,18 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, HttpMediaTypeNotSupportedException.class})
-    public ResponseEntity<ApiResponse<Void>> handleBody(Exception exception) {
-        return handleApi(new ApiException(400, "REQUIRED_FIELD_MISSING",
-                "제목과 내용을 올바른 문자열로 입력해 주세요."));
+    public ResponseEntity<ApiResponse<Void>> handleBody(Exception exception, HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String code = path.endsWith("/visibility") ? "INVALID_VISIBILITY"
+                : path.endsWith("/reports") && "POST".equals(request.getMethod()) ? "INVALID_REPORT_REASON"
+                : path.matches(".*/reports/[^/]+") && "PATCH".equals(request.getMethod())
+                ? "INVALID_REPORT_RESULT" : "REQUIRED_FIELD_MISSING";
+        return handleApi(new ApiException(400, code, "요청 본문 형식이 올바르지 않습니다."));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingParameter(MissingServletRequestParameterException exception) {
+        return handleApi(new ApiException(400, "INVALID_REPORT_STATUS", "신고 상태 파라미터가 필요합니다."));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -43,6 +53,9 @@ public class ApiExceptionHandler {
         String code = switch (exception.getName()) {
             case "page" -> "INVALID_PAGE_NUMBER";
             case "size" -> "INVALID_PAGE_SIZE";
+            case "status" -> "INVALID_REPORT_STATUS";
+            case "comment_id" -> "INVALID_COMMENT_ID";
+            case "report_id" -> "INVALID_REPORT_ID";
             default -> "INVALID_POST_ID";
         };
         return handleApi(new ApiException(400, code, "요청 값의 형식이 올바르지 않습니다."));
