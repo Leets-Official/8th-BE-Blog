@@ -13,10 +13,10 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "공통 오류 응답")
 public class ErrorResponse {
-    @Schema(description = "HTTP 상태 코드", example = "400")
+    @Schema(description = "HTTP 상태 코드")
     private final int status;
 
-    @Schema(description = "오류 코드", example = "INVALID_INPUT_VALUE")
+    @Schema(description = "오류 코드")
     private final String code;
 
     @Schema(description = "오류 메시지", example = "유효하지 않은 입력값입니다.")
