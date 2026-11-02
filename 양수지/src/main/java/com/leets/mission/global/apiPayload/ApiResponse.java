@@ -5,13 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.leets.mission.global.apiPayload.code.ErrorStatus;
 import com.leets.mission.global.apiPayload.code.SuccessStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 // 모든 API 응답을 { isSuccess, code, message, result } 형식으로 통일흔 ㄴ 공통 응답
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
 public record ApiResponse<T>(
+        @Schema(description = "성공 여부", example = "true")
         @JsonProperty("isSuccess") Boolean isSuccess,
+
+        @Schema(description = "응답 코드", example = "2000")
         String code,
+
+        @Schema(description = "응답 메시지", example = "OK")
         String message,
+
+        @Schema(description = "응답 데이터")
         @JsonInclude(JsonInclude.Include.NON_NULL) T result // result가 null이면 JSON에서 생략
 ) {
 
