@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "댓글", description = "게시글 댓글 조회 및 작성 API")
 @RestController
 @RequestMapping("/posts/{postId}/comments")
 @RequiredArgsConstructor
@@ -20,6 +24,10 @@ public class CommentController {
 
     private final CommentService commentService;
 
+    @Operation(
+            summary = "댓글 목록 조회",
+            description = "게시글 ID로 해당 게시글의 댓글 목록을 조회합니다."
+    )
     @GetMapping
     public ResponseEntity<List<CommentResponse>> getComments(
             @PathVariable Long postId
@@ -27,6 +35,10 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getComments(postId));
     }
 
+    @Operation(
+            summary = "댓글 상세 조회",
+            description = "게시글 ID와 댓글 ID로 해당 댓글의 상세 정보를 조회합니다."
+    )
     @GetMapping("/{commentId}")
     public ResponseEntity<CommentResponse> getComment(
             @PathVariable Long postId,
@@ -35,6 +47,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getComment(postId, commentId));
     }
 
+    @Operation(summary = "댓글 작성", description = "요청 회원이 게시글에 댓글을 작성합니다.")
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable Long postId,

@@ -15,6 +15,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "관리자 신고", description = "관리자의 신고 목록 조회 및 신고 처리 API")
 @RestController
 @RequestMapping("/admin/reports")
 @RequiredArgsConstructor
@@ -22,6 +26,10 @@ public class AdminReportController {
 
     private final ReportService reportService;
 
+    @Operation(
+            summary = "신고 목록 조회",
+            description = "관리자가 신고 상태별 목록을 페이지 단위로 조회합니다."
+    )
     @GetMapping
     public ResponseEntity<Page<ReportResponse>> getReports(
             @RequestParam(defaultValue = "PENDING") ReportStatus status,
@@ -52,6 +60,10 @@ public class AdminReportController {
         );
     }
 
+    @Operation(
+            summary = "신고 처리",
+            description = "관리자가 신고 상태를 승인(RESOLVED) 또는 기각(DISMISSED)으로 변경합니다."
+    )
     @PatchMapping("/{reportId}")
     public ResponseEntity<ReportResponse> processReport(
             @PathVariable Long reportId,
