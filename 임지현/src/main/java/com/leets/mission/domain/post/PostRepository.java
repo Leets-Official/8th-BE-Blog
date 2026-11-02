@@ -11,8 +11,17 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    Page<Post> findAllByDeletedAtIsNull(Pageable pageable);
+    Page<Post> findAllByStatusAndDeletedAtIsNull(
+            PostStatus status,
+            Pageable pageable
+    );
 
+    Optional<Post> findByIdAndStatusAndDeletedAtIsNull(
+            Long id,
+            PostStatus status
+    );
+
+    // 관리자 상태 변경용: HIDDEN 상태여도 조회 가능
     Optional<Post> findByIdAndDeletedAtIsNull(Long id);
 
     boolean existsByMemberIdAndTitleAndCreatedAtAfterAndDeletedAtIsNull(
@@ -22,6 +31,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     );
 
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId AND p.deletedAt IS NULL")
-    int increaseViewCount(@Param("postId") Long postId);
+    @Query("""
+            UPDATE Post p 
+            SET p.viewCount = p.viewCount + 1 
+            WHERE p.id = :postId
+                AND p.status = :status
+                AND p.deletedAt IS NULL
+            """)
+    int increaseViewCount(
+            @Param("postId") Long postId,
+            @Param("status") PostStatus status
+    );
 }

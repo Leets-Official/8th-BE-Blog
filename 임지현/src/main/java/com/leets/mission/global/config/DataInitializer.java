@@ -36,6 +36,15 @@ public class DataInitializer implements CommandLineRunner {
                     .role(MemberRole.ROLE_USER)
                     .status(MemberStatus.ACTIVE)
                     .build());
+
+            memberRepository.save(Member.builder()
+                    .email("admin@test.com")
+                    .nickname("관리자")
+                    .name("관리자")
+                    .birthDate(LocalDate.of(2000, 1, 1))
+                    .role(MemberRole.ROLE_ADMIN)
+                    .status(MemberStatus.ACTIVE)
+                    .build());
         }
     }
 }

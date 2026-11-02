@@ -4,6 +4,7 @@ import com.leets.mission.domain.member.Member;
 import com.leets.mission.domain.member.MemberRepository;
 import com.leets.mission.domain.post.Post;
 import com.leets.mission.domain.post.PostRepository;
+import com.leets.mission.domain.post.PostStatus;
 import com.leets.mission.dto.post.PostCreateRequest;
 import com.leets.mission.dto.post.PostListResponse;
 import com.leets.mission.dto.post.PostResponse;
@@ -27,20 +28,27 @@ public class PostService {
     private final MemberRepository memberRepository;
 
     public PostListResponse getPosts(Pageable pageable) {
-        Page<PostResponse> posts = postRepository.findAllByDeletedAtIsNull(pageable)
+        Page<PostResponse> posts = postRepository
+                .findAllByStatusAndDeletedAtIsNull(PostStatus.ACTIVE, pageable)
                 .map(PostResponse::from);
+
         return PostListResponse.of(posts);
     }
 
     @Transactional
     public PostResponse getPost(Long postId) {
+        int updatedCount =
+                postRepository.increaseViewCount(postId, PostStatus.ACTIVE);
 
-        int updatedCount = postRepository.increaseViewCount(postId);
         if (updatedCount == 0) {
             throw new CustomException(ErrorCode.POST_NOT_FOUND);
         }
 
-        Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
+        Post post = postRepository
+                .findByIdAndStatusAndDeletedAtIsNull(
+                        postId,
+                        PostStatus.ACTIVE
+                )
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         return PostResponse.from(post);
@@ -56,11 +64,12 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
 
         LocalDateTime threeSecondsAgo = LocalDateTime.now().minusSeconds(3);
-        boolean existsRecentPost = postRepository.existsByMemberIdAndTitleAndCreatedAtAfterAndDeletedAtIsNull(
-                memberId,
-                request.title(),
-                threeSecondsAgo
-        );
+        boolean existsRecentPost =
+                postRepository.existsByMemberIdAndTitleAndCreatedAtAfterAndDeletedAtIsNull(
+                        memberId,
+                        request.title(),
+                        threeSecondsAgo
+                );
 
         if (existsRecentPost) {
             throw new CustomException(ErrorCode.DUPLICATE_POST_SUBMISSION);
@@ -76,8 +85,16 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse updatePost(Long postId, PostUpdateRequest request, Long currentMemberId) {
-        Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
+    public PostResponse updatePost(
+            Long postId,
+            PostUpdateRequest request,
+            Long currentMemberId
+    ) {
+        Post post = postRepository
+                .findByIdAndStatusAndDeletedAtIsNull(
+                        postId,
+                        PostStatus.ACTIVE
+                )
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         validateAuthor(post, currentMemberId);
@@ -92,12 +109,13 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         validateAuthor(post, currentMemberId);
-
         post.delete();
     }
 
     private void validateAuthor(Post post, Long currentMemberId) {
-        if (currentMemberId == null || post.getMember() == null || !post.getMember().getId().equals(currentMemberId)) {
+        if (currentMemberId == null
+                || post.getMember() == null
+                || !post.getMember().getId().equals(currentMemberId)) {
             throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
         }
     }
