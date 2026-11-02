@@ -1,5 +1,7 @@
 package com.leets.choyeji.controller;
 
+import com.leets.choyeji.config.ApiErrorResponses;
+import static com.leets.choyeji.config.SwaggerError.*;
 import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.dto.ApiResponse;
 import com.leets.choyeji.dto.ReportRequest;
@@ -25,6 +27,7 @@ public class ReportController {
     private final JwtMemberResolver jwtMemberResolver;
 
     @Operation(summary = "게시글 신고")
+    @ApiErrorResponses({INVALID_REQUEST, REPORT_INPUT, UNAUTHORIZED, POST_NOT_FOUND, DUPLICATE_REPORT})
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ApiResponse<ReportResponse> create(@PathVariable Long postId,

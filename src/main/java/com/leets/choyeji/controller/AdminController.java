@@ -1,5 +1,7 @@
 package com.leets.choyeji.controller;
 
+import com.leets.choyeji.config.ApiErrorResponses;
+import static com.leets.choyeji.config.SwaggerError.*;
 import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.dto.AdminReportListResponse;
 import com.leets.choyeji.dto.AdminReportResponse;
@@ -31,6 +33,7 @@ public class AdminController {
     private final JwtMemberResolver jwtMemberResolver;
 
     @Operation(summary = "관리자 신고 목록 조회")
+    @ApiErrorResponses({INVALID_REQUEST, UNAUTHORIZED, ADMIN_REQUIRED})
     @GetMapping("/reports")
     public ApiResponse<AdminReportListResponse> listReports(
             @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
@@ -41,6 +44,7 @@ public class AdminController {
     }
 
     @Operation(summary = "관리자 신고 처리")
+    @ApiErrorResponses({INVALID_REQUEST, RESOLUTION_INPUT, UNAUTHORIZED, ADMIN_REQUIRED, REPORT_NOT_FOUND, REPORT_ALREADY_RESOLVED})
     @PatchMapping("/reports/{id}/resolve")
     public ApiResponse<AdminReportResponse> resolveReport(@PathVariable Long id,
             @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
@@ -49,6 +53,7 @@ public class AdminController {
     }
 
     @Operation(summary = "관리자 게시글 숨김 해제")
+    @ApiErrorResponses({INVALID_REQUEST, UNAUTHORIZED, ADMIN_REQUIRED, RESTORE_POST_NOT_FOUND})
     @PatchMapping("/posts/{postId}/restore")
     public ApiResponse<PostResponse> restorePost(@PathVariable Long postId,
             @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization) {

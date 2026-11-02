@@ -1,5 +1,7 @@
 package com.leets.choyeji.controller;
 
+import com.leets.choyeji.config.ApiErrorResponses;
+import static com.leets.choyeji.config.SwaggerError.*;
 import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.dto.ApiResponse;
 import com.leets.choyeji.dto.CommentRequest;
@@ -27,6 +29,7 @@ public class CommentController {
     private final JwtMemberResolver jwtMemberResolver;
 
     @Operation(summary = "댓글 작성")
+    @ApiErrorResponses({INVALID_REQUEST, COMMENT_INPUT, UNAUTHORIZED, POST_NOT_FOUND})
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ApiResponse<CommentResponse> create(@PathVariable Long postId,
@@ -36,6 +39,7 @@ public class CommentController {
     }
 
     @Operation(summary = "댓글 목록 조회")
+    @ApiErrorResponses({INVALID_REQUEST, POST_NOT_FOUND})
     @GetMapping
     public ApiResponse<List<CommentResponse>> list(@PathVariable Long postId) {
         return ApiResponse.success(commentService.list(postId));
