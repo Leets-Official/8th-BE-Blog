@@ -14,9 +14,10 @@ import static com.example.demo.global.apiPayload.code.GeneralSuccessCode.SUCCESS
 
 @RequiredArgsConstructor
 @RestController
-public class PostController {
+public class PostController implements PostControllerDocs {
     private final PostService postService;
 
+    @Override
     @GetMapping("/post/{postId}")
     public ApiResponse<PostResDTO.PostGetResponse> getPost(
             @PathVariable Long postId
@@ -25,6 +26,7 @@ public class PostController {
                 GeneralSuccessCode.SUCCESS_CODE,postService.getPost(postId));
     }
 
+    @Override
     @PostMapping("/post")
     public ApiResponse<PostResDTO.PostCreateResponse> createPost(
             @Valid @RequestBody PostReqDTO.PostCreateRequest Request) {
@@ -32,6 +34,7 @@ public class PostController {
                 GeneralSuccessCode.SUCCESS_CODE, postService.createPost(Request));
     }
 
+    @Override
     @PutMapping("/post/{postId}")
     public ApiResponse<PostResDTO.PostUpdateResponse> updatePost(
             @PathVariable Long postId,@Valid @RequestBody PostReqDTO.PostUpdateRequest Request){
@@ -39,6 +42,7 @@ public class PostController {
                 GeneralSuccessCode.SUCCESS_CODE, postService.updatePost(postId,Request));
     }
 
+    @Override
     @DeleteMapping("/post/{postId}")
     public ApiResponse<PostResDTO.PostDeleteResponse> deletePost(
             @PathVariable Long postId,@RequestBody PostReqDTO.PostDeletePost Request)
@@ -48,6 +52,7 @@ public class PostController {
     }
 
 
+    @Override
     @GetMapping("/post/list")
     public ApiResponse<PostResDTO.PostGetListResponse> getPostList()
     {

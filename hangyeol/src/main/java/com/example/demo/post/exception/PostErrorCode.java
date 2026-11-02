@@ -21,7 +21,7 @@ public enum PostErrorCode implements BaseErrorCode {
             "MEMBER404_1",
             "존재하지 않는 사용자입니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND,
-            "POST400_2,",
+            "POST404_1",
             "존재하지 않는 게시물입니다."),
     POST_FORBIDDEN(
             HttpStatus.FORBIDDEN,
