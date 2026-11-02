@@ -198,6 +198,46 @@ class PostControllerTest {
     }
 
     @Test
+    @DisplayName("작성자가 게시글을 숨기면 HIDDEN이 되고, 목록과 상세 조회에서 보이지 않는다")
+    void hidePost() throws Exception {
+        long postId = createPostAndGetId("숨길 글");
+
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(AUTHOR_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("S200"))
+                .andExpect(jsonPath("$.data.status").value("HIDDEN"));
+
+        mockMvc.perform(get("/posts/{postId}", postId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("POST4001"));
+
+        mockMvc.perform(get("/posts").param("keyword", "숨길 글"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("이미 숨긴 게시글을 다시 숨기면 409와 POST4091을 반환한다")
+    void hidePostTwice() throws Exception {
+        long postId = createPostAndGetId("숨길 글");
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(AUTHOR_ID)));
+
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(AUTHOR_ID)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("POST4091"));
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 회원이 숨기면 403과 POST4003을 반환한다")
+    void hidePostByOtherMember() throws Exception {
+        long postId = createPostAndGetId("남의 글");
+
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(OTHER_MEMBER_ID)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("POST4003"));
+    }
+
+    @Test
     @DisplayName("지원하지 않는 메서드로 요청하면 405와 COMMON405를 반환한다")
     void methodNotAllowed() throws Exception {
         mockMvc.perform(post("/posts/1"))
