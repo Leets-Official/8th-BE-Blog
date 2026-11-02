@@ -2,6 +2,7 @@ package com.leets.mission.domain.report.controller;
 
 import com.leets.mission.domain.report.dto.ReportRequestDTO;
 import com.leets.mission.domain.report.dto.ReportResponseDTO;
+import com.leets.mission.domain.report.entity.ReportTargetType;
 import com.leets.mission.domain.report.service.ReportService;
 import com.leets.mission.global.apiPayload.ApiResponse;
 import com.leets.mission.global.apiPayload.code.SuccessStatus;
@@ -28,7 +29,7 @@ public class ReportController {
             @PathVariable Long postId,
             @RequestBody @Valid ReportRequestDTO.CreateDTO request
     ) {
-        return ApiResponse.of(SuccessStatus.REPORT_CREATED, reportService.reportPost(postId, request));
+        return ApiResponse.of(SuccessStatus.REPORT_CREATED, reportService.report(ReportTargetType.POST, postId, request));
     }
 
     // 댓글 신고
@@ -38,7 +39,7 @@ public class ReportController {
             @PathVariable Long commentId,
             @RequestBody @Valid ReportRequestDTO.CreateDTO request
     ) {
-        return ApiResponse.of(SuccessStatus.REPORT_CREATED, reportService.reportComment(commentId, request));
+        return ApiResponse.of(SuccessStatus.REPORT_CREATED, reportService.report(ReportTargetType.COMMENT, commentId, request));
     }
 
     // 신고 처리 (RESOLVED / REJECTED)
