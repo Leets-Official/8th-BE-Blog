@@ -135,12 +135,13 @@ public class CommentController {
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest request,
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            @Parameter(
+                    description = "요청 회원 ID",
+                    example = "1",
+                    required = true
+            )
+            @RequestHeader(value = "X-Member-Id") Long memberId
     ) {
-        if (memberId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-
         CommentResponse response =
                 commentService.createComment(postId, request, memberId);
 

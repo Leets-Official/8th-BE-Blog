@@ -68,12 +68,8 @@ public class ReportController {
     public ResponseEntity<ReportResponse> createReport(
             @Valid @RequestBody ReportCreateRequest request,
             @Parameter(description = "요청 회원 ID", example = "1", required = true)
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            @RequestHeader(value = "X-Member-Id") Long memberId
     ){
-        if (memberId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-
         ReportResponse response = reportService.createReport(request, memberId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

@@ -188,12 +188,8 @@ public class PostController {
                     example = "1",
                     required = true
             )
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            @RequestHeader(value = "X-Member-Id") Long memberId
     ) {
-        if (memberId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-
         Long createdPostId = postService.createPost(request, memberId);
         URI location = URI.create("/posts/" + createdPostId);
 
@@ -257,12 +253,8 @@ public class PostController {
                     example = "1",
                     required = true
             )
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            @RequestHeader(value = "X-Member-Id") Long memberId
     ) {
-        if (memberId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-
         PostResponse response = postService.updatePost(postId, request, memberId);
         return ResponseEntity.ok(response);
     }
@@ -319,12 +311,8 @@ public class PostController {
                     example = "1",
                     required = true
             )
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            @RequestHeader(value = "X-Member-Id") Long memberId
     ) {
-        if (memberId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-
         postService.deletePost(postId, memberId);
         return ResponseEntity.noContent().build();
     }
