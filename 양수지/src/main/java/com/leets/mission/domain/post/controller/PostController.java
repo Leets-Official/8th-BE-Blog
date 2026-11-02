@@ -67,6 +67,15 @@ public class PostController {
         return ApiResponse.of(SuccessStatus.POST_UPDATED, postService.patchPost(postId, request));
     }
 
+    // 게시글 숨김 (userId -> 쿼리 파라미터로)
+    @PatchMapping("/{postId}/hide")
+    public ApiResponse<PostResponseDTO.StatusDTO> hidePost(
+            @PathVariable Long postId,
+            @RequestParam Long userId
+    ) {
+        return ApiResponse.of(SuccessStatus.POST_HIDDEN, postService.hidePost(postId, userId));
+    }
+
     // 게시글 삭제 (userId -> 쿼리 파라미터로)
     @DeleteMapping("/{postId}")
     public ApiResponse<PostResponseDTO.DeleteDTO> deletePost(
