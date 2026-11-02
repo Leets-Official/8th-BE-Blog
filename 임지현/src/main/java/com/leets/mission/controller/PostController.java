@@ -53,7 +53,9 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "다음 중 하나의 입력 오류: INVALID_PAGE_NUMBER, INVALID_PAGE_SIZE, INVALID_SORT_TYPE",
+                    description = "페이지 번호가 올바르지 않습니다. (INVALID_PAGE_NUMBER), "
+                            + "페이지 크기는 1~50 사이여야 합니다. (INVALID_PAGE_SIZE), "
+                            + "지원하지 않는 정렬 기준입니다. (INVALID_SORT_TYPE)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -116,7 +118,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "INVALID_POST_ID",
+                    description = "게시글 ID 형식이 올바르지 않습니다. (INVALID_POST_ID)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -124,7 +126,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "POST_NOT_FOUND",
+                    description = "해당 게시글을 찾을 수 없습니다. (POST_NOT_FOUND)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -156,7 +158,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "INVALID_INPUT_VALUE",
+                    description = "유효하지 않은 입력값입니다. (INVALID_INPUT_VALUE)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -164,7 +166,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "UNAUTHORIZED",
+                    description = "로그인이 필요합니다. (UNAUTHORIZED)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -172,7 +174,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "DUPLICATE_POST_SUBMISSION",
+                    description = "잠시 후 다시 시도해 주세요. (DUPLICATE_POST_SUBMISSION)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -214,7 +216,8 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "INVALID_POST_ID 또는 INVALID_INPUT_VALUE",
+                    description = "게시글 ID 형식이 올바르지 않습니다. (INVALID_POST_ID), "
+                            + "유효하지 않은 입력값입니다. (INVALID_INPUT_VALUE)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -222,7 +225,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "UNAUTHORIZED",
+                    description = "로그인이 필요합니다. (UNAUTHORIZED)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -230,7 +233,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "POST_ACCESS_DENIED",
+                    description = "본인이 작성한 게시글만 수정 및 삭제할 수 있습니다. (POST_ACCESS_DENIED)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -238,7 +241,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "POST_NOT_FOUND",
+                    description = "해당 게시글을 찾을 수 없습니다. (POST_NOT_FOUND)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -277,7 +280,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "INVALID_POST_ID",
+                    description = "게시글 ID 형식이 올바르지 않습니다. (INVALID_POST_ID)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -285,7 +288,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "UNAUTHORIZED",
+                    description = "로그인이 필요합니다. (UNAUTHORIZED)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -293,7 +296,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "403",
-                    description = "POST_ACCESS_DENIED",
+                    description = "본인이 작성한 게시글만 수정 및 삭제할 수 있습니다. (POST_ACCESS_DENIED)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
@@ -301,7 +304,7 @@ public class PostController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "POST_NOT_FOUND",
+                    description = "해당 게시글을 찾을 수 없습니다. (POST_NOT_FOUND)",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)
