@@ -46,5 +46,4 @@ public class Post extends BaseEntity {
     public void updateRestrictionStatus(RestrictionStatus status) {
         this.restrictionStatus = status;
     }
-
 }
