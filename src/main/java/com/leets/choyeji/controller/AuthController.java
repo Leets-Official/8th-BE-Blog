@@ -1,5 +1,7 @@
 package com.leets.choyeji.controller;
 
+import com.leets.choyeji.config.ApiErrorResponses;
+import static com.leets.choyeji.config.SwaggerError.*;
 import com.leets.choyeji.dto.ApiResponse;
 import com.leets.choyeji.dto.LoginRequest;
 import com.leets.choyeji.dto.LoginResponse;
@@ -21,12 +23,14 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(summary = "로그인")
+    @ApiErrorResponses({INVALID_REQUEST, LOGIN_INPUT, LOGIN_FAILED})
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ApiResponse.success(authService.login(request));
     }
 
     @Operation(summary = "회원가입")
+    @ApiErrorResponses({INVALID_REQUEST, SIGNUP_INPUT, PASSWORD_TOO_LONG, DUPLICATE_EMAIL})
     @PostMapping("/signup")
     public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
         return ApiResponse.success(authService.signup(request));
