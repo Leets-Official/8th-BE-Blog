@@ -1,8 +1,10 @@
 package com.leets.blog.domain.post.web.controller;
 
+import com.leets.blog.common.config.SwaggerConfig;
 import com.leets.blog.common.exception.BindErrorCode;
 import com.leets.blog.common.exception.ErrorCode;
 import com.leets.blog.common.response.ApiResponse;
+import com.leets.blog.common.swagger.ApiErrorCodes;
 import com.leets.blog.domain.post.service.PostService;
 import com.leets.blog.domain.post.web.dto.request.PostCreateRequest;
 import com.leets.blog.domain.post.web.dto.request.PostUpdateRequest;
@@ -13,9 +15,11 @@ import com.leets.blog.domain.post.web.dto.response.PostListResponse;
 import com.leets.blog.domain.post.web.dto.response.PostResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Post API", description = "게시글 CRUD 및 숨김(관리자) API")
@@ -37,6 +42,7 @@ public class PostController {
     private final PostService postService;
 
     @Operation(summary = "게시글 목록 조회", description = "삭제·숨김되지 않은 게시글을 페이지 단위로 조회합니다. sort: latest, oldest, popular")
+    @ApiErrorCodes({ErrorCode.INVALID_PAGE_NUMBER, ErrorCode.INVALID_PAGE_SIZE, ErrorCode.INVALID_SORT_TYPE})
     @GetMapping
     public ResponseEntity<ApiResponse<PostListResponse>> getPosts(
             @RequestParam(defaultValue = "1") @BindErrorCode(ErrorCode.INVALID_PAGE_NUMBER) int page,
@@ -46,6 +52,7 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 상세 조회", description = "삭제·숨김되지 않은 게시글 하나를 조회합니다.")
+    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.POST_NOT_FOUND})
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPost(
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
@@ -53,18 +60,26 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 생성", description = "게시글을 작성합니다.")
+    @ApiErrorCodes({ErrorCode.REQUIRED_FIELD_MISSING, ErrorCode.TITLE_LENGTH_EXCEED, ErrorCode.CONTENT_LENGTH_EXCEED,
+            ErrorCode.UNAUTHORIZED})
+    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(
-            @Parameter(description = "작성자 회원 ID (로그인 대체)", required = true)
+            @Parameter(hidden = true)
             @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
             @RequestBody @Valid PostCreateRequest request) {
         return ApiResponse.createdEntity(postService.createPost(memberId, request));
     }
 
     @Operation(summary = "게시글 수정", description = "본인이 작성한 게시글을 수정합니다. 바꿀 필드(title, content)만 보내면 됩니다.")
+    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.REQUIRED_FIELD_MISSING, ErrorCode.TITLE_LENGTH_EXCEED,
+            ErrorCode.CONTENT_LENGTH_EXCEED, ErrorCode.UNAUTHORIZED, ErrorCode.POST_ACCESS_DENIED,
+            ErrorCode.POST_NOT_FOUND, ErrorCode.CONCURRENT_UPDATE})
+    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
-            @Parameter(description = "작성자 회원 ID (로그인 대체)", required = true)
+            @Parameter(hidden = true)
             @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId,
             @RequestBody @Valid PostUpdateRequest request) {
@@ -72,18 +87,24 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 삭제", description = "본인이 작성한 게시글을 삭제합니다.")
+    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.UNAUTHORIZED, ErrorCode.POST_ACCESS_DENIED,
+            ErrorCode.POST_NOT_FOUND, ErrorCode.CONCURRENT_UPDATE})
+    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
-            @Parameter(description = "작성자 회원 ID (로그인 대체)", required = true)
+            @Parameter(hidden = true)
             @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
         return ApiResponse.okEntity(postService.deletePost(memberId, postId));
     }
 
     @Operation(summary = "게시글 숨김 (관리자)", description = "게시글을 숨김(HIDDEN) 처리합니다. 숨긴 글은 목록·상세 조회, 댓글, 신고에서 제외됩니다. 이미 숨긴 글은 409입니다.")
+    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.UNAUTHORIZED, ErrorCode.ADMIN_ONLY, ErrorCode.POST_NOT_FOUND,
+            ErrorCode.ALREADY_HIDDEN, ErrorCode.CONCURRENT_UPDATE})
+    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
     @PatchMapping("/{postId}/hide")
     public ResponseEntity<ApiResponse<PostHideResponse>> hidePost(
-            @Parameter(description = "관리자 회원 ID (로그인 대체)", required = true)
+            @Parameter(hidden = true)
             @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
         return ApiResponse.okEntity(postService.hidePost(memberId, postId));

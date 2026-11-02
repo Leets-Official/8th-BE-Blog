@@ -3,15 +3,25 @@ package com.leets.blog.common.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.leets.blog.common.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 @JsonPropertyOrder({"isSuccess", "code", "data", "error"})
 public record ApiResponse<T>(
-        @JsonProperty("isSuccess") boolean isSuccess,
+
+        @JsonProperty("isSuccess")
+        @Schema(description = "성공 여부")
+        boolean isSuccess,
+
+        @Schema(description = "HTTP 상태 코드 (200, 201 등)")
         String code,
+
+        @Schema(description = "응답 데이터 (실패 시 null)")
         T data,
+
+        @Schema(description = "에러 정보 (성공 시 null)")
         ErrorBody error
 ) {
 
