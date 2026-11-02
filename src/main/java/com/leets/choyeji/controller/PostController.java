@@ -1,6 +1,6 @@
 package com.leets.choyeji.controller;
 
-// import com.leets.choyeji.auth.JwtMemberResolver;
+import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.dto.ApiResponse;
 import com.leets.choyeji.dto.PostListResponse;
 import com.leets.choyeji.dto.PostRequest;
@@ -8,6 +8,8 @@ import com.leets.choyeji.dto.PostResponse;
 import com.leets.choyeji.dto.PostUpdateResponse;
 import com.leets.choyeji.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
-    // private final JwtMemberResolver jwtMemberResolver;
+    private final JwtMemberResolver jwtMemberResolver;
 
     @Operation(summary = "게시글 조회")
     @GetMapping("/{postId}")
@@ -33,30 +35,30 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 생성")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ApiResponse<PostResponse> create(
-            // @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody PostRequest request) {
-        // return ApiResponse.success(postService.create(jwtMemberResolver.resolve(authorization), request));
-        return ApiResponse.success(postService.create(request));
+        return ApiResponse.success(postService.create(jwtMemberResolver.resolve(authorization), request));
     }
 
     @Operation(summary = "게시글 수정")
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{postId}")
     public ApiResponse<PostUpdateResponse> update(@PathVariable Long postId,
-            // @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody PostRequest request) {
-        // return ApiResponse.success(postService.update(jwtMemberResolver.resolve(authorization), postId, request));
-        return ApiResponse.success(postService.update(postId, request));
+        return ApiResponse.success(postService.update(jwtMemberResolver.resolve(authorization), postId, request));
     }
 
     @Operation(summary = "게시글 삭제")
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> delete(
-            // @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId) {
-        // postService.delete(jwtMemberResolver.resolve(authorization), postId);
-        postService.delete(postId);
+        postService.delete(jwtMemberResolver.resolve(authorization), postId);
         return ApiResponse.success(null);
     }
 }
