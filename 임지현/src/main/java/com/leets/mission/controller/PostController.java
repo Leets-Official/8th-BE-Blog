@@ -34,8 +34,6 @@ import java.util.Set;
 public class PostController {
 
     private final PostService postService;
-    private static final Set<String> ALLOWED_SORT_TYPES =
-            Set.of("latest", "oldest", "popular");
 
     @Operation(
             summary = "게시글 목록 조회",
@@ -87,14 +85,12 @@ public class PostController {
         if (size < 1 || size > 50) {
             throw new CustomException(ErrorCode.INVALID_PAGE_SIZE);
         }
-        if (!ALLOWED_SORT_TYPES.contains(sort)) {
-            throw new CustomException(ErrorCode.INVALID_SORT_TYPE);
-        }
 
         Sort sortCondition = switch (sort) {
+            case "latest" -> Sort.by("createdAt").descending();
             case "oldest" -> Sort.by("createdAt").ascending();
             case "popular" -> Sort.by("viewCount").descending();
-            default -> Sort.by("createdAt").descending();
+            default -> throw new CustomException(ErrorCode.INVALID_SORT_TYPE);
         };
 
         Pageable pageable = PageRequest.of(page - 1, size, sortCondition);
