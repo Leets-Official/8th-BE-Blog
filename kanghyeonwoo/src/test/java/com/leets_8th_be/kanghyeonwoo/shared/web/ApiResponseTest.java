@@ -30,13 +30,18 @@ class ApiResponseTest {
 
     @Test
     @DisplayName("의미 코드 enum으로 실패 응답을 생성할 수 있다.")
-    void failWithEnumCode() {
+    void failWithEnumCode() throws Exception {
         ApiResponse<Void> response = ApiResponse.fail(ApiResponseCode.POST_NOT_FOUND, "해당 ID의 게시글을 찾을 수 없습니다.");
 
         assertThat(response.isSuccess()).isFalse();
         assertThat(response.getCode()).isEqualTo(ApiResponseCode.POST_NOT_FOUND);
         assertThat(response.getMessage()).isEqualTo("해당 ID의 게시글을 찾을 수 없습니다.");
         assertThat(response.getData()).isNull();
+
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var json = mapper.readTree(mapper.writeValueAsString(response));
+        assertThat(json.has("data")).isTrue();
+        assertThat(json.get("data").isNull()).isTrue();
     }
 
     @Test
