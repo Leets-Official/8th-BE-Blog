@@ -1,5 +1,10 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.INVALID_INPUT_VALUE;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.SEARCH_KEYWORD_NOT_FOUND;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.TYPE_MISMATCH;
+
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchSuggestionResponse;
 import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchTrendResponse;
 import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchKeywordStatsResponse;
@@ -33,13 +38,8 @@ public class SearchController {
     private final GetSearchKeywordStatsUseCase statistics;
 
     @Operation(summary = "검색어별 최근 24개 시간대의 검색량과 상승 점수")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "검색어 통계 조회 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({TYPE_MISMATCH, SEARCH_KEYWORD_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "검색어 통계 조회 성공", useReturnTypeSchema = true)
     @GetMapping("/keywords/{keywordId}/stats")
     public ResponseEntity<ApiResponse<SearchKeywordStatsResponse>> stats(
             @io.swagger.v3.oas.annotations.Parameter(description = "검색어 ID", example = "1")
@@ -52,11 +52,8 @@ public class SearchController {
     }
 
     @Operation(summary = "최근 1시간의 급상승 검색어 상위 10개")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "급상승 검색어 조회 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "급상승 검색어 조회 성공", useReturnTypeSchema = true)
     @GetMapping("/trends")
     public ResponseEntity<ApiResponse<List<SearchTrendResponse>>> trends() {
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "급상승 검색어 조회가 완료되었습니다.", trends.trends().stream()
@@ -65,12 +62,8 @@ public class SearchController {
     }
 
     @Operation(summary = "철자가 비슷한 검색어 추천")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "검색어 추천 조회 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "검색어 추천 조회 성공", useReturnTypeSchema = true)
     @GetMapping("/suggestions")
     public ResponseEntity<ApiResponse<List<SearchSuggestionResponse>>> suggest(
             @io.swagger.v3.oas.annotations.Parameter(description = "추천 기준 검색어 (2~50자)", example = "sprng")

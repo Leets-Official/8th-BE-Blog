@@ -1,6 +1,11 @@
 package com.leets_8th_be.kanghyeonwoo.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,6 +21,59 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("moderation-demo")
 class ModerationDemoTest {
     @Autowired MockMvc mvc;
+
+    @Test
+    void errorExamplesContainOnlyErrorsOfEachOperation() throws Exception {
+        String specification = mvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var document = new ObjectMapper().readTree(specification);
+        var expected = Map.ofEntries(
+                Map.entry("post /api/v2/posts", "INVALID_INPUT_VALUE MISSING_REQUEST_BODY USER_NOT_FOUND"),
+                Map.entry("get /api/v2/posts/{postId}", "TYPE_MISMATCH POST_NOT_FOUND"),
+                Map.entry("patch /api/v2/posts/{postId}", "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY POST_ACCESS_DENIED POST_NOT_FOUND"),
+                Map.entry("delete /api/v2/posts/{postId}", "INVALID_INPUT_VALUE TYPE_MISMATCH POST_ACCESS_DENIED POST_NOT_FOUND"),
+                Map.entry("get /api/v2/posts/{postId}/comments", "INVALID_INPUT_VALUE TYPE_MISMATCH POST_NOT_FOUND"),
+                Map.entry("post /api/v2/posts/{postId}/reports", "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY SELF_REPORT_FORBIDDEN USER_NOT_FOUND POST_NOT_FOUND DUPLICATE_RESOURCE"),
+                Map.entry("post /api/v2/comments/{commentId}/reports", "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY SELF_REPORT_FORBIDDEN USER_NOT_FOUND POST_NOT_FOUND COMMENT_NOT_FOUND DUPLICATE_RESOURCE RESOURCE_DELETED"),
+                Map.entry("get /api/v2/reports", "INVALID_INPUT_VALUE TYPE_MISMATCH"),
+                Map.entry("patch /api/v2/reports/{reportId}/resolve", "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY USER_NOT_FOUND REPORT_NOT_FOUND REPORT_ALREADY_RESOLVED RESOURCE_DELETED"),
+                Map.entry("get /api/v2/search/keywords/{keywordId}/stats", "TYPE_MISMATCH SEARCH_KEYWORD_NOT_FOUND"),
+                Map.entry("get /api/v2/search/trends", ""),
+                Map.entry("get /api/v2/search/suggestions", "INVALID_INPUT_VALUE"),
+                Map.entry("get /api/v2/posts", "INVALID_INPUT_VALUE TYPE_MISMATCH"),
+                Map.entry("get /api/v2/health", ""));
+
+        expected.forEach((operation, errors) -> {
+            String[] parts = operation.split(" ", 2);
+            var responses = document.path("paths").path(parts[1]).path(parts[0]).path("responses");
+            assertThat(responses.isObject()).as(operation).isTrue();
+            var actualCodes = new ArrayList<String>();
+            responses.properties().forEach(response -> {
+                if (Integer.parseInt(response.getKey()) < 400) return;
+                var media = response.getValue().path("content").path("application/json");
+                assertThat(media.path("schema").path("$ref").asText())
+                        .as(operation).isEqualTo("#/components/schemas/ApiResponseVoid");
+                var examples = media.path("examples");
+                assertThat(examples.isObject()).as(operation).isTrue();
+                examples.properties().forEach(example -> {
+                    var code = ApiResponseCode.valueOf(example.getKey());
+                    assertThat(response.getKey()).as(operation).isEqualTo(String.valueOf(code.getHttpStatus().value()));
+                    var value = example.getValue().path("value");
+                    assertThat(value.path("code").asText()).isEqualTo(code.name());
+                    assertThat(value.path("message").asText()).isEqualTo(code.getDefaultMessage());
+                    assertThat(value.path("success").asBoolean(true)).isFalse();
+                    assertThat(value.has("data") && value.path("data").isNull()).isTrue();
+                    actualCodes.add(code.name());
+                });
+            });
+            var expectedCodes = new ArrayList<String>();
+            if (!errors.isEmpty()) expectedCodes.addAll(List.of(errors.split(" ")));
+            expectedCodes.add("INTERNAL_SERVER_ERROR");
+            assertThat(actualCodes).as(operation).containsExactlyInAnyOrderElementsOf(expectedCodes);
+        });
+        assertThat(document.path("info").path("description").asText())
+                .contains("HTTP 404", "ENDPOINT_NOT_FOUND", "HTTP 405", "METHOD_NOT_ALLOWED");
+    }
 
     @Test
     void demoProvidesAPostAndCommentsWithoutAdministratorSetup() throws Exception {
@@ -58,40 +116,35 @@ class ModerationDemoTest {
                 .andExpect(jsonPath("$.paths['/api/v2/posts'].post.responses['201']").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts'].post.responses['400']").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts/{postId}/reports'].post.responses['409']").exists())
-                .andExpect(jsonPath("$.components.responses.BadRequest").exists())
-                .andExpect(jsonPath("$.components.responses.Forbidden").exists())
-                .andExpect(jsonPath("$.components.responses.NotFound").exists())
-                .andExpect(jsonPath("$.components.responses.Conflict").exists())
-                .andExpect(jsonPath("$.components.responses.InternalServerError").exists())
                 .andReturn().getResponse().getContentAsString();
 
-        var codes = JsonPath.<java.util.List<String>>read(specification, "$.components.schemas.ApiResponseCode.enum");
+        var codes = JsonPath.<List<String>>read(specification, "$.components.schemas.ApiResponseCode.enum");
         assertThat(codes).contains("SUCCESS", "RESOURCE_CREATED", "POST_NOT_FOUND", "ENDPOINT_NOT_FOUND");
-        var requiredPostFields = JsonPath.<java.util.List<String>>read(specification,
+        var requiredPostFields = JsonPath.<List<String>>read(specification,
                 "$.components.schemas.PostCreateRequest.required");
         assertThat(requiredPostFields).contains("title", "content", "authorId");
         assertThat(JsonPath.<Integer>read(specification,
                 "$.components.schemas.PostCreateRequest.properties.title.maxLength")).isEqualTo(150);
-        assertThat(JsonPath.<java.util.List<String>>read(specification,
+        assertThat(JsonPath.<List<String>>read(specification,
                 "$.components.schemas.ReportResponse.properties.status.enum"))
                 .containsExactly("PENDING", "RESOLVED");
         assertThat(JsonPath.<String>read(specification,
                 "$.components.schemas.ApiResponseVoid.properties.code.$ref"))
                 .isEqualTo("#/components/schemas/ApiResponseCode");
         assertThat(JsonPath.<String>read(specification,
-                "$.components.responses.BadRequest.content['application/json'].examples.INVALID_INPUT_VALUE.value.code"))
+                "$.paths['/api/v2/posts'].post.responses['400'].content['application/json'].examples.INVALID_INPUT_VALUE.value.code"))
                 .isEqualTo("INVALID_INPUT_VALUE");
         assertThat(JsonPath.<String>read(specification,
-                "$.components.responses.Forbidden.content['application/json'].examples.SELF_REPORT_FORBIDDEN.value.code"))
+                "$.paths['/api/v2/posts/{postId}/reports'].post.responses['403'].content['application/json'].examples.SELF_REPORT_FORBIDDEN.value.code"))
                 .isEqualTo("SELF_REPORT_FORBIDDEN");
         assertThat(JsonPath.<String>read(specification,
-                "$.components.responses.NotFound.content['application/json'].examples.POST_NOT_FOUND.value.code"))
+                "$.paths['/api/v2/posts/{postId}'].get.responses['404'].content['application/json'].examples.POST_NOT_FOUND.value.code"))
                 .isEqualTo("POST_NOT_FOUND");
         assertThat(JsonPath.<String>read(specification,
-                "$.components.responses.Conflict.content['application/json'].examples.DUPLICATE_RESOURCE.value.code"))
+                "$.paths['/api/v2/posts/{postId}/reports'].post.responses['409'].content['application/json'].examples.DUPLICATE_RESOURCE.value.code"))
                 .isEqualTo("DUPLICATE_RESOURCE");
         assertThat(JsonPath.<String>read(specification,
-                "$.components.responses.InternalServerError.content['application/json'].examples.INTERNAL_SERVER_ERROR.value.code"))
+                "$.paths['/api/v2/health'].get.responses['500'].content['application/json'].examples.INTERNAL_SERVER_ERROR.value.code"))
                 .isEqualTo("INTERNAL_SERVER_ERROR");
         assertThat(JsonPath.<String>read(specification,
                 "$.components.schemas.ReportCreateRequest.properties.reason.description")).isNotBlank();

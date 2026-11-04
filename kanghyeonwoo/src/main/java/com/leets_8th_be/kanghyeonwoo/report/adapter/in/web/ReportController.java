@@ -1,5 +1,18 @@
 package com.leets_8th_be.kanghyeonwoo.report.adapter.in.web;
 
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.COMMENT_NOT_FOUND;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.DUPLICATE_RESOURCE;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.INVALID_INPUT_VALUE;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.MISSING_REQUEST_BODY;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_NOT_FOUND;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.REPORT_ALREADY_RESOLVED;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.REPORT_NOT_FOUND;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.RESOURCE_DELETED;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.SELF_REPORT_FORBIDDEN;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.TYPE_MISMATCH;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.USER_NOT_FOUND;
+
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.*;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
@@ -41,15 +54,8 @@ public class ReportController {
 
     @PostMapping("/posts/{postId}/reports")
     @Operation(summary = "게시글 신고", description = "본인·숨김 게시글은 신고할 수 없으며 동일 사용자의 중복 신고는 409입니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "게시글 신고 접수 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, MISSING_REQUEST_BODY, SELF_REPORT_FORBIDDEN, USER_NOT_FOUND, POST_NOT_FOUND, DUPLICATE_RESOURCE})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "게시글 신고 접수 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportPost(
             @io.swagger.v3.oas.annotations.Parameter(description = "신고할 게시글 ID", example = "1")
             @PathVariable("postId") Long postId, @Valid @RequestBody ReportCreateRequest request) {
@@ -60,15 +66,8 @@ public class ReportController {
     }
     @PostMapping("/comments/{commentId}/reports")
     @Operation(summary = "댓글 신고", description = "본인·숨김·삭제 댓글과 숨김 게시글의 댓글은 신고할 수 없습니다. 중복 신고는 409입니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "댓글 신고 접수 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, MISSING_REQUEST_BODY, SELF_REPORT_FORBIDDEN, USER_NOT_FOUND, POST_NOT_FOUND, COMMENT_NOT_FOUND, DUPLICATE_RESOURCE, RESOURCE_DELETED})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "댓글 신고 접수 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportComment(
             @io.swagger.v3.oas.annotations.Parameter(description = "신고할 댓글 ID", example = "1")
             @PathVariable("commentId") Long commentId, @Valid @RequestBody ReportCreateRequest request) {
@@ -80,12 +79,8 @@ public class ReportController {
 
     @GetMapping("/reports")
     @Operation(summary = "신고 목록·스냅샷 검색", description = "필터는 AND, 검색어는 사유·제목/본문 스냅샷을 OR로 검색합니다. 관리자 제한은 없습니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신고 목록 조회 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신고 목록 조회 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<PageResponse<ReportResponse>>> getReports(
             @io.swagger.v3.oas.annotations.Parameter(description = "1부터 시작하는 페이지 번호", schema = @io.swagger.v3.oas.annotations.media.Schema(minimum = "1", example = "1"))
             @RequestParam(name = "page", defaultValue = "1") int page,
@@ -110,14 +105,8 @@ public class ReportController {
 
     @PatchMapping("/reports/{reportId}/resolve")
     @Operation(summary = "신고 처리", description = "존재하는 사용자라면 처리할 수 있습니다. HIDE는 대상 숨김, KEEP는 현재 공개 상태 유지입니다. 재처리는 409입니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신고 처리 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, MISSING_REQUEST_BODY, USER_NOT_FOUND, REPORT_NOT_FOUND, REPORT_ALREADY_RESOLVED, RESOURCE_DELETED})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신고 처리 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
             @io.swagger.v3.oas.annotations.Parameter(description = "처리할 신고 ID", example = "1")
             @PathVariable("reportId") Long reportId, @Valid @RequestBody ReportResolveRequest request) {

@@ -1,5 +1,13 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web;
 
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.INVALID_INPUT_VALUE;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.MISSING_REQUEST_BODY;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_ACCESS_DENIED;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_NOT_FOUND;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.TYPE_MISMATCH;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.USER_NOT_FOUND;
+
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
@@ -46,13 +54,8 @@ public class PostController {
     private final DeletePostUseCase deletePost;
 
     @Operation(summary = "게시글 등록", description = "신규 게시글을 등록합니다. (제목은 최대 150자, 본문은 공백 불가)")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "게시글 생성 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, MISSING_REQUEST_BODY, USER_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "게시글 생성 성공", useReturnTypeSchema = true)
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
         PostView post = createPost.create(new CreatePostCommand(request.getTitle(), request.getContent(),
@@ -63,13 +66,8 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID(postId)로 특정 게시글의 상세 정보를 조회합니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 조회 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({TYPE_MISMATCH, POST_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 조회 성공", useReturnTypeSchema = true)
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostById(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId) {
@@ -79,14 +77,8 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 수정", description = "게시글 작성자 본인만 제목과 내용을 수정할 수 있습니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 수정 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, MISSING_REQUEST_BODY, POST_ACCESS_DENIED, POST_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 수정 성공", useReturnTypeSchema = true)
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> updatePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,
@@ -99,14 +91,8 @@ public class PostController {
     }
 
     @Operation(summary = "게시글 삭제", description = "작성자의 게시글을 DELETED 상태로 전환합니다. 게시글과 연관 댓글·신고 스냅샷은 보존되며 공개 조회에서는 제외됩니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 삭제 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, POST_ACCESS_DENIED, POST_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 삭제 성공", useReturnTypeSchema = true)
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,

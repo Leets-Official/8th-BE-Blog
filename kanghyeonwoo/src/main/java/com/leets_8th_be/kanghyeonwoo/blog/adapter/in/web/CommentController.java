@@ -1,5 +1,10 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web;
 
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.INVALID_INPUT_VALUE;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_NOT_FOUND;
+import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.TYPE_MISMATCH;
+
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentPage;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CommentSearchQuery;
@@ -31,13 +36,8 @@ public class CommentController {
 
     @GetMapping("/posts/{postId}/comments")
     @Operation(summary = "댓글 목록·본문 검색", description = "대댓글은 parentId로 연결합니다. 숨김·삭제 댓글은 목록에서 안내 문구로 표시하고 검색에서는 제외합니다.")
-    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "댓글 목록 조회 성공", useReturnTypeSchema = true),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", ref = "#/components/responses/MethodNotAllowed"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", ref = "#/components/responses/InternalServerError")
-    })
+    @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, POST_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "댓글 목록 조회 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<PageResponse<CommentResponse>>> getComments(
             @Parameter(description = "댓글을 조회할 게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Parameter(description = "1부터 시작하는 페이지 번호", schema = @io.swagger.v3.oas.annotations.media.Schema(minimum = "1"))
