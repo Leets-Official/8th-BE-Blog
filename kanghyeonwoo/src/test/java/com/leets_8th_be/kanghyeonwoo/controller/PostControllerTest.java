@@ -32,6 +32,8 @@ import java.util.Map;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.nullValue;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -77,6 +79,48 @@ class PostControllerTest {
     }
 
     @Test
+    @DisplayName("필수 요청 본문이 없으면 400과 MISSING_REQUEST_BODY 및 null 데이터를 반환한다.")
+    void createPostMissingBody() throws Exception {
+        mockMvc.perform(post("/api/v2/posts").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("MISSING_REQUEST_BODY"))
+                .andExpect(jsonPath("$.message").value("전송된 요청 본문 내용이 없습니다."))
+                .andExpect(jsonPath("$").value(hasKey("data")))
+                .andExpect(jsonPath("$.data").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("잘못된 JSON은 본문 누락 대신 INVALID_INPUT_VALUE와 null 데이터를 반환한다.")
+    void createPostMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/v2/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$").value(hasKey("data")))
+                .andExpect(jsonPath("$.data").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("본문 필드 타입 오류는 INVALID_INPUT_VALUE와 null 데이터를 반환한다.")
+    void createPostInvalidBodyFieldType() throws Exception {
+        mockMvc.perform(post("/api/v2/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"title":"제목","content":"본문","authorId":"not-a-number"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$").value(hasKey("data")))
+                .andExpect(jsonPath("$.data").value(nullValue()));
+    }
+
+    @Test
     @DisplayName("신규 게시글을 정상적으로 등록하면 201 Created와 생성된 게시글 데이터를 반환한다.")
     void createPostSuccess() throws Exception {
         Map<String, Object> request = new HashMap<>();
@@ -111,7 +155,10 @@ class PostControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"));
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.message").value("제목은 필수 입력 항목입니다."))
+                .andExpect(jsonPath("$").value(hasKey("data")))
+                .andExpect(jsonPath("$.data").value(nullValue()));
     }
 
     @Test
