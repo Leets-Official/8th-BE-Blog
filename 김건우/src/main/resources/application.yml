@@ -5,3 +5,11 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+
+# [5주차] Swagger UI 설정
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html          # 접속: http://localhost:8080/swagger-ui.html
+    operations-sorter: method       # 같은 태그 안에서 GET -> POST -> PUT ... 순서로 정렬
+    tags-sorter: alpha
+    display-request-duration: true
