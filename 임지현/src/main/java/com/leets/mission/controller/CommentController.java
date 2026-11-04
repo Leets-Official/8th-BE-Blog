@@ -48,7 +48,7 @@ public class CommentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "I게시글 ID 형식 오류 (INVALID_POST_ID)",
+                    description = "게시글 ID 형식 오류 (INVALID_POST_ID)",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class))
             ),
