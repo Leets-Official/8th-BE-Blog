@@ -8,10 +8,15 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.jayway.jsonpath.JsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -21,6 +26,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("moderation-demo")
 class ModerationDemoTest {
     @Autowired MockMvc mvc;
+    @Autowired
+    @Qualifier("requestMappingHandlerMapping")
+    RequestMappingHandlerMapping mappings;
+
+    @Test
+    void everyRegisteredProjectApiDeclaresItsErrorCodes() {
+        var projectApis = mappings.getHandlerMethods().entrySet().stream()
+                .filter(entry -> entry.getValue().getBeanType().getPackageName()
+                        .startsWith("com.leets_8th_be.kanghyeonwoo."))
+                .filter(entry -> AnnotatedElementUtils.hasAnnotation(
+                        entry.getValue().getBeanType(), RestController.class))
+                .toList();
+
+        assertThat(projectApis).isNotEmpty();
+        var missingDeclarations = projectApis.stream()
+                .filter(entry -> !entry.getValue().hasMethodAnnotation(ApiErrorCodes.class))
+                .map(entry -> entry.getKey() + " -> " + entry.getValue().getShortLogMessage())
+                .toList();
+        assertThat(missingDeclarations).as("@ApiErrorCodes가 누락된 프로젝트 API").isEmpty();
+    }
 
     @Test
     void errorExamplesContainOnlyErrorsOfEachOperation() throws Exception {
