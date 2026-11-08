@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler({OptimisticLockingFailureException.class, OptimisticLockException.class})
     public ErrorResponse handleConcurrentModification() {
-        return toErrorResponse(ErrorCode.CONCURRENT_MODIFICATION);
+        return ErrorResponse.from(ErrorCode.CONCURRENT_MODIFICATION);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -37,12 +37,7 @@ public class GlobalExceptionHandler {
                 .toList();
 
         ErrorCode errorCode = findValidationErrorCode(e.getBindingResult().getFieldErrors());
-        ErrorResponse response = new ErrorResponse(
-                errorCode.getStatusValue(),
-                errorCode.getCode(),
-                errorCode.getMessage(),
-                errors
-        );
+        ErrorResponse response = ErrorResponse.from(errorCode, errors);
 
         return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
@@ -50,7 +45,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ErrorResponse handleInvalidRequestBody() {
-        return toErrorResponse(ErrorCode.INVALID_REQUEST_FORMAT);
+        return ErrorResponse.from(ErrorCode.INVALID_REQUEST_FORMAT);
     }
 
     @ExceptionHandler(BusinessException.class)
@@ -59,41 +54,33 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(toErrorResponse(errorCode));
+                .body(ErrorResponse.from(errorCode));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         if ("postId".equals(e.getName())) {
-            return toErrorResponse(ErrorCode.INVALID_POST_ID);
+            return ErrorResponse.from(ErrorCode.INVALID_POST_ID);
         }
 
-        return toErrorResponse(ErrorCode.INVALID_INPUT);
+        return ErrorResponse.from(ErrorCode.INVALID_INPUT);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ErrorResponse handleMissingHeader(MissingRequestHeaderException e) {
         if ("X-User-Id".equals(e.getHeaderName())) {
-            return toErrorResponse(ErrorCode.MISSING_USER_ID);
+            return ErrorResponse.from(ErrorCode.MISSING_USER_ID);
         }
 
-        return toErrorResponse(ErrorCode.INVALID_INPUT);
+        return ErrorResponse.from(ErrorCode.INVALID_INPUT);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorResponse handleUnexpectedException(Exception e) {
-        return toErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
-
-    private ErrorResponse toErrorResponse(ErrorCode errorCode) {
-        return new ErrorResponse(
-                errorCode.getStatusValue(),
-                errorCode.getCode(),
-                errorCode.getMessage()
-        );
+        return ErrorResponse.from(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     private ErrorResponse.ValidationError toValidationError(FieldError fieldError) {

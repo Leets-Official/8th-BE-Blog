@@ -74,8 +74,7 @@ public class OpenApiErrorExamplesConfig {
         }
         var json = response.getContent().get("application/json");
         if (json != null) {
-            var value = objectMapper.convertValue(new ErrorResponse(
-                    error.getStatusValue(), error.getCode(), error.getMessage()), Map.class);
+            var value = objectMapper.convertValue(ErrorResponse.from(error), Map.class);
             json.addExamples(error.getCode(), new Example().summary(error.getMessage()).value(value));
         }
     }
