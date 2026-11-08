@@ -41,8 +41,9 @@ class InteractionIntegrationTests {
     @BeforeEach
     void setup() {
         new org.springframework.transaction.support.TransactionTemplate(transactionManager).executeWithoutResult(tx -> {
-        owner = member("owner");
-        actor = member("actor");
+        String suffix = java.util.UUID.randomUUID().toString();
+        owner = member("owner-" + suffix);
+        actor = member("actor-" + suffix);
         post = em.persistAndFlush(new Post("title", "content", owner, false));
         comment = new Comment();
         ReflectionTestUtils.setField(comment, "member", owner);
