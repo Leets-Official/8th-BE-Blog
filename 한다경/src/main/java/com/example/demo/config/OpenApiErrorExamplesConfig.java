@@ -25,6 +25,9 @@ public class OpenApiErrorExamplesConfig {
                         INVALID_REQUEST_FORMAT, INVALID_INPUT, INVALID_CREDENTIALS, UNSUPPORTED_MEDIA_TYPE}),
                 Map.entry("refresh", new ErrorCode[] {
                         INVALID_REQUEST_FORMAT, INVALID_INPUT, INVALID_REFRESH_TOKEN, UNSUPPORTED_MEDIA_TYPE}),
+                Map.entry("startKakaoLogin", new ErrorCode[] {KAKAO_NOT_CONFIGURED}),
+                Map.entry("completeKakaoLogin", new ErrorCode[] {
+                        INVALID_KAKAO_CALLBACK, KAKAO_LOGIN_FAILED, KAKAO_PROVIDER_ERROR, KAKAO_NOT_CONFIGURED}),
                 Map.entry("findPosts", new ErrorCode[] {AUTHENTICATION_REQUIRED}),
                 Map.entry("findPost", new ErrorCode[] {
                         AUTHENTICATION_REQUIRED, INVALID_POST_ID, INVALID_INPUT, POST_ACCESS_DENIED, POST_NOT_FOUND, POST_DELETED}),

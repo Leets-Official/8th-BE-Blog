@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "인증", description = "이메일 회원가입과 로그인, 서비스 토큰 재발급")
+@Tag(name = "인증", description = "이메일 회원가입과 로그인, 카카오 로그인, 서비스 토큰 재발급")
 public class AuthController {
     private final AuthService auth;
     private final TokenService tokens;

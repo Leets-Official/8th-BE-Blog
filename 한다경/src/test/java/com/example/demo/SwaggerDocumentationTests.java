@@ -26,7 +26,7 @@ class SwaggerDocumentationTests {
         var paths = document.path("paths");
         int operations = 0;
         for (var path : paths) operations += path.size();
-        assertThat(operations).isEqualTo(15);
+        assertThat(operations).isEqualTo(17);
         assertThat(paths.has("/health")).isFalse();
         assertThat(paths.has("/string/repeat")).isFalse();
         for (var tag : document.path("tags")) {
@@ -74,10 +74,14 @@ class SwaggerDocumentationTests {
         assertThat(schemas.at("/ReportCreateRequest/properties/reason/maxLength").asInt()).isEqualTo(255);
         assertThat(schemas.at("/SignupRequest/properties/password/writeOnly").asBoolean()).isTrue();
         assertThat(schemas.at("/TokenResponse/properties/expiresIn/example").asLong()).isEqualTo(600);
+        assertThat(doc.at("/paths/~1auth~1kakao/get/responses/302/headers/Location/schema/format").asText())
+                .isEqualTo("uri");
         for (var path : doc.path("paths")) {
             for (var operation : path) {
                 for (var parameter : operation.path("parameters")) {
-                    assertThat(parameter.path("in").asText()).isEqualTo("path");
+                    String expectedLocation = operation.path("operationId").asText().equals("completeKakaoLogin")
+                            ? "query" : "path";
+                    assertThat(parameter.path("in").asText()).isEqualTo(expectedLocation);
                     assertThat(parameter.path("description").asText()).isNotBlank();
                 }
                 var responseEntries = operation.path("responses").fields();

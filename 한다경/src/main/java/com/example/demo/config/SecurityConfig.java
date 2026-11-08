@@ -9,6 +9,7 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,6 +31,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.web.util.HttpSessionMutexListener;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -42,6 +44,11 @@ import java.util.Map;
 
 @Configuration
 public class SecurityConfig {
+    @Bean
+    ServletListenerRegistrationBean<HttpSessionMutexListener> sessionMutexListener() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionMutexListener());
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, MemberRepository members, ObjectMapper mapper)
             throws Exception {
@@ -57,7 +64,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.GET, "/health", "/posts", "/posts/{postId}",
-                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**",
+                                "/auth/kakao", "/login/oauth2/code/kakao").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth", "/login", "/auth/refresh",
                                 "/string/repeat").permitAll()
                         .requestMatchers(HttpMethod.POST, "/reports/{reportId}/approve").hasRole("ADMIN")

@@ -17,6 +17,7 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "유효하지 않은 재발급 토큰입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "요청을 수행할 권한이 없습니다."),
     DUPLICATE_MEMBER(HttpStatus.CONFLICT, "DUPLICATE_MEMBER", "이미 사용 중인 이메일 또는 닉네임입니다."),
+    INVALID_KAKAO_CALLBACK(HttpStatus.BAD_REQUEST, "INVALID_KAKAO_CALLBACK", "카카오 로그인 요청이 만료되었거나 취소되었습니다."),
     KAKAO_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "KAKAO_LOGIN_FAILED", "카카오 로그인에 실패했습니다."),
     KAKAO_PROVIDER_ERROR(HttpStatus.BAD_GATEWAY, "KAKAO_PROVIDER_ERROR", "카카오 로그인 서버의 응답을 처리할 수 없습니다."),
     KAKAO_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "KAKAO_NOT_CONFIGURED", "카카오 로그인 설정이 필요합니다."),
