@@ -26,7 +26,7 @@ class SwaggerDocumentationTests {
         var paths = document.path("paths");
         int operations = 0;
         for (var path : paths) operations += path.size();
-        assertThat(operations).isEqualTo(12);
+        assertThat(operations).isEqualTo(15);
         assertThat(paths.has("/health")).isFalse();
         assertThat(paths.has("/string/repeat")).isFalse();
         for (var tag : document.path("tags")) {
@@ -40,15 +40,13 @@ class SwaggerDocumentationTests {
         var detail = paths.path("/posts/{postId}").path("get");
         assertThat(detail.path("tags").get(0).asText()).isEqualTo("게시글");
         var parameters = detail.path("parameters");
-        assertThat(parameters).hasSize(2);
+        assertThat(parameters).hasSize(1);
         for (var parameter : parameters) {
             assertThat(parameter.path("description").asText()).isNotBlank();
             assertThat(parameter.path("example").asText()).isEqualTo("1");
-            if (parameter.path("name").asText().equals("X-User-Id")) {
-                assertThat(parameter.path("in").asText()).isEqualTo("header");
-                assertThat(parameter.path("required").asBoolean()).isFalse();
-            }
         }
+        assertThat(document.at("/components/securitySchemes/bearerAuth/scheme").asText()).isEqualTo("bearer");
+        assertThat(paths.path("/posts").path("post").at("/security/0/bearerAuth").isArray()).isTrue();
         assertThat(paths.path("/posts").path("post").path("responses").has("201")).isTrue();
         assertThat(paths.path("/posts/{postId}").path("delete").path("responses").has("204")).isTrue();
         assertThat(paths.path("/posts/{postId}/reports").path("post").path("responses").has("201")).isTrue();
@@ -64,7 +62,8 @@ class SwaggerDocumentationTests {
         var doc = mapper.readTree(result.getResponse().getContentAsString());
         var schemas = doc.at("/components/schemas");
         for (String name : new String[] {"PostCreateRequest", "PostUpdateRequest", "ReportCreateRequest",
-                "PostResponse", "PostListResponse", "LikeResponse", "ReportResponse"}) {
+                "PostResponse", "PostListResponse", "LikeResponse", "ReportResponse",
+                "SignupRequest", "LoginRequest", "RefreshRequest", "SignupResponse", "TokenResponse"}) {
             var properties = schemas.path(name).path("properties");
             assertThat(properties.size()).isPositive();
             for (var field : properties) assertThat(field.path("description").asText()).isNotBlank();
@@ -73,10 +72,12 @@ class SwaggerDocumentationTests {
         assertThat(create.path("required").toString()).contains("title", "content").doesNotContain("isPrivate");
         assertThat(create.at("/properties/title/maxLength").asInt()).isEqualTo(50);
         assertThat(schemas.at("/ReportCreateRequest/properties/reason/maxLength").asInt()).isEqualTo(255);
+        assertThat(schemas.at("/SignupRequest/properties/password/writeOnly").asBoolean()).isTrue();
+        assertThat(schemas.at("/TokenResponse/properties/expiresIn/example").asLong()).isEqualTo(600);
         for (var path : doc.path("paths")) {
             for (var operation : path) {
                 for (var parameter : operation.path("parameters")) {
-                    assertThat(parameter.path("in").asText()).isIn("path", "header");
+                    assertThat(parameter.path("in").asText()).isEqualTo("path");
                     assertThat(parameter.path("description").asText()).isNotBlank();
                 }
                 var responseEntries = operation.path("responses").fields();
@@ -133,9 +134,9 @@ class SwaggerDocumentationTests {
         assertThat(errors.has("errors")).isTrue();
         mvc.perform(post("/posts/1/reports").contentType("application/json")
                         .content("{\"reason\":\"spam\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
                 .andExpect(jsonPath("$.message").isString());
         mvc.perform(get("/posts/999999"))
                 .andExpect(status().isNotFound())

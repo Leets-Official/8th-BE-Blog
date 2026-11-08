@@ -11,7 +11,12 @@ public enum ErrorCode {
     TITLE_TOO_LONG(HttpStatus.BAD_REQUEST, "TITLE_TOO_LONG", "제목은 50자를 초과할 수 없습니다."),
     INVALID_REQUEST_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_REQUEST_FORMAT", "요청 형식이 올바르지 않습니다."),
     INVALID_POST_ID(HttpStatus.BAD_REQUEST, "INVALID_POST_ID", "게시글 ID가 올바르지 않습니다."),
-    MISSING_USER_ID(HttpStatus.BAD_REQUEST, "MISSING_USER_ID", "X-User-Id 헤더는 필수입니다."),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE", "지원하지 않는 요청 형식입니다."),
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTHENTICATION_REQUIRED", "유효한 인증 정보가 필요합니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "유효하지 않은 재발급 토큰입니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "요청을 수행할 권한이 없습니다."),
+    DUPLICATE_MEMBER(HttpStatus.CONFLICT, "DUPLICATE_MEMBER", "이미 사용 중인 이메일 또는 닉네임입니다."),
 
     POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "POST_ACCESS_DENIED", "게시글에 접근할 권한이 없습니다."),
 

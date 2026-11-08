@@ -198,28 +198,27 @@ class InteractionIntegrationTests {
     }
 
     @Test
-    void httpValidatesHeadersAndReportReason() throws Exception {
-        mvc.perform(post("/posts/{id}/likes", post.getId())).andExpect(status().isBadRequest());
+    void httpValidatesReportReason() throws Exception {
         for (String json : new String[]{"{}", "{\"reason\":\"   \"}",
                 "{\"reason\":\"" + "a".repeat(256) + "\"}"}) {
-            mvc.perform(post("/comments/{id}/reports", comment.getId()).header("X-User-Id", actor.getId())
+            mvc.perform(post("/comments/{id}/reports", comment.getId()).principal(() -> actor.getId().toString())
                     .contentType("application/json").content(json)).andExpect(status().isBadRequest());
         }
     }
 
     @Test
     void httpExposesLikeReportAndApprovalFlow() throws Exception {
-        mvc.perform(post("/posts/{id}/likes", post.getId()).header("X-User-Id", actor.getId()))
+        mvc.perform(post("/posts/{id}/likes", post.getId()).principal(() -> actor.getId().toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.likeCount").value(1));
-        mvc.perform(delete("/posts/{id}/likes", post.getId()).header("X-User-Id", actor.getId()))
+        mvc.perform(delete("/posts/{id}/likes", post.getId()).principal(() -> actor.getId().toString()))
                 .andExpect(status().isNoContent());
-        mvc.perform(post("/comments/{id}/reports", comment.getId()).header("X-User-Id", actor.getId())
+        mvc.perform(post("/comments/{id}/reports", comment.getId()).principal(() -> actor.getId().toString())
                 .contentType("application/json").content("{\"reason\":\"spam\"}"))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.status").value("PENDING"));
         Long id = reportRepository.findAll().getFirst().getId();
-        mvc.perform(post("/reports/{id}/approve", id).header("X-User-Id", owner.getId()))
+        mvc.perform(post("/reports/{id}/approve", id).principal(() -> owner.getId().toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.targetHidden").value(true));
-        mvc.perform(post("/comments/{id}/reports", comment.getId()).header("X-User-Id", actor.getId())
+        mvc.perform(post("/comments/{id}/reports", comment.getId()).principal(() -> actor.getId().toString())
                 .contentType("application/json").content("{\"reason\":\"spam\"}"))
                 .andExpect(status().isConflict());
     }

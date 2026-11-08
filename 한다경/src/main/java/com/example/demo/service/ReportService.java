@@ -38,7 +38,6 @@ public class ReportService {
         return ReportResponse.from(reports.saveAndFlush(Report.forComment(member, comment, request.reason())));
     }
 
-    // Assignment API: administrator authorization will be added with authentication.
     public ReportResponse approve(Long reportId, Long userId) {
         access.memberForUpdate(userId);
         access.validId(reportId);

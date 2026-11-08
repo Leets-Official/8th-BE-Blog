@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 @RestController
 public class PostController implements PostControllerDocs {
@@ -38,39 +39,39 @@ public class PostController implements PostControllerDocs {
     @GetMapping("/posts/{postId}")
     public PostResponse findPost(
             @PathVariable Long postId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            Principal principal
     ) {
-        return postService.findPost(postId, userId);
+        return postService.findPost(postId, principal == null ? null : Long.valueOf(principal.getName()));
     }
 
     @Override
     @PostMapping("/posts")
     public ResponseEntity<PostResponse> createPost(
-            @RequestHeader("X-User-Id") Long userId,
+            Principal principal,
             @Valid @RequestBody PostCreateRequest request
     ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(postService.createPost(userId, request));
+                .body(postService.createPost(Long.valueOf(principal.getName()), request));
     }
 
     @Override
     @PutMapping("/posts/{postId}")
     public PostResponse updatePost(
             @PathVariable Long postId,
-            @RequestHeader("X-User-Id") Long userId,
+            Principal principal,
             @Valid @RequestBody PostUpdateRequest request
     ) {
-        return postService.updatePost(postId, userId, request);
+        return postService.updatePost(postId, Long.valueOf(principal.getName()), request);
     }
 
     @Override
     @DeleteMapping("/posts/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
-            @RequestHeader("X-User-Id") Long userId
+            Principal principal
     ) {
-        postService.deletePost(postId, userId);
+        postService.deletePost(postId, Long.valueOf(principal.getName()));
 
         return ResponseEntity.noContent().build();
     }

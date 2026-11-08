@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -69,12 +70,14 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ErrorResponse handleMissingHeader(MissingRequestHeaderException e) {
-        if ("X-User-Id".equals(e.getHeaderName())) {
-            return ErrorResponse.from(ErrorCode.MISSING_USER_ID);
-        }
-
+    public ErrorResponse handleMissingHeader() {
         return ErrorResponse.from(ErrorCode.INVALID_INPUT);
+    }
+
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ErrorResponse handleUnsupportedMediaType() {
+        return ErrorResponse.from(ErrorCode.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
