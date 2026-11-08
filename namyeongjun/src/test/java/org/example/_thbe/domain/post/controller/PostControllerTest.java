@@ -13,6 +13,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import java.time.LocalDate;
 import java.util.List;
 
+import org.example._thbe.domain.member.enums.MemberRole;
 import org.example._thbe.domain.member.error.MemberErrorCode;
 import org.example._thbe.domain.post.dto.PostCreateResponse;
 import org.example._thbe.domain.post.dto.PostListResponse;
@@ -22,6 +23,7 @@ import org.example._thbe.domain.post.dto.PostUpdateResponse;
 import org.example._thbe.domain.post.error.PostErrorCode;
 import org.example._thbe.domain.post.service.PostService;
 import org.example._thbe.global.code.SuccessCode;
+import org.example._thbe.global.config.RestDocsSecurityConfig;
 import org.example._thbe.global.exception.CustomException;
 import org.example._thbe.global.exception.GlobalExceptionHandler;
 import org.example._thbe.global.restdocs.ApiSpec;
@@ -38,7 +40,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(PostController.class)
 @AutoConfigureRestDocs
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, RestDocsSecurityConfig.class})
 class PostControllerTest extends RestDocsSupport {
 
     @MockitoBean PostService postService;
@@ -47,28 +49,28 @@ class PostControllerTest extends RestDocsSupport {
 
     private static final ApiSpec GET_POST = ApiSpec
             .of(TAG, "게시글 조회", "사용자는 게시글 상세 내용을 조회할 수 있습니다.")
+            .authRequired()
             .pathParam("postId", "게시글 ID");
 
     private static final ApiSpec LIST_POSTS = ApiSpec
-            .of(TAG, "게시글 목록 조회", "사용자는 게시글 목록을 조회할 수 있습니다.");
+            .of(TAG, "게시글 목록 조회", "사용자는 게시글 목록을 조회할 수 있습니다.")
+            .authRequired();
 
     private static final ApiSpec CREATE_POST = ApiSpec
-            .of(TAG, "게시글 생성", "사용자는 게시글을 생성할 수 있습니다.")
-            .queryParam("memberId", "작성자 ID")
+            .of(TAG, "게시글 생성", "로그인한 사용자는 게시글을 생성할 수 있습니다.")
+            .authRequired()
             .request("PostCreateRequest", titleContentFields("제목", "내용"));
 
     private static final ApiSpec UPDATE_POST = ApiSpec
-            .of(TAG, "게시글 수정", "사용자는 자신이 작성한 게시글을 수정할 수 있습니다.")
+            .of(TAG, "게시글 수정", "로그인한 사용자는 자신이 작성한 게시글을 수정할 수 있습니다.")
+            .authRequired()
             .pathParam("postId", "게시글 ID")
-            .queryParam("memberId", "요청자 ID")
             .request("PostUpdateRequest", titleContentFields("수정할 제목", "수정할 내용"));
 
     private static final ApiSpec DELETE_POST = ApiSpec
-            .of(TAG, "게시글 삭제", "사용자는 자신이 작성한 게시글을 삭제할 수 있습니다.")
-            .pathParam("postId", "게시글 ID")
-            .queryParam("memberId", "요청자 ID");
-
-
+            .of(TAG, "게시글 삭제", "로그인한 사용자는 자신이 작성한 게시글을 삭제할 수 있습니다.")
+            .authRequired()
+            .pathParam("postId", "게시글 ID");
 
     private static final LocalDate DATE = LocalDate.of(2026, 10, 31);
 
@@ -91,7 +93,6 @@ class PostControllerTest extends RestDocsSupport {
             {"title":"%s","content":"안녕하세요"}
             """.formatted("가".repeat(256));
 
-
     @Test
     void getPostSuccess() throws Exception {
         given(postService.getPost(1L))
@@ -109,8 +110,6 @@ class PostControllerTest extends RestDocsSupport {
         expectError(requestGet(999L), PostErrorCode.POST_NOT_FOUND, GET_POST);
     }
 
-
-
     @Test
     void getPostListSuccess() throws Exception {
         given(postService.getPostList()).willReturn(new PostListResponse(List.of(
@@ -126,7 +125,6 @@ class PostControllerTest extends RestDocsSupport {
                         fieldWithPath("data.posts[].writer").type(JsonFieldType.STRING).description("작성자 닉네임"),
                         fieldWithPath("data.posts[].createdDate").type(JsonFieldType.STRING).description("작성일 (yyyy-MM-dd)")));
     }
-
 
     @Test
     void createPostSuccess() throws Exception {
@@ -164,8 +162,6 @@ class PostControllerTest extends RestDocsSupport {
 
         expectError(requestCreate(999L, BODY_CREATE), MemberErrorCode.MEMBER_NOT_FOUND, CREATE_POST);
     }
-
-
 
     @Test
     void updatePostSuccess() throws Exception {
@@ -220,8 +216,6 @@ class PostControllerTest extends RestDocsSupport {
         expectError(requestUpdate(1L, 2L, BODY_UPDATE), PostErrorCode.NOT_MY_POST, UPDATE_POST);
     }
 
-
-
     @Test
     void deletePostSuccess() throws Exception {
         expectSuccess(requestDelete(1L, 1L), SuccessCode.COMMON_OK, DELETE_POST.success());
@@ -251,35 +245,34 @@ class PostControllerTest extends RestDocsSupport {
         expectError(requestDelete(1L, 2L), PostErrorCode.NOT_MY_POST, DELETE_POST);
     }
 
-
     private ResultActions requestGet(long postId) throws Exception {
-        return mockMvc.perform(get("/posts/{postId}", postId));
+        return mockMvc.perform(get("/posts/{postId}", postId)
+                .with(loginAs(1L, MemberRole.MEMBER)));
     }
 
     private ResultActions requestList() throws Exception {
-        return mockMvc.perform(get("/posts"));
+        return mockMvc.perform(get("/posts")
+                .with(loginAs(1L, MemberRole.MEMBER)));
     }
 
     private ResultActions requestCreate(long memberId, String body) throws Exception {
         return mockMvc.perform(post("/posts")
-                .queryParam("memberId", String.valueOf(memberId))
+                .with(loginAs(memberId, MemberRole.MEMBER))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
     }
 
     private ResultActions requestUpdate(long postId, long memberId, String body) throws Exception {
         return mockMvc.perform(patch("/posts/{postId}", postId)
-                .queryParam("memberId", String.valueOf(memberId))
+                .with(loginAs(memberId, MemberRole.MEMBER))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
     }
 
     private ResultActions requestDelete(long postId, long memberId) throws Exception {
         return mockMvc.perform(delete("/posts/{postId}", postId)
-                .queryParam("memberId", String.valueOf(memberId)));
+                .with(loginAs(memberId, MemberRole.MEMBER)));
     }
-
-
 
     private static FieldDescriptor[] titleContentFields(String titleDesc, String contentDesc) {
         return new FieldDescriptor[]{

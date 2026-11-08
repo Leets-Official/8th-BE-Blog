@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example._thbe.domain.member.enums.MemberRole;
 import org.example._thbe.global.entity.BaseTimeEntity;
 
 @Entity @Getter
@@ -23,14 +24,19 @@ public class Member extends BaseTimeEntity {
     @Column(name = "email",length = 255, nullable = false, unique = true)
     private String email;
 
-    public Member(String name,String password,String email) {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", length = 255, nullable = false)
+    private MemberRole role;
+
+    public Member(String name,String password,String email,MemberRole role) {
         this.nickname = name;
         this.password = password;
         this.email = email;
+        this.role =role;
     }
 
-    public static Member create(String name,String password,String email) {
-        return new Member(name,password,email);
+    public static Member create(String name,String password,String email,MemberRole role) {
+        return new Member(name,password,email,role);
     }
 
     public void updatePassword(String password) {

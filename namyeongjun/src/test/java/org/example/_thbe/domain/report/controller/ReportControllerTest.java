@@ -10,6 +10,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 
 import java.util.Arrays;
 
+import org.example._thbe.domain.member.enums.MemberRole;
 import org.example._thbe.domain.member.error.MemberErrorCode;
 import org.example._thbe.domain.post.error.PostErrorCode;
 import org.example._thbe.domain.report.dto.ReportCreateResponse;
@@ -17,6 +18,7 @@ import org.example._thbe.domain.report.enums.ReportContentType;
 import org.example._thbe.domain.report.error.ReportErrorCode;
 import org.example._thbe.domain.report.service.ReportService;
 import org.example._thbe.global.code.SuccessCode;
+import org.example._thbe.global.config.RestDocsSecurityConfig;
 import org.example._thbe.global.exception.CustomException;
 import org.example._thbe.global.exception.GlobalExceptionHandler;
 import org.example._thbe.global.restdocs.ApiSpec;
@@ -32,21 +34,19 @@ import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(ReportController.class)
 @AutoConfigureRestDocs
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, RestDocsSecurityConfig.class})
 class ReportControllerTest extends RestDocsSupport {
 
     @MockitoBean ReportService reportService;
-
-
 
     private static final String TAG = "Report";
     private static final String CONTENT_TYPES = Arrays.toString(ReportContentType.values());
 
     private static final ApiSpec CREATE_REPORT = ApiSpec
             .of(TAG, "신고 접수",
-                    "사용자는 컨텐츠를 신고할 수 있습니다. 이미 신고한 대상이나 자신의 컨텐츠는 신고할 수 없으며, "
+                    "로그인한 사용자는 컨텐츠를 신고할 수 있습니다. 이미 신고한 대상이나 자신의 컨텐츠는 신고할 수 없으며, "
                             + "동일 컨텐츠의 신고가 일정 횟수 이상 쌓이면 자동으로 승인됩니다.")
-            .queryParam("userId", "신고자 ID")
+            .authRequired()
             .request("ReportCreateRequest",
                     fieldWithPath("reason").type(JsonFieldType.STRING).description("신고 사유 (필수, 공백 불가)"),
                     fieldWithPath("contentType").type(JsonFieldType.STRING).description("신고 대상 타입 (필수). " + CONTENT_TYPES),
@@ -54,11 +54,9 @@ class ReportControllerTest extends RestDocsSupport {
 
     private static final ApiSpec DELETE_REPORT = ApiSpec
             .of(TAG, "신고 취소",
-                    "사용자는 자신이 접수한 신고를 취소할 수 있습니다. 이미 승인 또는 반려된 신고는 취소할 수 없습니다.")
-            .pathParam("reportId", "신고 ID")
-            .queryParam("userId", "신고자 ID");
-
-
+                    "로그인한 사용자는 자신이 접수한 신고를 취소할 수 있습니다. 이미 승인 또는 반려된 신고는 취소할 수 없습니다.")
+            .authRequired()
+            .pathParam("reportId", "신고 ID");
 
     private static final String BODY_CREATE = """
             {"reason":"욕설 및 비방","contentType":"POST","contentId":10}
@@ -78,8 +76,6 @@ class ReportControllerTest extends RestDocsSupport {
     private static final String BODY_EMPTY = """
             {}
             """;
-
-
 
     @Test
     void createReportSuccess() throws Exception {
@@ -153,8 +149,6 @@ class ReportControllerTest extends RestDocsSupport {
         expectError(requestCreate(999L, BODY_CREATE), MemberErrorCode.MEMBER_NOT_FOUND, CREATE_REPORT);
     }
 
-
-
     @Test
     void deleteReportSuccess() throws Exception {
         expectSuccess(requestDelete(1L, 1L), SuccessCode.COMMON_OK, DELETE_REPORT.success());
@@ -184,17 +178,15 @@ class ReportControllerTest extends RestDocsSupport {
         expectError(requestDelete(1L, 1L), ReportErrorCode.REPORT_ALREADY_HANDLED, DELETE_REPORT);
     }
 
-
-
     private ResultActions requestCreate(long userId, String body) throws Exception {
         return mockMvc.perform(post("/reports")
-                .queryParam("userId", String.valueOf(userId))
+                .with(loginAs(userId, MemberRole.MEMBER))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
     }
 
     private ResultActions requestDelete(long reportId, long userId) throws Exception {
         return mockMvc.perform(delete("/reports/{reportId}", reportId)
-                .queryParam("userId", String.valueOf(userId)));
+                .with(loginAs(userId, MemberRole.MEMBER)));
     }
 }

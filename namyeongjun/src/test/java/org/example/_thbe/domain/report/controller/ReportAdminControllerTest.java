@@ -9,6 +9,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import java.util.Arrays;
 import java.util.List;
 
+import org.example._thbe.domain.member.enums.MemberRole;
 import org.example._thbe.domain.post.error.PostErrorCode;
 import org.example._thbe.domain.report.dto.ReportListResponse;
 import org.example._thbe.domain.report.dto.ReportListResponse.ReportListDetail;
@@ -17,6 +18,7 @@ import org.example._thbe.domain.report.enums.ReportStatus;
 import org.example._thbe.domain.report.error.ReportErrorCode;
 import org.example._thbe.domain.report.service.ReportAdminService;
 import org.example._thbe.global.code.SuccessCode;
+import org.example._thbe.global.config.RestDocsSecurityConfig;
 import org.example._thbe.global.exception.CustomException;
 import org.example._thbe.global.exception.GlobalExceptionHandler;
 import org.example._thbe.global.restdocs.ApiSpec;
@@ -31,32 +33,31 @@ import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(ReportAdminController.class)
 @AutoConfigureRestDocs
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, RestDocsSecurityConfig.class})
 class ReportAdminControllerTest extends RestDocsSupport {
 
     @MockitoBean ReportAdminService reportAdminService;
-
-
 
     private static final String TAG = "Report Admin";
     private static final String CONTENT_TYPES = Arrays.toString(ReportContentType.values());
     private static final String STATUSES = Arrays.toString(ReportStatus.values());
 
     private static final ApiSpec GET_REPORT_LIST = ApiSpec
-            .of(TAG, "신고 목록 조회", "관리자는 신고 상태별로 신고 목록을 조회할 수 있습니다.")
+            .of(TAG, "신고 목록 조회", "관리자는 신고 상태별로 신고 목록을 조회할 수 있습니다. (ADMIN 권한 필요)")
+            .authRequired()
             .queryParam("status", "조회할 신고 상태 (필수). " + STATUSES);
 
     private static final ApiSpec APPROVE_REPORT = ApiSpec
             .of(TAG, "신고 승인",
                     "관리자는 신고를 승인할 수 있습니다. 승인하면 신고 대상 컨텐츠가 삭제되고, "
-                            + "같은 컨텐츠에 접수된 다른 신고도 함께 승인 처리됩니다.")
+                            + "같은 컨텐츠에 접수된 다른 신고도 함께 승인 처리됩니다. (ADMIN 권한 필요)")
+            .authRequired()
             .pathParam("reportId", "신고 ID");
 
     private static final ApiSpec REJECT_REPORT = ApiSpec
-            .of(TAG, "신고 반려", "관리자는 신고를 반려할 수 있습니다.")
+            .of(TAG, "신고 반려", "관리자는 신고를 반려할 수 있습니다. (ADMIN 권한 필요)")
+            .authRequired()
             .pathParam("reportId", "신고 ID");
-
-
 
     @Test
     void getReportListSuccess() throws Exception {
@@ -74,8 +75,6 @@ class ReportAdminControllerTest extends RestDocsSupport {
                         fieldWithPath("data.reports[].status").type(JsonFieldType.STRING).description("신고 상태. " + STATUSES),
                         fieldWithPath("data.reports[].reporterName").type(JsonFieldType.STRING).description("신고자 닉네임")));
     }
-
-
 
     @Test
     void approveReportSuccess() throws Exception {
@@ -106,8 +105,6 @@ class ReportAdminControllerTest extends RestDocsSupport {
         expectError(requestApprove(3L), PostErrorCode.POST_NOT_FOUND, APPROVE_REPORT);
     }
 
-
-
     @Test
     void rejectReportSuccess() throws Exception {
         expectSuccess(requestReject(1L), SuccessCode.COMMON_OK, REJECT_REPORT.success());
@@ -121,17 +118,19 @@ class ReportAdminControllerTest extends RestDocsSupport {
         expectError(requestReject(999L), ReportErrorCode.REPORT_NOT_FOUND, REJECT_REPORT);
     }
 
-
-
     private ResultActions requestList(ReportStatus status) throws Exception {
-        return mockMvc.perform(get("/api/admin/reports").queryParam("status", status.name()));
+        return mockMvc.perform(get("/api/admin/reports")
+                .with(loginAs(1L, MemberRole.ADMIN))
+                .queryParam("status", status.name()));
     }
 
     private ResultActions requestApprove(long reportId) throws Exception {
-        return mockMvc.perform(post("/api/admin/reports/{reportId}/approve", reportId));
+        return mockMvc.perform(post("/api/admin/reports/{reportId}/approve", reportId)
+                .with(loginAs(1L, MemberRole.ADMIN)));
     }
 
     private ResultActions requestReject(long reportId) throws Exception {
-        return mockMvc.perform(post("/api/admin/reports/{reportId}/reject", reportId));
+        return mockMvc.perform(post("/api/admin/reports/{reportId}/reject", reportId)
+                .with(loginAs(1L, MemberRole.ADMIN)));
     }
 }
