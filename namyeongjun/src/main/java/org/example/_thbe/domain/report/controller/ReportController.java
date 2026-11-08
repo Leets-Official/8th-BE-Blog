@@ -2,7 +2,6 @@ package org.example._thbe.domain.report.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example._thbe.domain.report.controller.docs.ReportControllerDocs;
 import org.example._thbe.domain.report.dto.ReportCreateRequest;
 import org.example._thbe.domain.report.dto.ReportCreateResponse;
 import org.example._thbe.domain.report.service.ReportService;
