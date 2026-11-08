@@ -15,18 +15,33 @@ public class InteractionAccess {
 
     // Service transactions serialize requests made by the same member.
     public Member memberForUpdate(Long id) {
-        if (id == null || id <= 0) {
-            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
-        }
+        requireId(id, ErrorCode.MEMBER_NOT_FOUND);
         return members.findActiveForUpdate(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
+    Member activeMember(Long id) {
+        requireId(id, ErrorCode.MEMBER_NOT_FOUND);
+        return members.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
     public Post readablePost(Long id, Long memberId) {
-        validId(id);
-        Post post = posts.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-        checkPost(post, memberId);
+        return readablePost(id, memberId, ErrorCode.INVALID_INPUT);
+    }
+
+    Post readablePost(Long id, Long memberId, ErrorCode invalidIdError) {
+        Post post = findPost(id, invalidIdError);
+        requireReadable(post, memberId);
+        return post;
+    }
+
+    Post ownedPost(Long id, Long memberId) {
+        Post post = findPost(id, ErrorCode.INVALID_POST_ID);
+        requireActive(post);
+        if (!post.isOwnedBy(memberId)) {
+            throw new BusinessException(ErrorCode.POST_ACCESS_DENIED);
+        }
         return post;
     }
 
@@ -40,22 +55,36 @@ public class InteractionAccess {
         if (comment.isHidden()) {
             throw new BusinessException(ErrorCode.COMMENT_ACCESS_DENIED);
         }
-        checkPost(comment.getPost(), memberId);
+        requireReadable(comment.getPost(), memberId);
         return comment;
     }
 
-    private void checkPost(Post post, Long memberId) {
-        if (post.isDeleted()) {
-            throw new BusinessException(ErrorCode.POST_DELETED);
-        }
+    private Post findPost(Long id, ErrorCode invalidIdError) {
+        requireId(id, invalidIdError);
+        return posts.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+    }
+
+    private void requireReadable(Post post, Long memberId) {
+        requireActive(post);
         if (post.isHidden() || (post.isPrivate() && !post.isOwnedBy(memberId))) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED);
         }
     }
 
+    private void requireActive(Post post) {
+        if (post.isDeleted()) {
+            throw new BusinessException(ErrorCode.POST_DELETED);
+        }
+    }
+
     public void validId(Long id) {
+        requireId(id, ErrorCode.INVALID_INPUT);
+    }
+
+    private void requireId(Long id, ErrorCode invalidIdError) {
         if (id == null || id <= 0) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(invalidIdError);
         }
     }
 }
