@@ -1,4 +1,4 @@
 package org.example._thbe.domain.auth.dto;
 
-public class AuthRefreshRequest {
+public record AuthRefreshRequest(String refreshToken) {
 }

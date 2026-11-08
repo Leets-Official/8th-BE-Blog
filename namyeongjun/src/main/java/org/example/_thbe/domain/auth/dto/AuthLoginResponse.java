@@ -1,4 +1,4 @@
 package org.example._thbe.domain.auth.dto;
 
-public class AuthLoginResponse {
+public record AuthLoginResponse(String accessToken,Long accessExp,String refreshToken,Long refreshExp) {
 }

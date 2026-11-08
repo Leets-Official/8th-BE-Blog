@@ -1,4 +1,5 @@
 package org.example._thbe.domain.auth.dto;
 
-public class AuthLoginRequest {
+
+public record AuthLoginRequest(String email,String password) {
 }
