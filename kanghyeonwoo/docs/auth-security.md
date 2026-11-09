@@ -66,3 +66,16 @@ set +a
 ```
 
 프런트엔드 완료 화면은 별도로 준비해야 한다. `KAKAO_FRONTEND_URL`에 아무 페이지나 지정하면 리다이렉트 이후 코드 교환·닉네임 가입을 완료할 수 없다.
+
+## 코드 품질 검사
+
+프로젝트 디렉터리에서 다음 명령을 사용한다. 포매터는 프로젝트와 같은 Java 21로 실행되며 별도 전역 설치가 필요 없다.
+
+```bash
+./gradlew javaFormat       # 공백 4칸 들여쓰기·줄바꿈·미사용 import 자동 정리
+./gradlew javaFormatCheck  # 자동 수정 없이 포맷 검사
+./gradlew pmdMain pmdTest  # 설정된 정적 분석 규칙으로 소스·테스트 검사
+./gradlew check           # 포맷 검사 + PMD + 전체 테스트
+```
+
+포매터는 google-java-format 1.24.0 AOSP이며, PMD 7.10.0 규칙은 `config/pmd/ruleset.xml`에 있다. PMD는 잘못된 null 검사, 리소스 누수, equals/hashCode 불일치, finally 반환, 잘못된 반복문·switch, 불필요한 import를 검사한다. 정적 분석 통과는 런타임 오류가 없다는 보장은 아니다.
