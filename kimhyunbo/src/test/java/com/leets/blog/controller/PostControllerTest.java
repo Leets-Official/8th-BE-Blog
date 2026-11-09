@@ -1,10 +1,12 @@
 package com.leets.blog.controller;
 
+import com.leets.blog.global.security.JwtProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,11 +31,22 @@ class PostControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private ResultActions createPost(String title, String content, Long authorId) throws Exception {
+    @Autowired
+    private JwtProvider jwtProvider;
+
+    // 로그인 과정 없이, 해당 회원의 Access Token을 바로 만들어 요청 헤더에 넣는다.
+    private String bearer(long memberId) {
+        return "Bearer " + jwtProvider.createAccessToken(memberId);
+    }
+
+    private ResultActions createPost(String title, String content, long memberId) throws Exception {
         String body = """
-                {"title": %s, "content": %s, "authorId": %s}
-                """.formatted(quote(title), quote(content), authorId);
-        return mockMvc.perform(post("/posts").contentType(MediaType.APPLICATION_JSON).content(body));
+                {"title": %s, "content": %s}
+                """.formatted(quote(title), quote(content));
+        return mockMvc.perform(post("/posts")
+                .header(HttpHeaders.AUTHORIZATION, bearer(memberId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 
     private long createPostAndGetId(String title) throws Exception {
@@ -46,7 +59,7 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("게시글을 작성하면 201과 S201 코드, 작성된 게시글을 반환한다")
+    @DisplayName("게시글을 작성하면 201과 S201 코드, 로그인한 회원이 작성자인 게시글을 반환한다")
     void createPost() throws Exception {
         createPost("3주차 과제", "본문입니다.", AUTHOR_ID)
                 .andExpect(status().isCreated())
@@ -55,6 +68,32 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.data.title").value("3주차 과제"))
                 .andExpect(jsonPath("$.data.authorId").value(AUTHOR_ID))
                 .andExpect(jsonPath("$.data.createdAt").exists());
+    }
+
+    @Test
+    @DisplayName("토큰 없이 게시글을 작성하면 401과 AUTH4010을 반환한다")
+    void createPostWithoutToken() throws Exception {
+        mockMvc.perform(post("/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"title": "제목", "content": "본문"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("AUTH4010"));
+    }
+
+    @Test
+    @DisplayName("잘못된 토큰으로 게시글을 작성하면 401과 AUTH4012를 반환한다")
+    void createPostWithInvalidToken() throws Exception {
+        mockMvc.perform(post("/posts")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer invalid.token.value")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"title": "제목", "content": "본문"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH4012"));
     }
 
     @Test
@@ -71,13 +110,15 @@ class PostControllerTest {
     @Test
     @DisplayName("요청 본문이 없으면 400과 COMMON400_BODY를 반환한다")
     void createPostWithoutBody() throws Exception {
-        mockMvc.perform(post("/posts").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/posts")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON400_BODY"));
     }
 
     @Test
-    @DisplayName("존재하지 않는 회원으로 작성하면 404와 MEMBER4001을 반환한다")
+    @DisplayName("존재하지 않는 회원의 토큰으로 작성하면 404와 MEMBER4001을 반환한다")
     void createPostWithUnknownMember() throws Exception {
         createPost("제목", "본문", 999L)
                 .andExpect(status().isNotFound())
@@ -85,7 +126,7 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("목록을 조회하면 최신순으로 반환하고, keyword로 제목을 검색할 수 있다")
+    @DisplayName("목록은 로그인 없이 조회할 수 있고, 최신순으로 반환하며 keyword로 제목을 검색할 수 있다")
     void getPosts() throws Exception {
         createPostAndGetId("REST API 설계");
         createPostAndGetId("JPA 엔티티");
@@ -112,7 +153,7 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("게시글을 상세 조회하면 200과 상세 내용을 반환한다")
+    @DisplayName("게시글은 로그인 없이 상세 조회할 수 있다")
     void getPost() throws Exception {
         long postId = createPostAndGetId("상세 조회");
 
@@ -148,9 +189,10 @@ class PostControllerTest {
         long postId = createPostAndGetId("수정 전");
 
         mockMvc.perform(patch("/posts/{postId}", postId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"authorId": 101, "title": "수정 후", "content": "수정된 본문"}
+                                {"title": "수정 후", "content": "수정된 본문"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("S200"))
@@ -164,10 +206,11 @@ class PostControllerTest {
         long postId = createPostAndGetId("남의 글");
 
         mockMvc.perform(patch("/posts/{postId}", postId)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(OTHER_MEMBER_ID))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"authorId": %d, "title": "수정 시도", "content": "수정 시도"}
-                                """.formatted(OTHER_MEMBER_ID)))
+                                {"title": "수정 시도", "content": "수정 시도"}
+                                """))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("POST4003"));
     }
@@ -177,7 +220,7 @@ class PostControllerTest {
     void deletePost() throws Exception {
         long postId = createPostAndGetId("삭제할 글");
 
-        mockMvc.perform(delete("/posts/{postId}", postId).param("authorId", String.valueOf(AUTHOR_ID)))
+        mockMvc.perform(delete("/posts/{postId}", postId).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data.deletedPostId").value(postId));
@@ -192,7 +235,7 @@ class PostControllerTest {
     void deletePostByOtherMember() throws Exception {
         long postId = createPostAndGetId("남의 글");
 
-        mockMvc.perform(delete("/posts/{postId}", postId).param("authorId", String.valueOf(OTHER_MEMBER_ID)))
+        mockMvc.perform(delete("/posts/{postId}", postId).header(HttpHeaders.AUTHORIZATION, bearer(OTHER_MEMBER_ID)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("POST4003"));
     }
@@ -202,7 +245,7 @@ class PostControllerTest {
     void hidePost() throws Exception {
         long postId = createPostAndGetId("숨길 글");
 
-        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(AUTHOR_ID)))
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data.status").value("HIDDEN"));
@@ -220,9 +263,9 @@ class PostControllerTest {
     @DisplayName("이미 숨긴 게시글을 다시 숨기면 409와 POST4091을 반환한다")
     void hidePostTwice() throws Exception {
         long postId = createPostAndGetId("숨길 글");
-        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(AUTHOR_ID)));
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)));
 
-        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(AUTHOR_ID)))
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("POST4091"));
     }
@@ -232,7 +275,7 @@ class PostControllerTest {
     void hidePostByOtherMember() throws Exception {
         long postId = createPostAndGetId("남의 글");
 
-        mockMvc.perform(patch("/posts/{postId}/hide", postId).param("authorId", String.valueOf(OTHER_MEMBER_ID)))
+        mockMvc.perform(patch("/posts/{postId}/hide", postId).header(HttpHeaders.AUTHORIZATION, bearer(OTHER_MEMBER_ID)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("POST4003"));
     }
@@ -240,7 +283,7 @@ class PostControllerTest {
     @Test
     @DisplayName("지원하지 않는 메서드로 요청하면 405와 COMMON405를 반환한다")
     void methodNotAllowed() throws Exception {
-        mockMvc.perform(post("/posts/1"))
+        mockMvc.perform(post("/posts/1").header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.code").value("COMMON405"));
     }

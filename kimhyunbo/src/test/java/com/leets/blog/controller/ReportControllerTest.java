@@ -3,6 +3,7 @@ package com.leets.blog.controller;
 import com.leets.blog.entity.Comment;
 import com.leets.blog.entity.Member;
 import com.leets.blog.entity.Post;
+import com.leets.blog.global.security.JwtProvider;
 import com.leets.blog.repository.CommentRepository;
 import com.leets.blog.repository.MemberRepository;
 import com.leets.blog.repository.PostRepository;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -34,6 +36,9 @@ class ReportControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
+    private JwtProvider jwtProvider;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -41,6 +46,10 @@ class ReportControllerTest {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    private String bearer(long memberId) {
+        return "Bearer " + jwtProvider.createAccessToken(memberId);
+    }
 
     // 댓글 작성 API가 없으므로 게시글과 댓글은 저장소로 직접 만든다.
     private Post savePost() {
@@ -53,12 +62,13 @@ class ReportControllerTest {
         return commentRepository.save(Comment.builder().post(post).member(author).content("댓글").build());
     }
 
-    private ResultActions report(String url, Long targetId, Long reporterId) throws Exception {
+    private ResultActions report(String url, Long targetId, long reporterId) throws Exception {
         return mockMvc.perform(post(url, targetId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(reporterId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"reporterId": %d, "reason": "부적절한 내용"}
-                        """.formatted(reporterId)));
+                        {"reason": "부적절한 내용"}
+                        """));
     }
 
     private long reportPostAndGetId(Long postId) throws Exception {
@@ -68,7 +78,7 @@ class ReportControllerTest {
     }
 
     @Test
-    @DisplayName("게시글을 신고하면 201과 PENDING 상태의 신고를 반환한다")
+    @DisplayName("게시글을 신고하면 201과, 로그인한 회원이 신고자인 PENDING 상태의 신고를 반환한다")
     void reportPost() throws Exception {
         Post post = savePost();
 
@@ -79,6 +89,20 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$.data.targetId").value(post.getId()))
                 .andExpect(jsonPath("$.data.reporterId").value(REPORTER_ID))
                 .andExpect(jsonPath("$.data.status").value("PENDING"));
+    }
+
+    @Test
+    @DisplayName("토큰 없이 신고하면 401과 AUTH4010을 반환한다")
+    void reportPostWithoutToken() throws Exception {
+        Post post = savePost();
+
+        mockMvc.perform(post("/posts/{postId}/reports", post.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"reason": "부적절한 내용"}
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH4010"));
     }
 
     @Test
@@ -116,9 +140,10 @@ class ReportControllerTest {
         Post post = savePost();
 
         mockMvc.perform(post("/posts/{postId}/reports", post.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(REPORTER_ID))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"reporterId": 102, "reason": " "}
+                                {"reason": " "}
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON400_VALIDATION"))
@@ -153,12 +178,12 @@ class ReportControllerTest {
     void resolveReport() throws Exception {
         long reportId = reportPostAndGetId(savePost().getId());
 
-        mockMvc.perform(patch("/reports/{reportId}/resolve", reportId))
+        mockMvc.perform(patch("/reports/{reportId}/resolve", reportId).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("S200"))
                 .andExpect(jsonPath("$.data.status").value("RESOLVED"));
 
-        mockMvc.perform(patch("/reports/{reportId}/resolve", reportId))
+        mockMvc.perform(patch("/reports/{reportId}/resolve", reportId).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("REPORT4092"));
     }
@@ -166,7 +191,7 @@ class ReportControllerTest {
     @Test
     @DisplayName("존재하지 않는 신고를 처리하면 404와 REPORT4001을 반환한다")
     void resolveReportNotFound() throws Exception {
-        mockMvc.perform(patch("/reports/{reportId}/resolve", 999))
+        mockMvc.perform(patch("/reports/{reportId}/resolve", 999).header(HttpHeaders.AUTHORIZATION, bearer(AUTHOR_ID)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("REPORT4001"));
     }

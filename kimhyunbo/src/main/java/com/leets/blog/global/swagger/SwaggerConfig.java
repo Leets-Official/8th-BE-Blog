@@ -12,6 +12,7 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,9 @@ import java.util.stream.Collectors;
 @Configuration
 public class SwaggerConfig {
 
+    // 컨트롤러의 @SecurityRequirement에서 이 이름으로 인증 방식을 참조한다.
+    public static final String BEARER_AUTH = "bearerAuth";
+
     private static final String ERROR_SCHEMA = "ErrorResponse";
 
     @Bean
@@ -37,19 +41,27 @@ public class SwaggerConfig {
                         .title("Leets 8th BE Blog API")
                         .version("v1")
                         .description("""
-                                게시글 CRUD, 신고, 게시글 숨김 API 문서입니다.
+                                회원가입/로그인, 게시글 CRUD, 신고, 게시글 숨김 API 문서입니다.
 
                                 - 모든 응답은 `success`, `code`, `message`, `data` 형식의 공통 응답으로 내려갑니다.
-                                - 로그인 기능이 없어서 작성자/신고자는 요청에 회원 ID로 전달합니다.
-                                - 서버를 켜면 테스트용 회원 **101**, **102**가 미리 등록되어 있습니다.
+                                - 🔒 표시가 있는 API는 로그인이 필요합니다.
+                                  `POST /login`으로 받은 `accessToken`을 오른쪽 위 **Authorize** 버튼에 넣고 호출하세요.
+                                - 서버를 켜면 테스트용 회원이 미리 등록되어 있습니다.
+                                  (`hyunbo@leets.com` / `leets@leets.com`, 비밀번호 모두 `password1234`)
                                 """))
-                .components(new Components().addSchemas(ERROR_SCHEMA, errorSchema()));
+                .components(new Components()
+                        .addSecuritySchemes(BEARER_AUTH, new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("로그인으로 받은 Access Token을 입력하세요. (Bearer는 빼고 토큰만)"))
+                        .addSchemas(ERROR_SCHEMA, errorSchema()));
     }
 
     // 문서에 보이는 그룹 순서를 정한다. (그룹 이름과 설명은 각 컨트롤러의 @Tag에 있다)
     @Bean
     public OpenApiCustomizer tagOrderCustomizer() {
-        List<String> order = List.of("게시글", "신고", "1주차 과제");
+        List<String> order = List.of("인증", "게시글", "신고", "1주차 과제");
         return openApi -> openApi.getTags().sort(Comparator.comparingInt(tag -> order.indexOf(tag.getName())));
     }
 

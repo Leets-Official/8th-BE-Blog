@@ -16,7 +16,11 @@ public enum SuccessCode {
     POST_HIDDEN(HttpStatus.OK, "S200", "게시글이 숨김 처리되었습니다."),
 
     REPORT_CREATED(HttpStatus.CREATED, "S201", "신고가 접수되었습니다."),
-    REPORT_RESOLVED(HttpStatus.OK, "S200", "신고 처리가 완료되었습니다.");
+    REPORT_RESOLVED(HttpStatus.OK, "S200", "신고 처리가 완료되었습니다."),
+
+    SIGNUP_COMPLETED(HttpStatus.CREATED, "S201", "회원가입이 완료되었습니다."),
+    LOGIN_COMPLETED(HttpStatus.OK, "S200", "로그인이 완료되었습니다."),
+    TOKEN_REISSUED(HttpStatus.OK, "S200", "토큰이 재발급되었습니다.");
 
     private final HttpStatus status;
     private final String code;
