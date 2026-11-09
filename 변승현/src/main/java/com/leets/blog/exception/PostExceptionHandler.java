@@ -1,6 +1,8 @@
 package com.leets.blog.exception;
 
 import com.leets.blog.controller.PostController;
+import com.leets.blog.controller.AuthController;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.leets.blog.controller.ReportController;
 import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +15,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
-@RestControllerAdvice(assignableTypes = {PostController.class, ReportController.class})
+@RestControllerAdvice(assignableTypes = {PostController.class, ReportController.class, AuthController.class})
 public class PostExceptionHandler {
     public record ErrorResponse(int status, String code, String message) {}
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
+        return error(400, "INVALID_INPUT", "요청값이 올바르지 않습니다. 필수 항목과 입력 형식을 확인해주세요.");
+    }
 
     @ExceptionHandler(PostApiException.class)
     public ResponseEntity<ErrorResponse> handleApi(PostApiException e) {
@@ -48,6 +55,13 @@ public class PostExceptionHandler {
                     && violation.getConstraintName() != null
                     && violation.getConstraintName().toLowerCase(Locale.ROOT).contains("uk_report_reporter_")) {
                 return error(409, "DUPLICATE_REPORT", "이미 신고한 대상입니다.");
+            }
+        }
+        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+            if (cause instanceof ConstraintViolationException violation && violation.getConstraintName() != null) {
+                String name = violation.getConstraintName().toLowerCase(Locale.ROOT);
+                if (name.contains("uk_member_email")) return error(409, "DUPLICATE_EMAIL", "이미 가입된 이메일입니다.");
+                if (name.contains("uk_member_nickname")) return error(409, "DUPLICATE_NICKNAME", "이미 사용 중인 닉네임입니다.");
             }
         }
         log.error("데이터 제약조건 위반", e);
