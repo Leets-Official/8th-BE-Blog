@@ -33,7 +33,7 @@ public class SwaggerConfig {
                                 게시글 / 댓글 / 신고 API 문서입니다.
 
                                 - 모든 응답은 공통 형식 `{ isSuccess, code, message, data }` 으로 내려갑니다.
-                                - 인증 도입 전까지 요청자는 `userId` 로 식별합니다. (회원가입 후 사용하세요)
+                                - 요청자는 요청 값(userId)이 아니라 Access Token 으로 식별합니다. 먼저 회원가입과 로그인을 하세요.
                                 - 로그인으로 받은 Access Token 을 우측 상단 Authorize 에 넣으면 인증이 필요한 API 를 호출할 수 있습니다.
                                 - 에러 응답의 `code` 값으로 실패 원인을 구분할 수 있습니다. (예: `REPORT_409_1`)
                                 """))

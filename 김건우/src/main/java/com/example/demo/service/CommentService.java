@@ -25,8 +25,8 @@ public class CommentService {
 
     // 댓글 작성 (채택 기능을 검증하기 위한 최소 API)
     @Transactional
-    public CommentResponse createComment(Long postId, CommentRequest request) {
-        User user = userRepository.findById(request.userId())
+    public CommentResponse createComment(Long postId, Long userId, CommentRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));

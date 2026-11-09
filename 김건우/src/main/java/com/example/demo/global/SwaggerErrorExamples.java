@@ -10,8 +10,6 @@ public final class SwaggerErrorExamples {
     // ---- 공통 입력값 오류 (COMMON_400_x) ----
     public static final String INVALID_BODY = """
             {"isSuccess": false, "code": "COMMON_400_1", "message": "올바르지 않은 입력값입니다.", "data": {"title": "제목을 입력해주세요."}}""";
-    public static final String INVALID_PARAM = """
-            {"isSuccess": false, "code": "COMMON_400_1", "message": "올바르지 않은 입력값입니다.", "data": {"userId": "필수 값입니다."}}""";
     public static final String INVALID_PAGING = """
             {"isSuccess": false, "code": "COMMON_400_1", "message": "올바르지 않은 입력값입니다.", "data": {"size": "size는 1 이상의 숫자여야 합니다."}}""";
     public static final String NO_FIELD_TO_UPDATE = """

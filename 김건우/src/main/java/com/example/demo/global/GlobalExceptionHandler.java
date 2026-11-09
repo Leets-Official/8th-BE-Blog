@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         return ApiResponse.failure(ErrorCode.INVALID_INPUT, Map.of(e.getName(), "숫자여야 합니다."));
     }
 
-    // 삭제 시 ?userId 누락
+    // 필수 쿼리 파라미터 누락
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse<Object>> handleMissingParam(MissingServletRequestParameterException e) {
         return ApiResponse.failure(ErrorCode.INVALID_INPUT, Map.of(e.getParameterName(), "필수 값입니다."));
