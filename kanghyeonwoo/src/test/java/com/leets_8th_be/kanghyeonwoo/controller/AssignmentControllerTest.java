@@ -16,7 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class AssignmentControllerTest {
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
     @DisplayName("GET /api/v2/health 요청 시 ApiResponse envelope으로 감싼 ok 응답을 반환한다")

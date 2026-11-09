@@ -3,12 +3,11 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
+import java.net.URI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v2/auth/kakao")
@@ -44,14 +41,13 @@ public class KakaoController {
     @GetMapping("/start")
     public ResponseEntity<Void> start(HttpServletRequest req) {
         var start = kakao.start();
-        var cookie =
-                ResponseCookie.from("kakao_browser", start.browser())
-                        .httpOnly(true)
-                        .secure(req.isSecure())
-                        .sameSite("Lax")
-                        .path("/api/v2/auth/kakao")
-                        .maxAge(600)
-                        .build();
+        var cookie = ResponseCookie.from("kakao_browser", start.browser())
+                .httpOnly(true)
+                .secure(req.isSecure())
+                .sameSite("Lax")
+                .path("/api/v2/auth/kakao")
+                .maxAge(600)
+                .build();
         return ResponseEntity.status(302)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .location(URI.create(start.url()))
@@ -80,7 +76,9 @@ public class KakaoController {
 
     public record Code(@NotBlank String code) {}
 
-    public record Signup(@NotBlank String signupToken, @NotBlank @Size(max = 50) String nickname) {
+    public record Signup(
+            @NotBlank String signupToken,
+            @NotBlank @Size(max = 50) String nickname) {
         public Signup {
             if (nickname != null) {
                 nickname = nickname.trim();
@@ -100,8 +98,7 @@ public class KakaoController {
             useReturnTypeSchema = true)
     @PostMapping("/exchange")
     public ApiResponse<?> exchange(
-            @Valid @RequestBody Code request,
-            @CookieValue(name = "kakao_browser", required = false) String browser) {
+            @Valid @RequestBody Code request, @CookieValue(name = "kakao_browser", required = false) String browser) {
         return ApiResponse.success(kakao.exchange(request.code(), browser));
     }
 
@@ -117,9 +114,7 @@ public class KakaoController {
             useReturnTypeSchema = true)
     @PostMapping("/signup")
     public ApiResponse<?> signup(
-            @Valid @RequestBody Signup request,
-            @CookieValue(name = "kakao_browser", required = false) String browser) {
-        return ApiResponse.success(
-                kakao.signup(request.signupToken(), browser, request.nickname()));
+            @Valid @RequestBody Signup request, @CookieValue(name = "kakao_browser", required = false) String browser) {
+        return ApiResponse.success(kakao.signup(request.signupToken(), browser, request.nickname()));
     }
 }

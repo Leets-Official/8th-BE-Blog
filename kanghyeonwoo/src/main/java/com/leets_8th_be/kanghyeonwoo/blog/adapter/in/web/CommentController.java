@@ -22,18 +22,14 @@ import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import com.leets_8th_be.kanghyeonwoo.shared.web.PageResponse;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,7 +50,8 @@ public class CommentController {
     private final CreateCommentUseCase createComment;
     private final ManageOwnCommentUseCase ownComment;
 
-    public record CommentWrite(@NotBlank String content, @Positive Long parentId) {}
+    public record CommentWrite(
+            @NotBlank String content, @Positive Long parentId) {}
 
     @ApiErrorCodes({
         INVALID_INPUT_VALUE,
@@ -68,19 +65,13 @@ public class CommentController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/posts/{postId}/comments")
-    public ResponseEntity<?> create(
-            @PathVariable Long postId, @Valid @RequestBody CommentWrite request) {
+    public ResponseEntity<?> create(@PathVariable Long postId, @Valid @RequestBody CommentWrite request) {
         CommentId parentId = request.parentId() == null ? null : new CommentId(request.parentId());
         CreateCommentCommand command =
-                new CreateCommentCommand(
-                        new PostId(postId), currentUser.requireId(), parentId, request.content());
+                new CreateCommentCommand(new PostId(postId), currentUser.requireId(), parentId, request.content());
         CommentView result = createComment.create(command);
         return ResponseEntity.status(201)
-                .body(
-                        ApiResponse.success(
-                                ApiResponseCode.RESOURCE_CREATED,
-                                "댓글이 등록되었습니다.",
-                                toResponse(result)));
+                .body(ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "댓글이 등록되었습니다.", toResponse(result)));
     }
 
     @ApiErrorCodes({
@@ -95,14 +86,9 @@ public class CommentController {
             description = "성공",
             useReturnTypeSchema = true)
     @PatchMapping("/comments/{commentId}")
-    public ApiResponse<?> update(
-            @PathVariable Long commentId, @Valid @RequestBody CommentWrite request) {
+    public ApiResponse<?> update(@PathVariable Long commentId, @Valid @RequestBody CommentWrite request) {
         return ApiResponse.success(
-                toResponse(
-                        ownComment.update(
-                                new CommentId(commentId),
-                                currentUser.requireId(),
-                                request.content())));
+                toResponse(ownComment.update(new CommentId(commentId), currentUser.requireId(), request.content())));
     }
 
     @ApiErrorCodes({
@@ -118,25 +104,20 @@ public class CommentController {
             useReturnTypeSchema = true)
     @DeleteMapping("/comments/{commentId}")
     public ApiResponse<?> delete(@PathVariable Long commentId) {
-        return ApiResponse.success(
-                toResponse(
-                        ownComment.deleteOwn(new CommentId(commentId), currentUser.requireId())));
+        return ApiResponse.success(toResponse(ownComment.deleteOwn(new CommentId(commentId), currentUser.requireId())));
     }
 
     private final GetCommentsUseCase getComments;
 
     @GetMapping("/posts/{postId}/comments")
-    @Operation(
-            summary = "댓글 목록·본문 검색",
-            description = "대댓글은 parentId로 연결합니다. 숨김·삭제 댓글은 목록에서 안내 문구로 표시하고 검색에서는 제외합니다.")
+    @Operation(summary = "댓글 목록·본문 검색", description = "대댓글은 parentId로 연결합니다. 숨김·삭제 댓글은 목록에서 안내 문구로 표시하고 검색에서는 제외합니다.")
     @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, POST_NOT_FOUND})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
             description = "댓글 목록 조회 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<PageResponse<CommentResponse>>> getComments(
-            @Parameter(description = "댓글을 조회할 게시글 ID", example = "1") @PathVariable("postId")
-                    Long postId,
+            @Parameter(description = "댓글을 조회할 게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Parameter(description = "1부터 시작하는 페이지 번호", schema = @Schema(minimum = "1"))
                     @RequestParam(name = "page", defaultValue = "1")
                     int page,
@@ -145,12 +126,9 @@ public class CommentController {
                             schema = @Schema(minimum = "1", maximum = "100", example = "10"))
                     @RequestParam(name = "size", defaultValue = "10")
                     int size,
-            @Parameter(description = "댓글 본문 검색어", example = "질문")
-                    @RequestParam(name = "keyword", required = false)
+            @Parameter(description = "댓글 본문 검색어", example = "질문") @RequestParam(name = "keyword", required = false)
                     String keyword) {
-        CommentPage result =
-                getComments.getComments(
-                        new CommentSearchQuery(new PostId(postId), page, size, keyword));
+        CommentPage result = getComments.getComments(new CommentSearchQuery(new PostId(postId), page, size, keyword));
         return ResponseEntity.ok(ApiResponse.success("댓글 조회가 완료되었습니다.", toResponse(result)));
     }
 
@@ -164,8 +142,7 @@ public class CommentController {
     }
 
     private static CommentResponse toResponse(CommentView view) {
-        CommentStatus status =
-                view.state() == CommentState.ACTIVE ? CommentStatus.ACTIVE : CommentStatus.HIDDEN;
+        CommentStatus status = view.state() == CommentState.ACTIVE ? CommentStatus.ACTIVE : CommentStatus.HIDDEN;
         return new CommentResponse(
                 view.id().value(),
                 view.authorId().value(),

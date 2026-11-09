@@ -69,13 +69,15 @@ set +a
 
 ## 코드 품질 검사
 
-프로젝트 디렉터리에서 다음 명령을 사용한다. 포매터는 프로젝트와 같은 Java 21로 실행되며 별도 전역 설치가 필요 없다.
+프로젝트 디렉터리에서 다음 명령을 사용한다. Spotless Gradle 플러그인으로 포맷을 관리하며 별도 전역 설치가 필요 없다.
 
 ```bash
-./gradlew javaFormat       # 공백 4칸 들여쓰기·줄바꿈·미사용 import 자동 정리
-./gradlew javaFormatCheck  # 자동 수정 없이 포맷 검사
+./gradlew spotlessApply    # 공백 4칸 들여쓰기·줄바꿈·미사용 import 자동 정리
+./gradlew spotlessCheck    # 자동 수정 없이 포맷 검사
 ./gradlew pmdMain pmdTest  # 설정된 정적 분석 규칙으로 소스·테스트 검사
 ./gradlew check           # 포맷 검사 + PMD + 전체 테스트
 ```
 
-포매터는 google-java-format 1.24.0 AOSP이며, PMD 7.10.0 규칙은 `config/pmd/ruleset.xml`에 있다. PMD는 잘못된 null 검사, 리소스 누수, equals/hashCode 불일치, finally 반환, 잘못된 반복문·switch, 불필요한 import를 검사한다. 정적 분석 통과는 런타임 오류가 없다는 보장은 아니다.
+Spotless 8.11.0과 Palantir Java Format 2.102.0을 사용하며, PMD 7.10.0 규칙은 `config/pmd/ruleset.xml`에 있다. PMD는 잘못된 null 검사, 리소스 누수, equals/hashCode 불일치, finally 반환, 잘못된 반복문·switch, 불필요한 import를 검사한다. 정적 분석 통과는 런타임 오류가 없다는 보장은 아니다.
+
+기존 `javaFormat`과 `javaFormatCheck` 명령도 각각 `spotlessApply`, `spotlessCheck`의 별칭으로 유지한다. IDE에서도 Spotless와 같은 포맷을 사용해 저장 시 서로 다른 규칙으로 재정렬되지 않게 한다.

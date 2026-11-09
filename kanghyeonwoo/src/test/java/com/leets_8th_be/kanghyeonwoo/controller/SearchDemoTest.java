@@ -17,7 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("demo")
 @Import(SearchAnalyticsTest.TimeConfiguration.class)
 class SearchDemoTest {
-    @Autowired MockMvc mvc;
+    @Autowired
+    MockMvc mvc;
 
     @Test
     void insertsExampleDataAndShowsTheExpectedRankings() throws Exception {
@@ -34,12 +35,11 @@ class SearchDemoTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("스프링부트"))
                 .andExpect(jsonPath("$.data[1].keyword").value("스프링"));
-        String body =
-                mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
-                        .andExpect(jsonPath("$.data[0].recentSearchCount").value(10))
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString();
+        String body = mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+                .andExpect(jsonPath("$.data[0].recentSearchCount").value(10))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         Number id = com.jayway.jsonpath.JsonPath.read(body, "$.data[0].keywordId");
         mvc.perform(get("/api/v2/search/keywords/" + id + "/stats"))
                 .andExpect(status().isOk())

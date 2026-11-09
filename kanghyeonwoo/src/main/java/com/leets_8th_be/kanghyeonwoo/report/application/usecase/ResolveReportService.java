@@ -14,7 +14,6 @@ import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReporterDirecto
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.Report;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 
@@ -25,10 +24,7 @@ public class ResolveReportService implements ResolveReportUseCase {
     private final Clock clock;
 
     public ResolveReportService(
-            ReporterDirectory reporters,
-            ReportStore reports,
-            ReportTargetPort targets,
-            Clock clock) {
+            ReporterDirectory reporters, ReportStore reports, ReportTargetPort targets, Clock clock) {
         this.reporters = reporters;
         this.reports = reports;
         this.targets = targets;
@@ -39,12 +35,8 @@ public class ResolveReportService implements ResolveReportUseCase {
     public ReportResolutionView resolve(ResolveReportCommand command) {
         if (!reporters.exists(command.processorId())) throw new ReporterNotFound();
         Report pending = reports.findForUpdate(command.reportId()).orElseThrow(ReportNotFound::new);
-        Report resolved =
-                pending.resolve(
-                        command.action(),
-                        command.resolutionReason(),
-                        command.processorId(),
-                        LocalDateTime.now(clock));
+        Report resolved = pending.resolve(
+                command.action(), command.resolutionReason(), command.processorId(), LocalDateTime.now(clock));
         TargetVisibility visibility =
                 resolveTarget(toTargetKind(pending.target()), pending.targetId(), command.action());
         reports.save(resolved);
@@ -58,8 +50,7 @@ public class ResolveReportService implements ResolveReportUseCase {
                 visibility.hidden());
     }
 
-    private TargetVisibility resolveTarget(
-            ReportTargetKind target, Long targetId, ReportAction action) {
+    private TargetVisibility resolveTarget(ReportTargetKind target, Long targetId, ReportAction action) {
         ReportTargetSnapshot current = targets.find(target, targetId).orElse(null);
         if (isDeleted(target, current)) return deletedTarget(action);
         if (action != ReportAction.HIDE) return new TargetVisibility(true, current.hidden());

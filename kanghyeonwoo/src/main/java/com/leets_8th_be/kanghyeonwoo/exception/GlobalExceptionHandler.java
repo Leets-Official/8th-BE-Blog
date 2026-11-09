@@ -2,9 +2,7 @@ package com.leets_8th_be.kanghyeonwoo.exception;
 
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -20,8 +18,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMissingParameter(
-            MissingServletRequestParameterException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleMissingParameter(MissingServletRequestParameterException ex) {
         return errorResponse(ApiResponseCode.INVALID_INPUT_VALUE, "필수 요청 파라미터가 누락되었습니다.");
     }
 
@@ -31,8 +28,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         String errorMessage = ApiResponseCode.INVALID_INPUT_VALUE.getDefaultMessage();
         if (ex.getBindingResult().getFieldError() != null) {
             errorMessage = ex.getBindingResult().getFieldError().getDefaultMessage();
@@ -41,18 +37,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatch(
-            MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return errorResponse(ApiResponseCode.TYPE_MISMATCH);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         ApiResponseCode code =
-                ex.getCause() == null
-                        ? ApiResponseCode.MISSING_REQUEST_BODY
-                        : ApiResponseCode.INVALID_INPUT_VALUE;
+                ex.getCause() == null ? ApiResponseCode.MISSING_REQUEST_BODY : ApiResponseCode.INVALID_INPUT_VALUE;
         return errorResponse(code);
     }
 
@@ -77,8 +69,7 @@ public class GlobalExceptionHandler {
         return errorResponse(responseCode, responseCode.getDefaultMessage());
     }
 
-    private ResponseEntity<ApiResponse<Void>> errorResponse(
-            ApiResponseCode responseCode, String message) {
+    private ResponseEntity<ApiResponse<Void>> errorResponse(ApiResponseCode responseCode, String message) {
         ApiResponse<Void> response = ApiResponse.fail(responseCode, message);
         return ResponseEntity.status(responseCode.getHttpStatus()).body(response);
     }

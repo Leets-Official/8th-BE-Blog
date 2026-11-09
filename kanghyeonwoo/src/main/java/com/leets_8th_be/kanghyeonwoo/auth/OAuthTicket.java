@@ -3,13 +3,14 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
 import java.time.Instant;
 
 @Entity
 @Table(name = "auth_oauth_tickets")
 class OAuthTicket {
-    @Id String hash;
+    @Id
+    String hash;
+
     String kind;
     String browserHash;
     String kakaoId;

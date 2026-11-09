@@ -1,12 +1,9 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,10 +27,7 @@ public class PostUpdateRequest {
     @Size(max = 150, message = "제목은 150자 이내여야 합니다.")
     private String title;
 
-    @Schema(
-            description = "수정할 게시글 본문",
-            example = "수정된 게시글 본문 내용입니다.",
-            requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "수정할 게시글 본문", example = "수정된 게시글 본문 내용입니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "수정할 본문은 필수입니다.")
     private String content;
 }

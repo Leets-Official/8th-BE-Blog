@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

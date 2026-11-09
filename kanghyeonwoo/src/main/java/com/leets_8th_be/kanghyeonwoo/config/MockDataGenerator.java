@@ -1,9 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.config;
 
-import net.datafaker.Faker;
-
 import java.util.Locale;
 import java.util.Random;
+import net.datafaker.Faker;
 
 /** Generates repeatable fixture text; database relationships and states belong to the seeder. */
 public final class MockDataGenerator {

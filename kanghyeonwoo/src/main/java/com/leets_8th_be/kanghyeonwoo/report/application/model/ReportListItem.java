@@ -5,7 +5,6 @@ import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
-
 import java.time.LocalDateTime;
 
 public record ReportListItem(

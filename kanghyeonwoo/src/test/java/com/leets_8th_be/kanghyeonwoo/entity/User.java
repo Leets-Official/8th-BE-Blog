@@ -1,7 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
 import jakarta.persistence.*;
-
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

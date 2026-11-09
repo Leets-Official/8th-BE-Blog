@@ -2,7 +2,6 @@ package com.leets_8th_be.kanghyeonwoo.shared.web;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 
 @Getter

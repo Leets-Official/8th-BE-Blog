@@ -4,13 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
 import java.time.Instant;
 
 @Entity
 @Table(name = "auth_login_sessions")
 class LoginSession {
-    @Id String id;
+    @Id
+    String id;
+
     long userId;
 
     @Column(nullable = false, length = 64)

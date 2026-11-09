@@ -4,7 +4,6 @@ import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.OAUTH_UNA
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -86,22 +85,20 @@ public class KakaoClient {
             form.add("client_secret", secret);
         }
         try {
-            var token =
-                    http.post()
-                            .uri("https://kauth.kakao.com/oauth/token")
-                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                            .body(form)
-                            .retrieve()
-                            .body(JsonNode.class);
+            var token = http.post()
+                    .uri("https://kauth.kakao.com/oauth/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
+                    .retrieve()
+                    .body(JsonNode.class);
             if (token == null || !token.path("access_token").isTextual()) {
                 throw new AuthFailure(UNAUTHORIZED);
             }
-            var user =
-                    http.get()
-                            .uri("https://kapi.kakao.com/v2/user/me")
-                            .headers(h -> h.setBearerAuth(token.get("access_token").asText()))
-                            .retrieve()
-                            .body(JsonNode.class);
+            var user = http.get()
+                    .uri("https://kapi.kakao.com/v2/user/me")
+                    .headers(h -> h.setBearerAuth(token.get("access_token").asText()))
+                    .retrieve()
+                    .body(JsonNode.class);
             if (user == null
                     || !user.path("id").canConvertToLong()
                     || user.path("id").asLong() <= 0) {
@@ -116,8 +113,7 @@ public class KakaoClient {
             }
             return new Identity(user.get("id").asText(), email);
         } catch (RestClientResponseException e) {
-            throw new AuthFailure(
-                    e.getStatusCode().is4xxClientError() ? UNAUTHORIZED : OAUTH_UNAVAILABLE);
+            throw new AuthFailure(e.getStatusCode().is4xxClientError() ? UNAUTHORIZED : OAUTH_UNAVAILABLE);
         } catch (ResourceAccessException e) {
             throw new AuthFailure(OAUTH_UNAVAILABLE);
         }

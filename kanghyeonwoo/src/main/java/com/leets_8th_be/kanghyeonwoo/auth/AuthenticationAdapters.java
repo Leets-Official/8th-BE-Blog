@@ -8,12 +8,10 @@ import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Sessio
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService;
 import com.leets_8th_be.kanghyeonwoo.user.application.contract.Credentials;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.AccountDirectory;
-
+import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
 
 @Configuration
 public class AuthenticationAdapters {
@@ -67,10 +65,7 @@ public class AuthenticationAdapters {
 
             @Override
             public void save(Session session) {
-                var row =
-                        repository
-                                .findById(session.id)
-                                .orElseGet(() -> new LoginSession(session.id, session.userId));
+                var row = repository.findById(session.id).orElseGet(() -> new LoginSession(session.id, session.userId));
                 row.refreshHash = session.refreshHash;
                 row.expiresAt = session.expiresAt;
                 row.revoked = session.revoked;
@@ -94,10 +89,6 @@ public class AuthenticationAdapters {
     }
 
     private static Account toAccount(Credentials credentials) {
-        return new Account(
-                credentials.userId(),
-                credentials.passwordHash(),
-                credentials.kakaoId(),
-                credentials.role());
+        return new Account(credentials.userId(), credentials.passwordHash(), credentials.kakaoId(), credentials.role());
     }
 }

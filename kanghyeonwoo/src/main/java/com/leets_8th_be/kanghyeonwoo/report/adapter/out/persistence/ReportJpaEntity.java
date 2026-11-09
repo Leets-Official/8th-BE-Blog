@@ -6,7 +6,6 @@ import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +18,6 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.time.LocalDateTime;
 
 @Entity

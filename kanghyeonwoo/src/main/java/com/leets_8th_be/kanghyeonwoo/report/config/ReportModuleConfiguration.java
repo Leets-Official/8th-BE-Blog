@@ -8,13 +8,11 @@ import com.leets_8th_be.kanghyeonwoo.report.application.usecase.GetReportsServic
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ReportCommentService;
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ReportPostService;
 import com.leets_8th_be.kanghyeonwoo.report.application.usecase.ResolveReportService;
-
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.time.Clock;
 
 @Configuration
 public class ReportModuleConfiguration {
@@ -34,8 +32,7 @@ public class ReportModuleConfiguration {
                 new ResolveReportService(reporters, reports, targets, clock));
     }
 
-    private static TransactionTemplate readTransaction(
-            PlatformTransactionManager transactionManager) {
+    private static TransactionTemplate readTransaction(PlatformTransactionManager transactionManager) {
         TransactionTemplate transaction = new TransactionTemplate(transactionManager);
         transaction.setReadOnly(true);
         return transaction;

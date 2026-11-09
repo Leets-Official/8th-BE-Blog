@@ -1,18 +1,15 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchSession;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-
+import java.util.UUID;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-import java.util.UUID;
 
 @Component
 public class SearchSessionArgumentResolver implements HandlerMethodArgumentResolver {

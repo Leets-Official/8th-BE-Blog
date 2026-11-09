@@ -1,7 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.report.domain.model;
 
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
-
 import java.time.LocalDateTime;
 
 public record Report(
@@ -30,11 +29,7 @@ public record Report(
     }
 
     public static Report pendingPost(
-            UserId reporterId,
-            Long postId,
-            String reason,
-            String titleSnapshot,
-            String contentSnapshot) {
+            UserId reporterId, Long postId, String reason, String titleSnapshot, String contentSnapshot) {
         return new Report(
                 null,
                 reporterId,
@@ -50,8 +45,7 @@ public record Report(
                 null);
     }
 
-    public static Report pendingComment(
-            UserId reporterId, Long commentId, String reason, String contentSnapshot) {
+    public static Report pendingComment(UserId reporterId, Long commentId, String reason, String contentSnapshot) {
         return new Report(
                 null,
                 reporterId,
@@ -67,11 +61,7 @@ public record Report(
                 null);
     }
 
-    public Report resolve(
-            ReportAction action,
-            String resolutionReason,
-            UserId processorId,
-            LocalDateTime resolvedAt) {
+    public Report resolve(ReportAction action, String resolutionReason, UserId processorId, LocalDateTime resolvedAt) {
         if (state != ReportState.PENDING) throw new ReportAlreadyResolved();
         if (action == null
                 || resolutionReason == null

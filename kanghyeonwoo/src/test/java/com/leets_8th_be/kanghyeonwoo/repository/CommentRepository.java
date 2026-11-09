@@ -1,20 +1,16 @@
 package com.leets_8th_be.kanghyeonwoo.repository;
 
 import com.leets_8th_be.kanghyeonwoo.entity.Comment;
-
 import jakarta.persistence.LockModeType;
-
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface CommentRepository
-        extends JpaRepository<Comment, Long>, JpaSpecificationExecutor<Comment> {
+public interface CommentRepository extends JpaRepository<Comment, Long>, JpaSpecificationExecutor<Comment> {
     @Query("select c.post.id from Comment c where c.id = :id")
     Optional<Long> findPostId(@Param("id") Long id);
 

@@ -3,22 +3,18 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED;
 
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
-
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JwtTokens implements AuthenticationPorts.Tokens {
@@ -46,14 +42,13 @@ public class JwtTokens implements AuthenticationPorts.Tokens {
 
     public Claims parse(String token, String type) {
         try {
-            var claims =
-                    Jwts.parser()
-                            .verifyWith(key)
-                            .requireIssuer("leets-blog")
-                            .require("type", type)
-                            .build()
-                            .parseSignedClaims(token)
-                            .getPayload();
+            var claims = Jwts.parser()
+                    .verifyWith(key)
+                    .requireIssuer("leets-blog")
+                    .require("type", type)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
             if (claims.getExpiration() == null
                     || claims.getSubject() == null
                     || claims.get("sid", String.class) == null) {
@@ -68,8 +63,7 @@ public class JwtTokens implements AuthenticationPorts.Tokens {
     public AuthenticationPorts.Claims verify(String raw, String type) {
         var claims = parse(raw, type);
         try {
-            return new AuthenticationPorts.Claims(
-                    Long.parseLong(claims.getSubject()), claims.get("sid", String.class));
+            return new AuthenticationPorts.Claims(Long.parseLong(claims.getSubject()), claims.get("sid", String.class));
         } catch (NumberFormatException e) {
             throw new AuthFailure(UNAUTHORIZED);
         }

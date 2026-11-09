@@ -15,24 +15,15 @@ abstract class AuthApiSupport {
     protected com.fasterxml.jackson.databind.ObjectMapper json;
 
     protected com.fasterxml.jackson.databind.JsonNode signupAndLogin(String name) throws Exception {
-        String body =
-                json.writeValueAsString(
-                        java.util.Map.of(
-                                "email",
-                                name + "@example.com",
-                                "password",
-                                "password123",
-                                "nickname",
-                                name));
+        String body = json.writeValueAsString(
+                java.util.Map.of("email", name + "@example.com", "password", "password123", "nickname", name));
         mvc.perform(post("/api/v2/auth/signup").contentType("application/json").content(body))
                 .andExpect(status().isCreated());
-        var result =
-                mvc.perform(
-                                post("/api/v2/auth/login")
-                                        .contentType("application/json")
-                                        .content(body))
-                        .andExpect(status().isOk())
-                        .andReturn();
+        var result = mvc.perform(post("/api/v2/auth/login")
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isOk())
+                .andReturn();
         return json.readTree(result.getResponse().getContentAsString()).get("data");
     }
 }

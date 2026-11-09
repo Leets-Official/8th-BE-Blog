@@ -1,58 +1,56 @@
 plugins {
-	id 'java'
-	id 'pmd'
-	id 'org.springframework.boot' version '3.5.11'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'pmd'
+    id 'com.diffplug.spotless' version '8.11.0'
+    id 'org.springframework.boot' version '3.5.11'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.leets_8th_be'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-	sourceCompatibility = '21'
-	targetCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
 }
 
 configurations {
-    javaFormatter
-
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-    javaFormatter 'com.google.googlejavaformat:google-java-format:1.24.0:all-deps'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
-	testImplementation 'org.springframework.security:spring-security-test'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
-	implementation 'net.datafaker:datafaker:2.7.0'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'com.tngtech.archunit:archunit:1.5.1'
-	testCompileOnly 'org.projectlombok:lombok'
-	testAnnotationProcessor 'org.projectlombok:lombok'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+    implementation 'net.datafaker:datafaker:2.7.0'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.tngtech.archunit:archunit:1.5.1'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 // Uses BLOG_DB_URL when set; otherwise adds fixtures to the existing local data/blog database.
@@ -64,34 +62,14 @@ tasks.register('seedMockData', JavaExec) {
     workingDir = projectDir
 }
 
-// Run the formatter with the same JDK as application compilation (not the host JDK).
-def formattingJava = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(21)
-}
-def javaSources = files(sourceSets.main.allJava, sourceSets.test.allJava)
-
-tasks.register('javaFormat', JavaExec) {
-    group = 'formatting'
-    description = 'Format Java sources with four-space indentation.'
-    javaLauncher = formattingJava
-    classpath = configurations.javaFormatter
-    mainClass = 'com.google.googlejavaformat.java.Main'
-    jvmArgs = ['api', 'file', 'parser', 'tree', 'util', 'code'].collect {
-        "--add-exports=jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED"
+spotless {
+    java {
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        palantirJavaFormat('2.102.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
     }
-    doFirst { args = ['--aosp', '--replace'] + javaSources.files.sort().collect { it.absolutePath } }
-}
-
-tasks.register('javaFormatCheck', JavaExec) {
-    group = 'verification'
-    description = 'Fail when Java sources need formatting.'
-    javaLauncher = formattingJava
-    classpath = configurations.javaFormatter
-    mainClass = 'com.google.googlejavaformat.java.Main'
-    jvmArgs = ['api', 'file', 'parser', 'tree', 'util', 'code'].collect {
-        "--add-exports=jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED"
-    }
-    doFirst { args = ['--aosp', '--dry-run', '--set-exit-if-changed'] + javaSources.files.sort().collect { it.absolutePath } }
 }
 
 pmd {
@@ -101,4 +79,15 @@ pmd {
     consoleOutput = true
 }
 
-tasks.named('check') { dependsOn 'javaFormatCheck' }
+// Keep existing developer commands while Spotless owns the implementation.
+tasks.register('javaFormat') {
+    group = 'formatting'
+    description = 'Alias for spotlessApply.'
+    dependsOn 'spotlessApply'
+}
+
+tasks.register('javaFormatCheck') {
+    group = 'verification'
+    description = 'Alias for spotlessCheck.'
+    dependsOn 'spotlessCheck'
+}

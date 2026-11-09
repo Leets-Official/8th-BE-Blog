@@ -22,8 +22,7 @@ public class ReportCommentService implements ReportCommentUseCase {
     private final ReportTargetPort targets;
     private final ReportStore reports;
 
-    public ReportCommentService(
-            ReporterDirectory reporters, ReportTargetPort targets, ReportStore reports) {
+    public ReportCommentService(ReporterDirectory reporters, ReportTargetPort targets, ReportStore reports) {
         this.reporters = reporters;
         this.targets = targets;
         this.reports = reports;
@@ -34,8 +33,7 @@ public class ReportCommentService implements ReportCommentUseCase {
         if (command.commentId() < 1) throw new InvalidReportRequest();
         if (!reporters.exists(command.reporterId())) throw new ReporterNotFound();
         var comment =
-                targets.find(ReportTargetKind.COMMENT, command.commentId())
-                        .orElseThrow(CommentTargetNotFound::new);
+                targets.find(ReportTargetKind.COMMENT, command.commentId()).orElseThrow(CommentTargetNotFound::new);
         if (!comment.parentPostActive()) throw new ParentPostUnavailable();
         if (comment.deleted()) throw new DeletedCommentReport();
         if (comment.hidden()) throw new CommentTargetNotFound();
@@ -44,10 +42,6 @@ public class ReportCommentService implements ReportCommentUseCase {
             throw new DuplicateReport();
         }
         return reports.save(
-                Report.pendingComment(
-                        command.reporterId(),
-                        command.commentId(),
-                        command.reason(),
-                        comment.content()));
+                Report.pendingComment(command.reporterId(), command.commentId(), command.reason(), comment.content()));
     }
 }

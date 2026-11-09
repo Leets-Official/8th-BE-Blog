@@ -1,13 +1,10 @@
 package com.leets_8th_be.kanghyeonwoo.search.config;
 
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
-
+import java.time.Clock;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.time.Clock;
 
 @Component
 @RequiredArgsConstructor

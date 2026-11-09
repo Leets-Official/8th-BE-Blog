@@ -9,16 +9,12 @@ import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchTrendsU
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchKeywordStatsService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchSuggestionService;
 import com.leets_8th_be.kanghyeonwoo.search.application.usecase.SearchTrendService;
-
+import java.util.List;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.List;
-
 public class TransactionalSearchQueries
-        implements GetSearchKeywordStatsUseCase,
-                GetSearchSuggestionsUseCase,
-                GetSearchTrendsUseCase {
+        implements GetSearchKeywordStatsUseCase, GetSearchSuggestionsUseCase, GetSearchTrendsUseCase {
     private final SearchKeywordStatsService stats;
     private final SearchSuggestionService suggestions;
     private final SearchTrendService trends;

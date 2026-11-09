@@ -3,19 +3,16 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v2/auth")
@@ -40,7 +37,9 @@ public class AuthController {
         }
     }
 
-    public record Login(@NotBlank @Email String email, @NotBlank @Size(max = 72) String password) {
+    public record Login(
+            @NotBlank @Email String email,
+            @NotBlank @Size(max = 72) String password) {
         public Login {
             if (email != null) {
                 email = AuthService.email(email);
@@ -58,16 +57,10 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody Signup request) {
         return ResponseEntity.status(201)
-                .body(
-                        ApiResponse.success(
-                                ApiResponseCode.RESOURCE_CREATED,
-                                "회원가입이 완료되었습니다.",
-                                Map.of(
-                                        "userId",
-                                        auth.signup(
-                                                request.email(),
-                                                request.password(),
-                                                request.nickname()))));
+                .body(ApiResponse.success(
+                        ApiResponseCode.RESOURCE_CREATED,
+                        "회원가입이 완료되었습니다.",
+                        Map.of("userId", auth.signup(request.email(), request.password(), request.nickname()))));
     }
 
     @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})

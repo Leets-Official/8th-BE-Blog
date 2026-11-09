@@ -2,15 +2,12 @@ package com.leets_8th_be.kanghyeonwoo.entity;
 
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import jakarta.persistence.*;
-
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -65,13 +62,8 @@ public class Report extends BaseTimeEntity {
 
     private LocalDateTime resolvedAt;
 
-    public void resolve(
-            ReportResolutionAction action,
-            String reason,
-            User processor,
-            LocalDateTime resolvedAt) {
-        if (status != ReportStatus.PENDING)
-            throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
+    public void resolve(ReportResolutionAction action, String reason, User processor, LocalDateTime resolvedAt) {
+        if (status != ReportStatus.PENDING) throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
         this.status = ReportStatus.RESOLVED;
         this.action = action;
         this.resolutionReason = reason;

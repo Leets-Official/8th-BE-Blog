@@ -7,11 +7,9 @@ import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Ticket
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Tickets;
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService;
 import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService;
-
+import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Optional;
 
 @Configuration
 public class KakaoAdapters {
@@ -25,8 +23,7 @@ public class KakaoAdapters {
 
             @Override
             public void save(Ticket ticket) {
-                OAuthTicket row =
-                        repository.findById(ticket.hash).orElseGet(() -> createRow(ticket));
+                OAuthTicket row = repository.findById(ticket.hash).orElseGet(() -> createRow(ticket));
                 row.kakaoId = ticket.kakaoId;
                 row.email = ticket.email;
                 row.userId = ticket.userId;

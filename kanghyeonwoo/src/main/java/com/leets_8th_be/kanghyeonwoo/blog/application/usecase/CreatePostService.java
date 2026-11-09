@@ -14,8 +14,7 @@ public class CreatePostService implements CreatePostUseCase {
     private final PostStore posts;
     private final PostProjectionPort projection;
 
-    public CreatePostService(
-            AuthorDirectory authors, PostStore posts, PostProjectionPort projection) {
+    public CreatePostService(AuthorDirectory authors, PostStore posts, PostProjectionPort projection) {
         this.authors = authors;
         this.posts = posts;
         this.projection = projection;
@@ -27,8 +26,7 @@ public class CreatePostService implements CreatePostUseCase {
             throw new AuthorNotFound();
         }
 
-        PostView saved =
-                posts.save(Post.create(command.title(), command.content(), command.authorId()));
+        PostView saved = posts.save(Post.create(command.title(), command.content(), command.authorId()));
         projection.synchronize(saved);
         return saved;
     }

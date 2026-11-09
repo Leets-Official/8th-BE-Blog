@@ -11,7 +11,6 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.InspectPostUseCase
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class TransactionalPostUseCases

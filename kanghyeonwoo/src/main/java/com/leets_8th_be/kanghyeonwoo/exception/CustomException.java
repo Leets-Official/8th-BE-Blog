@@ -1,7 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.exception;
 
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import lombok.Getter;
 
 @Getter

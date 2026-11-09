@@ -9,7 +9,6 @@ import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Accoun
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Kakao;
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Ticket;
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Tickets;
-
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,8 +20,7 @@ public class KakaoAuthenticationService {
     private final AuthenticationService auth;
     private final Kakao kakao;
 
-    public KakaoAuthenticationService(
-            Tickets tickets, Accounts accounts, AuthenticationService auth, Kakao kakao) {
+    public KakaoAuthenticationService(Tickets tickets, Accounts accounts, AuthenticationService auth, Kakao kakao) {
         this.tickets = tickets;
         this.accounts = accounts;
         this.auth = auth;
@@ -75,7 +73,8 @@ public class KakaoAuthenticationService {
 
     public AuthenticationService.Tokens signup(String token, String browser, String nickname) {
         var ticket = consume(token, "signup", browser);
-        if (accounts.emailExists(ticket.email) || accounts.byKakaoId(ticket.kakaoId).isPresent()) {
+        if (accounts.emailExists(ticket.email)
+                || accounts.byKakaoId(ticket.kakaoId).isPresent()) {
             throw new AuthFailure(DUPLICATE_RESOURCE);
         }
         var account = accounts.register(ticket.email, nickname.trim(), null, ticket.kakaoId);
@@ -83,12 +82,11 @@ public class KakaoAuthenticationService {
     }
 
     private Ticket save(String raw, String kind, String browser, Duration ttl) {
-        var ticket =
-                new Ticket(
-                        AuthenticationService.hash(raw),
-                        kind,
-                        AuthenticationService.hash(browser),
-                        Instant.now().plus(ttl));
+        var ticket = new Ticket(
+                AuthenticationService.hash(raw),
+                kind,
+                AuthenticationService.hash(browser),
+                Instant.now().plus(ttl));
         tickets.save(ticket);
         return ticket;
     }
@@ -97,9 +95,7 @@ public class KakaoAuthenticationService {
         if (raw == null || browser == null) {
             throw new AuthFailure(UNAUTHORIZED);
         }
-        var ticket =
-                tickets.lock(AuthenticationService.hash(raw))
-                        .orElseThrow(() -> new AuthFailure(UNAUTHORIZED));
+        var ticket = tickets.lock(AuthenticationService.hash(raw)).orElseThrow(() -> new AuthFailure(UNAUTHORIZED));
         if (!kind.equals(ticket.kind)
                 || !ticket.browserHash.equals(AuthenticationService.hash(browser))
                 || !ticket.expiresAt.isAfter(Instant.now())) {

@@ -11,7 +11,6 @@ import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
 import com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence.TextSearch;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,8 +27,7 @@ public class JpaReportStore implements ReportStore {
 
     @Override
     public boolean exists(UserId reporterId, ReportTarget target, Long targetId) {
-        return reports.existsByReporterIdAndTargetTypeAndTargetId(
-                reporterId.value(), target, targetId);
+        return reports.existsByReporterIdAndTargetTypeAndTargetId(reporterId.value(), target, targetId);
     }
 
     @Override
@@ -39,8 +37,7 @@ public class JpaReportStore implements ReportStore {
             entity = ReportJpaEntity.from(report);
         } else {
             entity =
-                    reports.findById(report.id().value())
-                            .orElseThrow(() -> new IllegalStateException("저장할 신고가 없습니다."));
+                    reports.findById(report.id().value()).orElseThrow(() -> new IllegalStateException("저장할 신고가 없습니다."));
             entity.applyResolution(report);
         }
         return toView(reports.saveAndFlush(entity));
@@ -53,42 +50,24 @@ public class JpaReportStore implements ReportStore {
 
     @Override
     public ReportPage search(ReportSearchQuery query) {
-        var pageable =
-                PageRequest.of(
-                        query.page() - 1,
-                        query.size(),
-                        Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+        var pageable = PageRequest.of(query.page() - 1, query.size(), Sort.by(Sort.Direction.DESC, "createdAt", "id"));
         Specification<ReportJpaEntity> criteria = (root, q, cb) -> cb.conjunction();
         if (query.status() != null)
             criteria = criteria.and((root, q, cb) -> cb.equal(root.get("status"), query.status()));
         if (query.target() != null)
-            criteria =
-                    criteria.and((root, q, cb) -> cb.equal(root.get("targetType"), query.target()));
+            criteria = criteria.and((root, q, cb) -> cb.equal(root.get("targetType"), query.target()));
         if (query.targetId() != null)
-            criteria =
-                    criteria.and((root, q, cb) -> cb.equal(root.get("targetId"), query.targetId()));
+            criteria = criteria.and((root, q, cb) -> cb.equal(root.get("targetId"), query.targetId()));
         if (query.keyword() != null && !query.keyword().isBlank()) {
             String keyword = query.keyword().strip();
-            criteria =
-                    criteria.and(
-                            (root, q, cb) ->
-                                    cb.or(
-                                            TextSearch.contains(cb, root.get("reason"), keyword),
-                                            TextSearch.contains(
-                                                    cb, root.get("targetTitleSnapshot"), keyword),
-                                            TextSearch.contains(
-                                                    cb,
-                                                    root.get("targetContentSnapshot"),
-                                                    keyword)));
+            criteria = criteria.and((root, q, cb) -> cb.or(
+                    TextSearch.contains(cb, root.get("reason"), keyword),
+                    TextSearch.contains(cb, root.get("targetTitleSnapshot"), keyword),
+                    TextSearch.contains(cb, root.get("targetContentSnapshot"), keyword)));
         }
-        Page<ReportListItem> page =
-                reports.findAll(criteria, pageable).map(JpaReportStore::toListItem);
+        Page<ReportListItem> page = reports.findAll(criteria, pageable).map(JpaReportStore::toListItem);
         return new ReportPage(
-                page.getContent(),
-                page.getNumber() + 1,
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages());
+                page.getContent(), page.getNumber() + 1, page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
     private static ReportView toView(ReportJpaEntity entity) {

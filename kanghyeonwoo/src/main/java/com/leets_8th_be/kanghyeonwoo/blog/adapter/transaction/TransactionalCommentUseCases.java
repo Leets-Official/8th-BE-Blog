@@ -17,10 +17,8 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.HideCommentService
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.ManageOwnCommentService;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
-
-import org.springframework.transaction.support.TransactionTemplate;
-
 import java.util.Optional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 public class TransactionalCommentUseCases
         implements GetCommentsUseCase,

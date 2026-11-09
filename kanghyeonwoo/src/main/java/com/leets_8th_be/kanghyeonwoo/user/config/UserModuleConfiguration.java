@@ -7,7 +7,6 @@ import com.leets_8th_be.kanghyeonwoo.user.application.port.out.UserProfileStore;
 import com.leets_8th_be.kanghyeonwoo.user.application.usecase.CreateUserProfileService;
 import com.leets_8th_be.kanghyeonwoo.user.application.usecase.FindUserProfileByEmailService;
 import com.leets_8th_be.kanghyeonwoo.user.application.usecase.FindUserProfileService;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

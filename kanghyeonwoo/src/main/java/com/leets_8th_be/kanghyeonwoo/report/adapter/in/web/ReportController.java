@@ -42,16 +42,12 @@ import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import com.leets_8th_be.kanghyeonwoo.shared.web.PageResponse;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -89,26 +85,18 @@ public class ReportController {
             description = "게시글 신고 접수 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportPost(
-            @Parameter(description = "신고할 게시글 ID", example = "1") @PathVariable("postId")
-                    Long postId,
+            @Parameter(description = "신고할 게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
-                .body(
-                        ApiResponse.success(
-                                ApiResponseCode.RESOURCE_CREATED,
-                                "게시글 신고가 접수되었습니다.",
-                                toCreateResponse(
-                                        reportPostUseCase.report(
-                                                new ReportPostCommand(
-                                                        postId,
-                                                        currentUser.requireId(),
-                                                        request.reason())))));
+                .body(ApiResponse.success(
+                        ApiResponseCode.RESOURCE_CREATED,
+                        "게시글 신고가 접수되었습니다.",
+                        toCreateResponse(reportPostUseCase.report(
+                                new ReportPostCommand(postId, currentUser.requireId(), request.reason())))));
     }
 
     @PostMapping("/comments/{commentId}/reports")
-    @Operation(
-            summary = "댓글 신고",
-            description = "본인·숨김·삭제 댓글과 숨김 게시글의 댓글은 신고할 수 없습니다. 중복 신고는 409입니다.")
+    @Operation(summary = "댓글 신고", description = "본인·숨김·삭제 댓글과 숨김 게시글의 댓글은 신고할 수 없습니다. 중복 신고는 409입니다.")
     @ApiErrorCodes({
         INVALID_INPUT_VALUE,
         TYPE_MISMATCH,
@@ -125,35 +113,25 @@ public class ReportController {
             description = "댓글 신고 접수 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportComment(
-            @Parameter(description = "신고할 댓글 ID", example = "1") @PathVariable("commentId")
-                    Long commentId,
+            @Parameter(description = "신고할 댓글 ID", example = "1") @PathVariable("commentId") Long commentId,
             @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
-                .body(
-                        ApiResponse.success(
-                                ApiResponseCode.RESOURCE_CREATED,
-                                "댓글 신고가 접수되었습니다.",
-                                toCreateResponse(
-                                        reportCommentUseCase.report(
-                                                new ReportCommentCommand(
-                                                        commentId,
-                                                        currentUser.requireId(),
-                                                        request.reason())))));
+                .body(ApiResponse.success(
+                        ApiResponseCode.RESOURCE_CREATED,
+                        "댓글 신고가 접수되었습니다.",
+                        toCreateResponse(reportCommentUseCase.report(
+                                new ReportCommentCommand(commentId, currentUser.requireId(), request.reason())))));
     }
 
     @GetMapping("/reports")
-    @Operation(
-            summary = "신고 목록·스냅샷 검색",
-            description = "필터는 AND, 검색어는 사유·제목/본문 스냅샷을 OR로 검색합니다. 관리자만 조회할 수 있습니다.")
+    @Operation(summary = "신고 목록·스냅샷 검색", description = "필터는 AND, 검색어는 사유·제목/본문 스냅샷을 OR로 검색합니다. 관리자만 조회할 수 있습니다.")
     @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
             description = "신고 목록 조회 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<PageResponse<ReportResponse>>> getReports(
-            @Parameter(
-                            description = "1부터 시작하는 페이지 번호",
-                            schema = @Schema(minimum = "1", example = "1"))
+            @Parameter(description = "1부터 시작하는 페이지 번호", schema = @Schema(minimum = "1", example = "1"))
                     @RequestParam(name = "page", defaultValue = "1")
                     int page,
             @Parameter(
@@ -161,41 +139,33 @@ public class ReportController {
                             schema = @Schema(minimum = "1", maximum = "100", example = "10"))
                     @RequestParam(name = "size", defaultValue = "10")
                     int size,
-            @Parameter(description = "신고 상태", example = "PENDING")
-                    @RequestParam(name = "status", required = false)
+            @Parameter(description = "신고 상태", example = "PENDING") @RequestParam(name = "status", required = false)
                     ReportStatus status,
-            @Parameter(description = "신고 대상 종류", example = "POST")
-                    @RequestParam(name = "targetType", required = false)
+            @Parameter(description = "신고 대상 종류", example = "POST") @RequestParam(name = "targetType", required = false)
                     ReportTargetType targetType,
-            @Parameter(description = "대상 ID", example = "1")
-                    @RequestParam(name = "targetId", required = false)
+            @Parameter(description = "대상 ID", example = "1") @RequestParam(name = "targetId", required = false)
                     Long targetId,
             @Parameter(description = "사유·제목 스냅샷·본문 스냅샷 검색어", example = "욕설")
                     @RequestParam(name = "keyword", required = false)
                     String keyword) {
-        ReportPage result =
-                getReportsUseCase.getReports(
-                        new ReportSearchQuery(
-                                page,
-                                size,
-                                status == null ? null : ReportState.valueOf(status.name()),
-                                targetType == null ? null : ReportTarget.valueOf(targetType.name()),
-                                targetId,
-                                keyword));
-        PageResponse<ReportResponse> response =
-                new PageResponse<>(
-                        result.items().stream().map(ReportController::toReportResponse).toList(),
-                        result.page(),
-                        result.size(),
-                        result.totalElements(),
-                        result.totalPages());
+        ReportPage result = getReportsUseCase.getReports(new ReportSearchQuery(
+                page,
+                size,
+                status == null ? null : ReportState.valueOf(status.name()),
+                targetType == null ? null : ReportTarget.valueOf(targetType.name()),
+                targetId,
+                keyword));
+        PageResponse<ReportResponse> response = new PageResponse<>(
+                result.items().stream().map(ReportController::toReportResponse).toList(),
+                result.page(),
+                result.size(),
+                result.totalElements(),
+                result.totalPages());
         return ResponseEntity.ok(ApiResponse.success("신고 조회가 완료되었습니다.", response));
     }
 
     @PatchMapping("/reports/{reportId}/resolve")
-    @Operation(
-            summary = "신고 처리",
-            description = "관리자만 처리할 수 있습니다. HIDE는 대상 숨김, KEEP는 현재 공개 상태 유지입니다. 재처리는 409입니다.")
+    @Operation(summary = "신고 처리", description = "관리자만 처리할 수 있습니다. HIDE는 대상 숨김, KEEP는 현재 공개 상태 유지입니다. 재처리는 409입니다.")
     @ApiErrorCodes({
         INVALID_INPUT_VALUE,
         TYPE_MISMATCH,
@@ -210,23 +180,19 @@ public class ReportController {
             description = "신고 처리 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
-            @Parameter(description = "처리할 신고 ID", example = "1") @PathVariable("reportId")
-                    Long reportId,
+            @Parameter(description = "처리할 신고 ID", example = "1") @PathVariable("reportId") Long reportId,
             @Valid @RequestBody ReportResolveRequest request) {
-        ReportResolutionView result =
-                resolveReportUseCase.resolve(
-                        new ResolveReportCommand(
-                                new ReportId(reportId),
-                                currentUser.requireId(),
-                                ReportAction.valueOf(request.action().name()),
-                                request.resolutionReason()));
+        ReportResolutionView result = resolveReportUseCase.resolve(new ResolveReportCommand(
+                new ReportId(reportId),
+                currentUser.requireId(),
+                ReportAction.valueOf(request.action().name()),
+                request.resolutionReason()));
         return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", toResolveResponse(result)));
     }
 
     private static ReportCreateResponse toCreateResponse(ReportView report) {
         ReportTargetType targetType = ReportTargetType.valueOf(report.target().name());
-        return new ReportCreateResponse(
-                report.id().value(), targetType, report.targetId(), ReportStatus.PENDING);
+        return new ReportCreateResponse(report.id().value(), targetType, report.targetId(), ReportStatus.PENDING);
     }
 
     private static ReportResponse toReportResponse(ReportListItem report) {
@@ -242,8 +208,8 @@ public class ReportController {
                 report.createdAt(),
                 report.action() == null
                         ? null
-                        : com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto
-                                .ReportResolutionAction.valueOf(report.action().name()),
+                        : com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolutionAction.valueOf(
+                                report.action().name()),
                 report.resolutionReason(),
                 report.processorId() == null ? null : report.processorId().value(),
                 report.resolvedAt());

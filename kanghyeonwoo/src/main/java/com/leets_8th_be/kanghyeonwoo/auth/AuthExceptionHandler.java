@@ -2,7 +2,6 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
-
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -15,25 +14,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class AuthExceptionHandler {
     @ExceptionHandler(AuthFailure.class)
     ResponseEntity<?> failure(AuthFailure e) {
-        return ResponseEntity.status(e.code.getHttpStatus())
-                .body(ApiResponse.fail(e.code, e.getMessage()));
+        return ResponseEntity.status(e.code.getHttpStatus()).body(ApiResponse.fail(e.code, e.getMessage()));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<?> duplicate(DataIntegrityViolationException e) {
         return ResponseEntity.status(409)
-                .body(
-                        ApiResponse.fail(
-                                ApiResponseCode.DUPLICATE_RESOURCE,
-                                "이미 가입된 이메일 또는 사용 중인 닉네임입니다. 기존 로그인 수단을 확인해 주세요."));
+                .body(ApiResponse.fail(
+                        ApiResponseCode.DUPLICATE_RESOURCE, "이미 가입된 이메일 또는 사용 중인 닉네임입니다. 기존 로그인 수단을 확인해 주세요."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<?> denied(Exception e) {
         return ResponseEntity.status(403)
-                .body(
-                        ApiResponse.fail(
-                                ApiResponseCode.ACCESS_DENIED,
-                                ApiResponseCode.ACCESS_DENIED.getDefaultMessage()));
+                .body(ApiResponse.fail(
+                        ApiResponseCode.ACCESS_DENIED, ApiResponseCode.ACCESS_DENIED.getDefaultMessage()));
     }
 }

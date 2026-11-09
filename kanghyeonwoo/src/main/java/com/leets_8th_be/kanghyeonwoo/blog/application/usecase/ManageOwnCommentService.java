@@ -25,8 +25,7 @@ public class ManageOwnCommentService implements ManageOwnCommentUseCase {
 
     public CommentView update(CommentId id, UserId actor, String content) {
         var c = own(id, actor);
-        return comments.save(
-                new Comment(c.id(), c.authorId(), c.parentId(), content, c.state(), c.deleted()));
+        return comments.save(new Comment(c.id(), c.authorId(), c.parentId(), content, c.state(), c.deleted()));
     }
 
     public CommentView deleteOwn(CommentId id, UserId actor) {

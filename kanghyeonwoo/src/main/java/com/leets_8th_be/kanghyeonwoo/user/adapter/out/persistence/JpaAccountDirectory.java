@@ -2,14 +2,11 @@ package com.leets_8th_be.kanghyeonwoo.user.adapter.out.persistence;
 
 import com.leets_8th_be.kanghyeonwoo.user.application.contract.Credentials;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.AccountDirectory;
-
 import jakarta.persistence.EntityManager;
-
+import java.util.Optional;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Repository
 @Transactional
@@ -26,9 +23,7 @@ public class JpaAccountDirectory implements AccountDirectory {
 
     public Optional<Credentials> byEmail(String email) {
         return entityManager
-                .createQuery(
-                        "from UserProfileJpaEntity where lower(trim(email))=:value",
-                        UserProfileJpaEntity.class)
+                .createQuery("from UserProfileJpaEntity where lower(trim(email))=:value", UserProfileJpaEntity.class)
                 .setParameter("value", email)
                 .getResultStream()
                 .findFirst()
@@ -37,9 +32,7 @@ public class JpaAccountDirectory implements AccountDirectory {
 
     public Optional<Credentials> byKakaoId(String id) {
         return entityManager
-                .createQuery(
-                        "from UserProfileJpaEntity where kakaoId=:value",
-                        UserProfileJpaEntity.class)
+                .createQuery("from UserProfileJpaEntity where kakaoId=:value", UserProfileJpaEntity.class)
                 .setParameter("value", id)
                 .getResultStream()
                 .findFirst()
@@ -69,8 +62,7 @@ public class JpaAccountDirectory implements AccountDirectory {
     private boolean nicknameExists(String nickname) {
         return !entityManager
                 .createQuery(
-                        "select user.id from UserProfileJpaEntity user where"
-                                + " trim(user.username)=:name",
+                        "select user.id from UserProfileJpaEntity user where" + " trim(user.username)=:name",
                         Long.class)
                 .setParameter("name", nickname)
                 .getResultList()

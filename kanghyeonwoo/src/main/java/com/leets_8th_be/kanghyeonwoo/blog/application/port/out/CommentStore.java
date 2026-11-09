@@ -6,7 +6,6 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CommentSearchQuery
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-
 import java.util.Optional;
 
 public interface CommentStore {

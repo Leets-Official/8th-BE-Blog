@@ -5,7 +5,6 @@ import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RebuildSearchSug
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 import com.leets_8th_be.kanghyeonwoo.search.domain.BkTree;
 import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -36,12 +35,10 @@ public class SearchSuggestionService implements RebuildSearchSuggestionsUseCase 
             long current = store.dictionaryVersion();
             BkTree replacement = new BkTree();
             indexedIds.clear();
-            store.dictionary()
-                    .forEach(
-                            keyword -> {
-                                replacement.add(keyword.id(), keyword.keyword());
-                                indexedIds.add(keyword.id());
-                            });
+            store.dictionary().forEach(keyword -> {
+                replacement.add(keyword.id(), keyword.keyword());
+                indexedIds.add(keyword.id());
+            });
             tree = replacement;
             version = current;
         } finally {
@@ -55,14 +52,12 @@ public class SearchSuggestionService implements RebuildSearchSuggestionsUseCase 
             long current = store.dictionaryVersion();
             if (version != current) {
                 try {
-                    store.dictionary()
-                            .forEach(
-                                    word -> {
-                                        if (!indexedIds.contains(word.id())) {
-                                            tree.add(word.id(), word.keyword());
-                                            indexedIds.add(word.id());
-                                        }
-                                    });
+                    store.dictionary().forEach(word -> {
+                        if (!indexedIds.contains(word.id())) {
+                            tree.add(word.id(), word.keyword());
+                            indexedIds.add(word.id());
+                        }
+                    });
                     version = current;
                 } catch (RuntimeException failure) {
                     rebuild();
@@ -81,20 +76,12 @@ public class SearchSuggestionService implements RebuildSearchSuggestionsUseCase 
         List<BkTree.Match> matches = candidates(keyword);
         Map<Long, Long> counts = store.counts(now.minus(1, ChronoUnit.HOURS), now);
         return matches.stream()
-                .map(
-                        m ->
-                                new SearchSuggestion(
-                                        m.keywordId(),
-                                        m.keyword(),
-                                        m.distance(),
-                                        counts.getOrDefault(m.keywordId(), 0L)))
-                .sorted(
-                        Comparator.comparingInt(SearchSuggestion::distance)
-                                .thenComparing(
-                                        Comparator.comparingLong(
-                                                        SearchSuggestion::recentSearchCount)
-                                                .reversed())
-                                .thenComparing(SearchSuggestion::keyword))
+                .map(m -> new SearchSuggestion(
+                        m.keywordId(), m.keyword(), m.distance(), counts.getOrDefault(m.keywordId(), 0L)))
+                .sorted(Comparator.comparingInt(SearchSuggestion::distance)
+                        .thenComparing(Comparator.comparingLong(SearchSuggestion::recentSearchCount)
+                                .reversed())
+                        .thenComparing(SearchSuggestion::keyword))
                 .limit(5)
                 .toList();
     }

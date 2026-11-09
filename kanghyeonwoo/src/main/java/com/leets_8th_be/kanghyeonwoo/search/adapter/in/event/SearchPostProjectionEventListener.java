@@ -4,7 +4,6 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.contract.PostProjectionRem
 import com.leets_8th_be.kanghyeonwoo.blog.application.contract.PostProjectionUpserted;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.UpdatePostProjectionUseCase;
-
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +17,8 @@ public class SearchPostProjectionEventListener {
 
     @EventListener
     public void on(PostProjectionUpserted event) {
-        projections.synchronize(
-                new PostProjection(
-                        event.postId(),
-                        event.title(),
-                        event.authorId(),
-                        event.createdAt(),
-                        event.visible()));
+        projections.synchronize(new PostProjection(
+                event.postId(), event.title(), event.authorId(), event.createdAt(), event.visible()));
     }
 
     @EventListener

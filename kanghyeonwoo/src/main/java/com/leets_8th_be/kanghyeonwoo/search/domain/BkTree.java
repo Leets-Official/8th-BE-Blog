@@ -53,11 +53,9 @@ public final class BkTree {
             if (distance > 0 && distance <= radius) {
                 matches.add(new Match(node.keyword.id(), node.keyword.value(), distance));
             }
-            node.children.forEach(
-                    (edge, child) -> {
-                        if (edge >= distance - radius && edge <= distance + radius)
-                            pending.add(child);
-                    });
+            node.children.forEach((edge, child) -> {
+                if (edge >= distance - radius && edge <= distance + radius) pending.add(child);
+            });
         }
         return matches;
     }
@@ -70,10 +68,7 @@ public final class BkTree {
             int[] next = new int[b.length + 1];
             next[0] = i;
             for (int j = 1; j <= b.length; j++) {
-                next[j] =
-                        Math.min(
-                                Math.min(next[j - 1] + 1, row[j] + 1),
-                                row[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
+                next[j] = Math.min(Math.min(next[j - 1] + 1, row[j] + 1), row[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
             }
             row = next;
         }

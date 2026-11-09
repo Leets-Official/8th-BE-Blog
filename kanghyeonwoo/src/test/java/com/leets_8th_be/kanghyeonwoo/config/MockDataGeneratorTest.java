@@ -2,9 +2,8 @@ package com.leets_8th_be.kanghyeonwoo.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class MockDataGeneratorTest {
     @Test
@@ -20,9 +19,6 @@ class MockDataGeneratorTest {
 
     private List<String> sample(MockDataGenerator generator) {
         return List.of(
-                generator.userName(),
-                generator.postTitle(),
-                generator.postContent(),
-                generator.commentContent());
+                generator.userName(), generator.postTitle(), generator.postContent(), generator.commentContent());
     }
 }

@@ -15,8 +15,7 @@ public class CreateCommentService implements CreateCommentUseCase {
     private final GetPostUseCase posts;
     private final CommentStore comments;
 
-    public CreateCommentService(
-            AuthorDirectory authors, GetPostUseCase posts, CommentStore comments) {
+    public CreateCommentService(AuthorDirectory authors, GetPostUseCase posts, CommentStore comments) {
         this.authors = authors;
         this.posts = posts;
         this.comments = comments;
@@ -31,7 +30,6 @@ public class CreateCommentService implements CreateCommentUseCase {
             if (!parent.postId().equals(command.postId())) throw new CommentNotFound();
         }
         return comments.create(
-                command.postId(),
-                Comment.create(command.authorId(), command.parentId(), command.content()));
+                command.postId(), Comment.create(command.authorId(), command.parentId(), command.content()));
     }
 }

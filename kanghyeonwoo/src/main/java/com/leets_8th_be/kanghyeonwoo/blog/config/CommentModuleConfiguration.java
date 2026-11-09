@@ -7,7 +7,6 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.CommentStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.CreateCommentService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.DeleteCommentService;
 import com.leets_8th_be.kanghyeonwoo.blog.application.usecase.GetCommentsService;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;

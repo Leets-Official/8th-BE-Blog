@@ -3,7 +3,6 @@ package com.leets_8th_be.kanghyeonwoo.user.application.usecase;
 import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileEmailLookup;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.out.UserProfileStore;
-
 import java.util.Optional;
 
 public class FindUserProfileByEmailService implements UserProfileEmailLookup {

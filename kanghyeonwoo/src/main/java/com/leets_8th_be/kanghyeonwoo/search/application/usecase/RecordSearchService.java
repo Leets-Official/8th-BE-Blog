@@ -3,10 +3,8 @@ package com.leets_8th_be.kanghyeonwoo.search.application.usecase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RecordSearchUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
-
-import lombok.RequiredArgsConstructor;
-
 import java.time.Clock;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class RecordSearchService implements RecordSearchUseCase {

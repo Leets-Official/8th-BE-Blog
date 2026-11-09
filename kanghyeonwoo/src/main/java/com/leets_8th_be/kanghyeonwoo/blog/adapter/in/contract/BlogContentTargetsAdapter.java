@@ -16,10 +16,8 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
-
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class BlogContentTargetsAdapter implements ManageContentTargetsUseCase {
@@ -42,14 +40,8 @@ public class BlogContentTargetsAdapter implements ManageContentTargetsUseCase {
     @Override
     public Optional<ContentTargetSnapshot> inspect(ContentTargetType target, Long targetId) {
         return switch (target) {
-            case POST ->
-                    inspectPosts
-                            .inspect(new PostId(targetId))
-                            .map(BlogContentTargetsAdapter::snapshot);
-            case COMMENT ->
-                    inspectComments
-                            .inspect(new CommentId(targetId))
-                            .map(BlogContentTargetsAdapter::snapshot);
+            case POST -> inspectPosts.inspect(new PostId(targetId)).map(BlogContentTargetsAdapter::snapshot);
+            case COMMENT -> inspectComments.inspect(new CommentId(targetId)).map(BlogContentTargetsAdapter::snapshot);
         };
     }
 
@@ -84,25 +76,16 @@ public class BlogContentTargetsAdapter implements ManageContentTargetsUseCase {
                 post.content(),
                 post.state() == PostState.DELETED
                         ? ContentVisibility.DELETED
-                        : post.state() == PostState.HIDDEN
-                                ? ContentVisibility.HIDDEN
-                                : ContentVisibility.ACTIVE,
+                        : post.state() == PostState.HIDDEN ? ContentVisibility.HIDDEN : ContentVisibility.ACTIVE,
                 null);
     }
 
     private static ContentTargetSnapshot snapshot(CommentView comment) {
-        ContentVisibility visibility =
-                comment.deleted()
-                        ? ContentVisibility.DELETED
-                        : comment.state() == CommentState.HIDDEN
-                                ? ContentVisibility.HIDDEN
-                                : ContentVisibility.ACTIVE;
+        ContentVisibility visibility = comment.deleted()
+                ? ContentVisibility.DELETED
+                : comment.state() == CommentState.HIDDEN ? ContentVisibility.HIDDEN : ContentVisibility.ACTIVE;
         return new ContentTargetSnapshot(
-                comment.authorId(),
-                null,
-                comment.content(),
-                visibility,
-                visibility(comment.postState()));
+                comment.authorId(), null, comment.content(), visibility, visibility(comment.postState()));
     }
 
     private static ContentVisibility visibility(PostState state) {

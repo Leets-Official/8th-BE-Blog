@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
-
 import org.junit.jupiter.api.Test;
 
 class PostLifecycleTest {

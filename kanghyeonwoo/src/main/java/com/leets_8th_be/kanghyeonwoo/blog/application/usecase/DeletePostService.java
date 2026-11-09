@@ -18,8 +18,7 @@ public class DeletePostService implements DeletePostUseCase {
     }
 
     @Override
-    public com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId delete(
-            DeletePostCommand command) {
+    public com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId delete(DeletePostCommand command) {
         Post post = posts.findForUpdate(command.postId()).orElseThrow(PostNotFound::new);
         Post deleted;
         try {

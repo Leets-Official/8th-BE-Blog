@@ -11,14 +11,10 @@ import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCas
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportSearchQuery;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportUseCase;
-
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class TransactionalReportUseCases
-        implements ReportPostUseCase,
-                ReportCommentUseCase,
-                GetReportsUseCase,
-                ResolveReportUseCase {
+        implements ReportPostUseCase, ReportCommentUseCase, GetReportsUseCase, ResolveReportUseCase {
     private final ReportPostUseCase reportPost;
     private final ReportCommentUseCase reportComment;
     private final GetReportsUseCase getReports;

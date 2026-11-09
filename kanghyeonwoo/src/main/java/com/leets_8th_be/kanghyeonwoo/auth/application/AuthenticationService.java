@@ -8,7 +8,6 @@ import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Accoun
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Passwords;
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Session;
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Sessions;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -26,10 +25,7 @@ public class AuthenticationService {
     private final String dummyHash;
 
     public AuthenticationService(
-            Accounts accounts,
-            Passwords passwords,
-            AuthenticationPorts.Tokens tokens,
-            Sessions sessions) {
+            Accounts accounts, Passwords passwords, AuthenticationPorts.Tokens tokens, Sessions sessions) {
         this.accounts = accounts;
         this.passwords = passwords;
         jwt = tokens;
@@ -56,10 +52,7 @@ public class AuthenticationService {
             throw new AuthFailure(UNAUTHORIZED);
         }
         var account = accounts.byEmail(email(email)).orElse(null);
-        String hash =
-                account == null || account.passwordHash() == null
-                        ? dummyHash
-                        : account.passwordHash();
+        String hash = account == null || account.passwordHash() == null ? dummyHash : account.passwordHash();
         boolean valid = passwords.matches(password, hash);
         if (!valid || account == null || account.passwordHash() == null) {
             throw new AuthFailure(UNAUTHORIZED);
@@ -76,8 +69,7 @@ public class AuthenticationService {
 
     public Tokens reissue(String token) {
         var claims = jwt.verify(token, "refresh");
-        var session =
-                sessions.lock(claims.sessionId()).orElseThrow(() -> new AuthFailure(UNAUTHORIZED));
+        var session = sessions.lock(claims.sessionId()).orElseThrow(() -> new AuthFailure(UNAUTHORIZED));
         if (session.revoked
                 || session.expiresAt.isBefore(Instant.now())
                 || !Long.toString(session.userId).equals(Long.toString(claims.userId()))) {
@@ -95,8 +87,7 @@ public class AuthenticationService {
 
     public void logout(String token) {
         var claims = jwt.verify(token, "refresh");
-        var session =
-                sessions.lock(claims.sessionId()).orElseThrow(() -> new AuthFailure(UNAUTHORIZED));
+        var session = sessions.lock(claims.sessionId()).orElseThrow(() -> new AuthFailure(UNAUTHORIZED));
         if (!Long.toString(session.userId).equals(Long.toString(claims.userId()))) {
             throw new AuthFailure(UNAUTHORIZED);
         }
@@ -109,10 +100,7 @@ public class AuthenticationService {
         session.refreshHash = hash(refresh);
         session.expiresAt = Instant.now().plus(Duration.ofDays(7));
         sessions.save(session);
-        return new Tokens(
-                jwt.issue(session.userId, "access", session.id, Duration.ofMinutes(10)),
-                refresh,
-                600);
+        return new Tokens(jwt.issue(session.userId, "access", session.id, Duration.ofMinutes(10)), refresh, 600);
     }
 
     public static String hash(String value) {
