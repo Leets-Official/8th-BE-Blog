@@ -50,8 +50,8 @@ public class PostService {
     }
 
     @Transactional
-    public PostDetailResponse createPost(PostCreateRequest request) {
-        Member author = memberRepository.findById(request.authorId())
+    public PostDetailResponse createPost(Long memberId, PostCreateRequest request) {
+        Member author = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         Post post = Post.builder()
@@ -65,9 +65,9 @@ public class PostService {
     }
 
     @Transactional
-    public PostDetailResponse updatePost(Long postId, PostUpdateRequest request) {
+    public PostDetailResponse updatePost(Long postId, Long memberId, PostUpdateRequest request) {
         Post post = findPost(postId);
-        validateAuthor(post, request.authorId());
+        validateAuthor(post, memberId);
 
         post.update(request.title(), request.content());
         postRepository.flush();
@@ -76,18 +76,18 @@ public class PostService {
     }
 
     @Transactional
-    public PostDeleteResponse deletePost(Long postId, Long authorId) {
+    public PostDeleteResponse deletePost(Long postId, Long memberId) {
         Post post = findPost(postId);
-        validateAuthor(post, authorId);
+        validateAuthor(post, memberId);
 
         postRepository.delete(post);
         return new PostDeleteResponse(postId);
     }
 
     @Transactional
-    public PostDetailResponse hidePost(Long postId, Long authorId) {
+    public PostDetailResponse hidePost(Long postId, Long memberId) {
         Post post = findPost(postId);
-        validateAuthor(post, authorId);
+        validateAuthor(post, memberId);
 
         post.hide();
         postRepository.flush();
@@ -100,8 +100,8 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
     }
 
-    private void validateAuthor(Post post, Long authorId) {
-        if (!post.getMember().getId().equals(authorId)) {
+    private void validateAuthor(Post post, Long memberId) {
+        if (!post.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
     }
