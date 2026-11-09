@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "회원가입 요청")
 public record SignupRequest(
-        @Schema(description = "이메일 (앞뒤 공백 제거, 소문자로 저장)", example = "tester@test.com")
+        @Schema(description = "이메일 (소문자로 변환해 저장하고 중복을 비교)", example = "tester@test.com")
         @NotBlank(message = "이메일을 입력해주세요.")
         @Email(message = "올바른 이메일 형식으로 입력해주세요.")
         @Size(max = 255, message = "이메일은 255자 이하여야 합니다.") String email,

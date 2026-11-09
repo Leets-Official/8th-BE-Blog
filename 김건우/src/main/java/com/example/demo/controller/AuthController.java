@@ -29,7 +29,7 @@ public class AuthController {
 
     // @ResponseStatus 는 문서용 (실제 상태 코드는 ApiResponse.success 가 결정)
     @Operation(summary = "회원가입",
-            description = "이메일, 비밀번호, 닉네임으로 가입합니다. 이메일은 공백 제거 후 소문자로 비교하며, 이메일과 닉네임은 중복될 수 없습니다.")
+            description = "이메일, 비밀번호, 닉네임으로 가입합니다. 이메일은 대소문자를 구분하지 않고(소문자로 변환해) 비교하며, 이메일과 닉네임은 중복될 수 없습니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 검증 실패 또는 비밀번호 72바이트 초과",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),

@@ -41,11 +41,11 @@ class AuthIntegrationTest {
     }
 
     @Test
-    void 이메일은_공백_제거와_소문자_변환_후_중복을_비교한다() throws Exception {
+    void 이메일은_대소문자를_구분하지_않고_중복을_비교한다() throws Exception {
         postJson("/auth/signup", SIGNUP).andExpect(status().isCreated());
 
         postJson("/auth/signup", """
-                {"email":"  TESTER@Test.com ","password":"password1234!","nickname":"other"}""")
+                {"email":"TESTER@Test.com","password":"password1234!","nickname":"other"}""")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("USER_409_1"));
     }

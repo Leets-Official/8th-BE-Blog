@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,18 +61,24 @@ public class JwtProvider {
 
     /**
      * 서명, 만료, 발급자, 수신자, 토큰 종류를 모두 검증하고 회원 ID 를 돌려준다.
-     * 하나라도 어긋나면 JwtException (빈 문자열이면 IllegalArgumentException) 이 발생한다.
+     * 하나라도 어긋나면 JwtException 이 발생한다. (빈 문자열은 호출하는 쪽에서 걸러야 한다)
      */
     public Long parse(String token, String expectedType) {
-        Claims claims = Jwts.parser()
+        Jws<Claims> jws = Jwts.parser()
                 .verifyWith(key)
-                .sig().clear().add(Jwts.SIG.HS256).and() // 허용 알고리즘을 HS256 으로 고정
                 .requireIssuer(ISSUER)
                 .requireAudience(AUDIENCE)
                 .require(TYPE_CLAIM, expectedType)
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseSignedClaims(token);
+
+        // 허용 알고리즘을 HS256 으로 고정한다.
+        // (주의: parser().sig().clear().add(..) 는 JJWT 0.12.6 에서 clear() 직후 빈 목록으로 레지스트리를 만들다가 항상 예외가 난다)
+        if (!Jwts.SIG.HS256.getId().equals(jws.getHeader().getAlgorithm())) {
+            throw new JwtException("허용하지 않는 서명 알고리즘입니다.");
+        }
+
+        Claims claims = jws.getPayload();
 
         if (claims.getSubject() == null || claims.getExpiration() == null) {
             throw new JwtException("필수 클레임(sub, exp)이 없습니다.");

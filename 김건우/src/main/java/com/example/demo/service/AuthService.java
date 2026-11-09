@@ -82,7 +82,7 @@ public class AuthService {
         Long userId;
         try {
             userId = jwtProvider.parse(refreshToken, JwtProvider.REFRESH);
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException e) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
