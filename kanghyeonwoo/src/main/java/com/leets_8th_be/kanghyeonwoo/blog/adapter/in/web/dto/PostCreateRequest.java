@@ -1,5 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import jakarta.validation.constraints.NotBlank;
@@ -31,7 +33,7 @@ public class PostCreateRequest {
     @NotBlank(message = "본문은 필수 입력 항목입니다.")
     private String content;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
     @Schema(hidden = true)
     private Long authorId;
 }

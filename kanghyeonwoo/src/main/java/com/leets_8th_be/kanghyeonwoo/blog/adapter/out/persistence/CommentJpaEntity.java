@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
@@ -68,12 +70,12 @@ class CommentJpaEntity {
         return entity;
     }
 
-    @jakarta.persistence.PrePersist
+    @PrePersist
     void prepareInsert() {
         createdAt = updatedAt = LocalDateTime.now();
     }
 
-    @jakarta.persistence.PreUpdate
+    @PreUpdate
     void prepareUpdate() {
         updatedAt = LocalDateTime.now();
     }

@@ -12,7 +12,14 @@ import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.SELF_REPO
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.TYPE_MISMATCH;
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.USER_NOT_FOUND;
 
-import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.*;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportCreateRequest;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportCreateResponse;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolutionAction;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolveRequest;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolveResponse;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResponse;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportStatus;
+import com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportTargetType;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportListItem;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportPage;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportResolutionView;
@@ -29,6 +36,7 @@ import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
+import com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
@@ -36,6 +44,8 @@ import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import com.leets_8th_be.kanghyeonwoo.shared.web.PageResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
@@ -43,14 +53,21 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Report", description = "신고 접수·조회·처리 API")
 @RequestMapping(ApiPaths.API_V2)
 public class ReportController {
-    private final com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser currentUser;
+    private final CurrentUser currentUser;
     private final ReportPostUseCase reportPostUseCase;
     private final ReportCommentUseCase reportCommentUseCase;
     private final GetReportsUseCase getReportsUseCase;
@@ -72,8 +89,7 @@ public class ReportController {
             description = "게시글 신고 접수 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportPost(
-            @io.swagger.v3.oas.annotations.Parameter(description = "신고할 게시글 ID", example = "1")
-                    @PathVariable("postId")
+            @Parameter(description = "신고할 게시글 ID", example = "1") @PathVariable("postId")
                     Long postId,
             @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
@@ -109,8 +125,7 @@ public class ReportController {
             description = "댓글 신고 접수 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportComment(
-            @io.swagger.v3.oas.annotations.Parameter(description = "신고할 댓글 ID", example = "1")
-                    @PathVariable("commentId")
+            @Parameter(description = "신고할 댓글 ID", example = "1") @PathVariable("commentId")
                     Long commentId,
             @Valid @RequestBody ReportCreateRequest request) {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
@@ -136,35 +151,26 @@ public class ReportController {
             description = "신고 목록 조회 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<PageResponse<ReportResponse>>> getReports(
-            @io.swagger.v3.oas.annotations.Parameter(
+            @Parameter(
                             description = "1부터 시작하는 페이지 번호",
-                            schema =
-                                    @io.swagger.v3.oas.annotations.media.Schema(
-                                            minimum = "1",
-                                            example = "1"))
+                            schema = @Schema(minimum = "1", example = "1"))
                     @RequestParam(name = "page", defaultValue = "1")
                     int page,
-            @io.swagger.v3.oas.annotations.Parameter(
+            @Parameter(
                             description = "페이지 크기 (최대 100)",
-                            schema =
-                                    @io.swagger.v3.oas.annotations.media.Schema(
-                                            minimum = "1",
-                                            maximum = "100",
-                                            example = "10"))
+                            schema = @Schema(minimum = "1", maximum = "100", example = "10"))
                     @RequestParam(name = "size", defaultValue = "10")
                     int size,
-            @io.swagger.v3.oas.annotations.Parameter(description = "신고 상태", example = "PENDING")
+            @Parameter(description = "신고 상태", example = "PENDING")
                     @RequestParam(name = "status", required = false)
                     ReportStatus status,
-            @io.swagger.v3.oas.annotations.Parameter(description = "신고 대상 종류", example = "POST")
+            @Parameter(description = "신고 대상 종류", example = "POST")
                     @RequestParam(name = "targetType", required = false)
                     ReportTargetType targetType,
-            @io.swagger.v3.oas.annotations.Parameter(description = "대상 ID", example = "1")
+            @Parameter(description = "대상 ID", example = "1")
                     @RequestParam(name = "targetId", required = false)
                     Long targetId,
-            @io.swagger.v3.oas.annotations.Parameter(
-                            description = "사유·제목 스냅샷·본문 스냅샷 검색어",
-                            example = "욕설")
+            @Parameter(description = "사유·제목 스냅샷·본문 스냅샷 검색어", example = "욕설")
                     @RequestParam(name = "keyword", required = false)
                     String keyword) {
         ReportPage result =
@@ -204,8 +210,7 @@ public class ReportController {
             description = "신고 처리 성공",
             useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
-            @io.swagger.v3.oas.annotations.Parameter(description = "처리할 신고 ID", example = "1")
-                    @PathVariable("reportId")
+            @Parameter(description = "처리할 신고 ID", example = "1") @PathVariable("reportId")
                     Long reportId,
             @Valid @RequestBody ReportResolveRequest request) {
         ReportResolutionView result =
@@ -248,8 +253,7 @@ public class ReportController {
         return new ReportResolveResponse(
                 report.id().value(),
                 ReportStatus.valueOf(report.state().name()),
-                com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolutionAction
-                        .valueOf(report.action().name()),
+                ReportResolutionAction.valueOf(report.action().name()),
                 report.processorId().value(),
                 report.resolvedAt(),
                 report.targetAvailable(),

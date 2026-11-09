@@ -1,5 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,7 +9,7 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "게시글·댓글 신고 접수 요청")
 public record ReportCreateRequest(
-        @com.fasterxml.jackson.annotation.JsonIgnore @Schema(hidden = true) Long reporterId,
+        @JsonIgnore @Schema(hidden = true) Long reporterId,
         @Schema(
                         description = "신고 사유",
                         example = "욕설이 포함되어 있습니다.",

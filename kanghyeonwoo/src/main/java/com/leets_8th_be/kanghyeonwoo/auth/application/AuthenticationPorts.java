@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.auth.application;
 
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 
 public final class AuthenticationPorts {
@@ -52,7 +53,11 @@ public final class AuthenticationPorts {
     }
 
     public static final class Ticket {
-        public String hash, kind, browserHash, kakaoId, email;
+        public String hash;
+        public String kind;
+        public String browserHash;
+        public String kakaoId;
+        public String email;
         public Long userId;
         public Instant expiresAt;
 

@@ -1,11 +1,14 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.leets_8th_be.kanghyeonwoo.shared.web.*;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.AccountDirectory;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,23 +23,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final AccountDirectory accounts;
     private final ObjectMapper json;
 
-    public JwtAuthenticationFilter(JwtTokens j, AccountDirectory a, ObjectMapper o) {
-        jwt = j;
-        accounts = a;
-        json = o;
+    public JwtAuthenticationFilter(JwtTokens jwt, AccountDirectory accounts, ObjectMapper json) {
+        this.jwt = jwt;
+        this.accounts = accounts;
+        this.json = json;
     }
 
+    @Override
     protected void doFilterInternal(
-            HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+            HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String header = req.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
         if (header != null) {
             try {
-                if (!header.regionMatches(true, 0, "Bearer ", 0, 7))
+                if (!header.regionMatches(true, 0, "Bearer ", 0, 7)) {
                     throw new AuthFailure(ApiResponseCode.UNAUTHORIZED);
-                var c = jwt.parse(header.substring(7), "access");
-                var account = accounts.byId(Long.parseLong(c.getSubject()));
-                if (account == null) throw new AuthFailure(ApiResponseCode.UNAUTHORIZED);
+                }
+                var claims = jwt.parse(header.substring(7), "access");
+                var account = accounts.byId(Long.parseLong(claims.getSubject()));
+                if (account == null) {
+                    throw new AuthFailure(ApiResponseCode.UNAUTHORIZED);
+                }
                 var context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(
                         new UsernamePasswordAuthenticationToken(
@@ -46,17 +53,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.setContext(context);
             } catch (AuthFailure | NumberFormatException e) {
                 SecurityContextHolder.clearContext();
-                write(res, 401, ApiResponseCode.UNAUTHORIZED, json);
+                write(response, 401, ApiResponseCode.UNAUTHORIZED, json);
                 return;
             }
         }
-        chain.doFilter(req, res);
+        chain.doFilter(request, response);
     }
 
-    static void write(HttpServletResponse res, int status, ApiResponseCode code, ObjectMapper json)
+    static void write(
+            HttpServletResponse response, int status, ApiResponseCode code, ObjectMapper json)
             throws IOException {
-        res.setStatus(status);
-        res.setContentType("application/json;charset=UTF-8");
-        json.writeValue(res.getOutputStream(), ApiResponse.fail(code, code.getDefaultMessage()));
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        json.writeValue(
+                response.getOutputStream(), ApiResponse.fail(code, code.getDefaultMessage()));
     }
 }

@@ -1,13 +1,17 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
-import com.leets_8th_be.kanghyeonwoo.shared.web.*;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice(basePackages = "com.leets_8th_be.kanghyeonwoo.auth")
-@org.springframework.core.annotation.Order(-100)
+@Order(-100)
 public class AuthExceptionHandler {
     @ExceptionHandler(AuthFailure.class)
     ResponseEntity<?> failure(AuthFailure e) {
@@ -24,7 +28,7 @@ public class AuthExceptionHandler {
                                 "이미 가입된 이메일 또는 사용 중인 닉네임입니다. 기존 로그인 수단을 확인해 주세요."));
     }
 
-    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<?> denied(Exception e) {
         return ResponseEntity.status(403)
                 .body(

@@ -4,7 +4,9 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.exception.CommentNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.ManageOwnCommentUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.CommentStore;
-import com.leets_8th_be.kanghyeonwoo.blog.domain.model.*;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostAccessDenied;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
 public class ManageOwnCommentService implements ManageOwnCommentUseCase {

@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 
@@ -15,10 +16,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "users",
         uniqueConstraints = {
-            @jakarta.persistence.UniqueConstraint(name = "uk_user_email", columnNames = "email"),
-            @jakarta.persistence.UniqueConstraint(
-                    name = "uk_user_nickname",
-                    columnNames = "username")
+            @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+            @UniqueConstraint(name = "uk_user_nickname", columnNames = "username")
         })
 class UserProfileJpaEntity {
     @Id

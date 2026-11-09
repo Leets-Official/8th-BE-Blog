@@ -21,6 +21,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.GetPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
@@ -50,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(ApiPaths.API_V2 + "/posts")
 public class PostController {
 
-    private final com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser currentUser;
+    private final CurrentUser currentUser;
     private final CreatePostUseCase createPost;
     private final GetPostUseCase getPost;
     private final UpdatePostUseCase updatePost;

@@ -14,6 +14,8 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -22,6 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +35,7 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-                .addSecurityItem(
-                        new io.swagger.v3.oas.models.security.SecurityRequirement()
-                                .addList("BearerAuth"))
+                .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
                 .components(
                         new Components()
                                 .addSchemas("ApiResponseCode", apiResponseCodeSchema())
@@ -92,7 +93,7 @@ public class OpenApiConfig {
     private static Schema<?> enumSchema(Enum<?>[] values, String description) {
         StringSchema schema = new StringSchema();
         schema.setDescription(description);
-        schema.setEnum(java.util.Arrays.stream(values).map(Enum::name).toList());
+        schema.setEnum(Arrays.stream(values).map(Enum::name).toList());
         return schema;
     }
 
@@ -108,7 +109,7 @@ public class OpenApiConfig {
                         new Schema<>().description("오류 응답은 null").nullable(true).example(null));
     }
 
-    private static io.swagger.v3.oas.models.responses.ApiResponse errorResponse(
+    private static ApiResponse errorResponse(
             HttpStatus expectedStatus, List<ApiResponseCode> responseCodes) {
         MediaType mediaType =
                 new MediaType().schema(new Schema<>().$ref("#/components/schemas/ApiResponseVoid"));
@@ -126,7 +127,7 @@ public class OpenApiConfig {
             value.put("data", null);
             mediaType.addExamples(code, new Example().summary(message).value(value));
         }
-        return new io.swagger.v3.oas.models.responses.ApiResponse()
+        return new ApiResponse()
                 .description(expectedStatus.getReasonPhrase())
                 .content(new Content().addMediaType("application/json", mediaType));
     }

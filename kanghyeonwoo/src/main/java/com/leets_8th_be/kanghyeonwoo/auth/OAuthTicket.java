@@ -1,6 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
 

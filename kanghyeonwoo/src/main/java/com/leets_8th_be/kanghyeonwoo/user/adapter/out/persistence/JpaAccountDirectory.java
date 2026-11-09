@@ -5,6 +5,7 @@ import com.leets_8th_be.kanghyeonwoo.user.application.port.in.AccountDirectory;
 
 import jakarta.persistence.EntityManager;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,18 +14,19 @@ import java.util.Optional;
 @Repository
 @Transactional
 public class JpaAccountDirectory implements AccountDirectory {
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
-    public JpaAccountDirectory(EntityManager em) {
-        this.em = em;
+    public JpaAccountDirectory(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
-    private Credentials view(UserProfileJpaEntity u) {
-        return new Credentials(u.getId(), u.passwordHash(), u.kakaoId(), u.role());
+    private Credentials view(UserProfileJpaEntity user) {
+        return new Credentials(user.getId(), user.passwordHash(), user.kakaoId(), user.role());
     }
 
     public Optional<Credentials> byEmail(String email) {
-        return em.createQuery(
+        return entityManager
+                .createQuery(
                         "from UserProfileJpaEntity where lower(trim(email))=:value",
                         UserProfileJpaEntity.class)
                 .setParameter("value", email)
@@ -34,7 +36,8 @@ public class JpaAccountDirectory implements AccountDirectory {
     }
 
     public Optional<Credentials> byKakaoId(String id) {
-        return em.createQuery(
+        return entityManager
+                .createQuery(
                         "from UserProfileJpaEntity where kakaoId=:value",
                         UserProfileJpaEntity.class)
                 .setParameter("value", id)
@@ -44,8 +47,8 @@ public class JpaAccountDirectory implements AccountDirectory {
     }
 
     public Credentials byId(long id) {
-        var u = em.find(UserProfileJpaEntity.class, id);
-        return u == null ? null : view(u);
+        var user = entityManager.find(UserProfileJpaEntity.class, id);
+        return user == null ? null : view(user);
     }
 
     public boolean emailExists(String email) {
@@ -53,19 +56,24 @@ public class JpaAccountDirectory implements AccountDirectory {
     }
 
     public Credentials register(String email, String nickname, String hash, String kakao) {
-        if (emailExists(email)
-                || !em.createQuery(
-                                "select u.id from UserProfileJpaEntity u where"
-                                        + " trim(u.username)=:name",
-                                Long.class)
-                        .setParameter("name", nickname)
-                        .getResultList()
-                        .isEmpty())
-            throw new org.springframework.dao.DuplicateKeyException("이미 등록된 이메일 또는 닉네임입니다.");
-        var u = new UserProfileJpaEntity(nickname, email);
-        u.credentials(hash, kakao);
-        em.persist(u);
-        em.flush();
-        return view(u);
+        if (emailExists(email) || nicknameExists(nickname)) {
+            throw new DuplicateKeyException("이미 등록된 이메일 또는 닉네임입니다.");
+        }
+        var user = new UserProfileJpaEntity(nickname, email);
+        user.credentials(hash, kakao);
+        entityManager.persist(user);
+        entityManager.flush();
+        return view(user);
+    }
+
+    private boolean nicknameExists(String nickname) {
+        return !entityManager
+                .createQuery(
+                        "select user.id from UserProfileJpaEntity user where"
+                                + " trim(user.username)=:name",
+                        Long.class)
+                .setParameter("name", nickname)
+                .getResultList()
+                .isEmpty();
     }
 }

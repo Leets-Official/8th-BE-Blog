@@ -1,52 +1,41 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
-import com.leets_8th_be.kanghyeonwoo.auth.application.*;
-import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.*;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Accounts;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Identity;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Kakao;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Ticket;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Tickets;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService;
+import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService;
 
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Optional;
 
 @Configuration
 public class KakaoAdapters {
     @Bean
     Tickets authenticationTickets(OAuthTickets repository) {
         return new Tickets() {
-            public java.util.Optional<Ticket> lock(String hash) {
-                return repository
-                        .lock(hash)
-                        .map(
-                                row -> {
-                                    var t =
-                                            new Ticket(
-                                                    row.hash,
-                                                    row.kind,
-                                                    row.browserHash,
-                                                    row.expiresAt);
-                                    t.kakaoId = row.kakaoId;
-                                    t.email = row.email;
-                                    t.userId = row.userId;
-                                    return t;
-                                });
+            @Override
+            public Optional<Ticket> lock(String hash) {
+                return repository.lock(hash).map(KakaoAdapters::toTicket);
             }
 
-            public void save(Ticket t) {
-                var row =
-                        repository
-                                .findById(t.hash)
-                                .orElseGet(
-                                        () ->
-                                                new OAuthTicket(
-                                                        t.hash,
-                                                        t.kind,
-                                                        t.browserHash,
-                                                        t.expiresAt));
-                row.kakaoId = t.kakaoId;
-                row.email = t.email;
-                row.userId = t.userId;
+            @Override
+            public void save(Ticket ticket) {
+                OAuthTicket row =
+                        repository.findById(ticket.hash).orElseGet(() -> createRow(ticket));
+                row.kakaoId = ticket.kakaoId;
+                row.email = ticket.email;
+                row.userId = ticket.userId;
                 repository.save(row);
             }
 
-            public void delete(Ticket t) {
-                repository.deleteById(t.hash);
+            @Override
+            public void delete(Ticket ticket) {
+                repository.deleteById(ticket.hash);
                 repository.flush();
             }
         };
@@ -55,14 +44,17 @@ public class KakaoAdapters {
     @Bean
     Kakao authenticationKakao(KakaoClient client) {
         return new Kakao() {
+            @Override
             public String authorize(String state) {
                 return client.authorize(state);
             }
 
+            @Override
             public String frontend(String code) {
                 return client.frontend(code);
             }
 
+            @Override
             public Identity identity(String code) {
                 var identity = client.identity(code);
                 return new Identity(identity.id(), identity.email());
@@ -74,5 +66,17 @@ public class KakaoAdapters {
     KakaoAuthenticationService kakaoAuthenticationService(
             Tickets tickets, Accounts accounts, AuthenticationService auth, Kakao kakao) {
         return new KakaoAuthenticationService(tickets, accounts, auth, kakao);
+    }
+
+    private static Ticket toTicket(OAuthTicket row) {
+        Ticket ticket = new Ticket(row.hash, row.kind, row.browserHash, row.expiresAt);
+        ticket.kakaoId = row.kakaoId;
+        ticket.email = row.email;
+        ticket.userId = row.userId;
+        return ticket;
+    }
+
+    private static OAuthTicket createRow(Ticket ticket) {
+        return new OAuthTicket(ticket.hash, ticket.kind, ticket.browserHash, ticket.expiresAt);
     }
 }

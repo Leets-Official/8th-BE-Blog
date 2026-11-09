@@ -2,20 +2,26 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED;
 
-import io.jsonwebtoken.*;
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.*;
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Date;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
 @Component
-public class JwtTokens
-        implements com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Tokens {
+public class JwtTokens implements AuthenticationPorts.Tokens {
     private final SecretKey key;
 
     public JwtTokens(@Value("${auth.jwt-secret:}") String secret) {
@@ -40,7 +46,7 @@ public class JwtTokens
 
     public Claims parse(String token, String type) {
         try {
-            var c =
+            var claims =
                     Jwts.parser()
                             .verifyWith(key)
                             .requireIssuer("leets-blog")
@@ -48,20 +54,21 @@ public class JwtTokens
                             .build()
                             .parseSignedClaims(token)
                             .getPayload();
-            if (c.getExpiration() == null
-                    || c.getSubject() == null
-                    || c.get("sid", String.class) == null) throw new AuthFailure(UNAUTHORIZED);
-            return c;
+            if (claims.getExpiration() == null
+                    || claims.getSubject() == null
+                    || claims.get("sid", String.class) == null) {
+                throw new AuthFailure(UNAUTHORIZED);
+            }
+            return claims;
         } catch (JwtException | IllegalArgumentException e) {
             throw new AuthFailure(UNAUTHORIZED);
         }
     }
 
-    public com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Claims verify(
-            String raw, String type) {
+    public AuthenticationPorts.Claims verify(String raw, String type) {
         var claims = parse(raw, type);
         try {
-            return new com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationPorts.Claims(
+            return new AuthenticationPorts.Claims(
                     Long.parseLong(claims.getSubject()), claims.get("sid", String.class));
         } catch (NumberFormatException e) {
             throw new AuthFailure(UNAUTHORIZED);

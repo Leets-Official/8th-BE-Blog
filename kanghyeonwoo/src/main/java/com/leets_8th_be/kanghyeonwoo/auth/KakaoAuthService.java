@@ -2,7 +2,8 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService.Tokens;
 import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService;
-import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService.*;
+import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService.Exchange;
+import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService.Start;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

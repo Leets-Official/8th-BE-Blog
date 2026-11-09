@@ -1,12 +1,21 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
-import com.leets_8th_be.kanghyeonwoo.shared.web.*;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v2/auth")
@@ -22,76 +31,73 @@ public class AuthController {
             @NotBlank @Size(min = 8, max = 72) String password,
             @NotBlank @Size(max = 50) String nickname) {
         public Signup {
-            if (email != null) email = AuthService.email(email);
-            if (nickname != null) nickname = nickname.trim();
+            if (email != null) {
+                email = AuthService.email(email);
+            }
+            if (nickname != null) {
+                nickname = nickname.trim();
+            }
         }
     }
 
     public record Login(@NotBlank @Email String email, @NotBlank @Size(max = 72) String password) {
         public Login {
-            if (email != null) email = AuthService.email(email);
+            if (email != null) {
+                email = AuthService.email(email);
+            }
         }
     }
 
     public record Refresh(@NotBlank String refreshToken) {}
 
-    @com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes({
-        ApiResponseCode.INVALID_INPUT_VALUE,
-        ApiResponseCode.DUPLICATE_RESOURCE
-    })
+    @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.DUPLICATE_RESOURCE})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody Signup r) {
+    public ResponseEntity<?> signup(@Valid @RequestBody Signup request) {
         return ResponseEntity.status(201)
                 .body(
                         ApiResponse.success(
                                 ApiResponseCode.RESOURCE_CREATED,
                                 "회원가입이 완료되었습니다.",
-                                java.util.Map.of(
+                                Map.of(
                                         "userId",
-                                        auth.signup(r.email(), r.password(), r.nickname()))));
+                                        auth.signup(
+                                                request.email(),
+                                                request.password(),
+                                                request.nickname()))));
     }
 
-    @com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes({
-        ApiResponseCode.INVALID_INPUT_VALUE,
-        ApiResponseCode.UNAUTHORIZED
-    })
+    @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/login")
-    public ApiResponse<?> login(@Valid @RequestBody Login r) {
-        return ApiResponse.success(auth.login(r.email(), r.password()));
+    public ApiResponse<?> login(@Valid @RequestBody Login request) {
+        return ApiResponse.success(auth.login(request.email(), request.password()));
     }
 
-    @com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes({
-        ApiResponseCode.INVALID_INPUT_VALUE,
-        ApiResponseCode.UNAUTHORIZED
-    })
+    @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/reissue")
-    public ApiResponse<?> reissue(@Valid @RequestBody Refresh r) {
-        return ApiResponse.success(auth.reissue(r.refreshToken()));
+    public ApiResponse<?> reissue(@Valid @RequestBody Refresh request) {
+        return ApiResponse.success(auth.reissue(request.refreshToken()));
     }
 
-    @com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes({
-        ApiResponseCode.INVALID_INPUT_VALUE,
-        ApiResponseCode.UNAUTHORIZED
-    })
+    @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "200",
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/logout")
-    public ApiResponse<?> logout(@Valid @RequestBody Refresh r) {
-        auth.logout(r.refreshToken());
+    public ApiResponse<?> logout(@Valid @RequestBody Refresh request) {
+        auth.logout(request.refreshToken());
         return ApiResponse.success(null);
     }
 }
