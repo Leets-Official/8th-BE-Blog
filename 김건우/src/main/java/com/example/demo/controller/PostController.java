@@ -12,12 +12,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,7 +67,7 @@ public class PostController {
 
     // @ResponseStatus 는 문서용: 실제 상태 코드는 ApiResponse.success 의 ResponseEntity 가 결정한다.
     //                          (Swagger 가 성공 응답 코드를 201 로 표시하도록 알려주는 역할)
-    @Operation(summary = "게시글 작성", description = "새 게시글을 작성합니다. 작성자는 요청 본문의 userId 로 식별합니다.")
+    @Operation(summary = "게시글 작성", description = "새 게시글을 작성합니다. 작성자는 Access Token 의 사용자로 식별합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 검증 실패",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
@@ -74,10 +76,13 @@ public class PostController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "USER_404_1", value = SwaggerErrorExamples.USER_NOT_FOUND)))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostRequest request) {
-        return ApiResponse.success(SuccessCode.POST_CREATED, postService.createPost(request));
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody PostRequest request) {
+        return ApiResponse.success(SuccessCode.POST_CREATED, postService.createPost(userId, request));
     }
 
     @Operation(summary = "게시글 전체 수정",
@@ -93,11 +98,13 @@ public class PostController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "POST_404_1", value = SwaggerErrorExamples.POST_NOT_FOUND)))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Valid @RequestBody PostRequest request) {
-        return ApiResponse.success(SuccessCode.POST_UPDATED, postService.updatePost(postId, request));
+        return ApiResponse.success(SuccessCode.POST_UPDATED, postService.updatePost(postId, userId, request));
     }
 
     @Operation(summary = "게시글 부분 수정",
@@ -116,18 +123,17 @@ public class PostController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "POST_404_1", value = SwaggerErrorExamples.POST_NOT_FOUND)))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> patchPost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Valid @RequestBody PostPatchRequest request) {
-        return ApiResponse.success(SuccessCode.POST_UPDATED, postService.patchPost(postId, request));
+        return ApiResponse.success(SuccessCode.POST_UPDATED, postService.patchPost(postId, userId, request));
     }
 
     @Operation(summary = "게시글 삭제", description = "게시글과 그 댓글을 함께 삭제합니다. 글 작성자만 삭제할 수 있습니다. 성공 시 data 는 null 입니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "userId 누락",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "COMMON_400_1", value = SwaggerErrorExamples.INVALID_PARAM))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "작성자가 아님",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "COMMON_403_1", value = SwaggerErrorExamples.FORBIDDEN_POST))),
@@ -135,10 +141,11 @@ public class PostController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "POST_404_1", value = SwaggerErrorExamples.POST_NOT_FOUND)))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<Void>> deletePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
-            @Parameter(description = "요청자 ID (글 작성자와 같아야 함)", example = "1") @RequestParam Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
         postService.deletePost(postId, userId);
         return ApiResponse.success(SuccessCode.POST_DELETED, null);
     }
@@ -148,9 +155,6 @@ public class PostController {
             description = "게시글 상태를 ACTIVE 에서 HIDDEN 으로 변경합니다. 글 작성자만 숨길 수 있고, 이미 숨김 상태면 409 입니다. "
                     + "숨김 처리된 글은 목록, 상세 조회에서 제외되고 신고, 댓글 작성도 할 수 없습니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "userId 누락",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(name = "COMMON_400_1", value = SwaggerErrorExamples.INVALID_PARAM))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "작성자가 아님",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "COMMON_403_1", value = SwaggerErrorExamples.FORBIDDEN_POST))),
@@ -161,10 +165,11 @@ public class PostController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "POST_409_1", value = SwaggerErrorExamples.POST_ALREADY_HIDDEN)))
     })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/{postId}/hide")
     public ResponseEntity<ApiResponse<PostHideResponse>> hidePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
-            @Parameter(description = "요청자 ID (글 작성자와 같아야 함)", example = "1") @RequestParam Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
         return ApiResponse.success(SuccessCode.POST_HIDDEN, postService.hidePost(postId, userId));
     }
 }

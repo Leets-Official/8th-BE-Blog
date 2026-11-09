@@ -40,8 +40,8 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse createPost(PostRequest request) {
-        User user = userRepository.findById(request.userId())
+    public PostResponse createPost(Long userId, PostRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Post post = Post.builder()
@@ -54,9 +54,9 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse updatePost(Long postId, PostRequest request) {
+    public PostResponse updatePost(Long postId, Long userId, PostRequest request) {
         Post post = findPost(postId);
-        validateWriter(post, request.userId());
+        validateWriter(post, userId);
 
         post.update(request.title(), request.content());
         postRepository.flush(); // updatedAt 이 갱신된 뒤 응답을 만들기 위해
@@ -64,13 +64,13 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse patchPost(Long postId, PostPatchRequest request) {
+    public PostResponse patchPost(Long postId, Long userId, PostPatchRequest request) {
         if (request.title() == null && request.content() == null) {
             throw new CustomException(ErrorCode.NO_FIELD_TO_UPDATE);
         }
 
         Post post = findPost(postId);
-        validateWriter(post, request.userId());
+        validateWriter(post, userId);
 
         post.update(
                 request.title() != null ? request.title() : post.getTitle(),

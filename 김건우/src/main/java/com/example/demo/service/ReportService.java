@@ -26,8 +26,8 @@ public class ReportService {
 
     // 게시글 신고 (중복 신고 방지)
     @Transactional
-    public ReportResponse createReport(Long postId, ReportRequest request) {
-        User reporter = userRepository.findById(request.userId())
+    public ReportResponse createReport(Long postId, Long userId, ReportRequest request) {
+        User reporter = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
