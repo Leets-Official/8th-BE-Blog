@@ -14,6 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 public class Post extends SoftDeletableEntity {
 
+    @Version
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private long version;
+
     @Column(nullable = false, length = 50)
     private String title;
 
@@ -50,7 +55,11 @@ public class Post extends SoftDeletableEntity {
         this.content = content;
     }
 
+    public void hide() {
+        this.isHidden = true;
+    }
+
     public boolean isOwnedBy(Long memberId) {
-        return member == null || !member.getId().equals(memberId);
+        return memberId != null && member != null && memberId.equals(member.getId());
     }
 }
