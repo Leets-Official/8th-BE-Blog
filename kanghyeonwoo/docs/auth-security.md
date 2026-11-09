@@ -38,7 +38,7 @@ Refresh 원문은 DB에 저장하지 않고 SHA-256 지문만 저장한다. 로�
 1. [카카오 개발자 콘솔](https://developers.kakao.com/)에서 앱을 만들고 카카오 로그인을 활성화한다.
 2. 웹 플랫폼과 Redirect URI를 등록한다. 서버 콜백은 예를 들어 `http://localhost:8080/api/v2/auth/kakao/callback`이다. 환경변수 값과 정확히 일치해야 한다.
 3. 카카오계정 이메일 동의 항목을 설정한다. 앱 권한에 따라 이메일 동의 항목 설정 자격을 준비해야 한다. 유효하고 인증된 이메일이 없으면 신규 가입이 거절된다.
-4. `KAKAO_CLIENT_ID`에 REST API 키를 지정한다. Client Secret을 사용한다면 `KAKAO_CLIENT_SECRET`도 지정한다.
+4. `KAKAO_CLIENT_ID`에 REST API 키를 지정한다. 새 REST API 키는 Client Secret이 기본 활성화되므로 `KAKAO_CLIENT_SECRET`도 확인해 지정한다. 콘솔에서 명시적으로 비활성화한 경우에만 생략한다.
 5. `KAKAO_CALLBACK_URL`에 등록한 서버 콜백, `KAKAO_FRONTEND_URL`에 프런트엔드 완료 화면의 고정 URL을 지정한다. 요청에서 임의 리다이렉트 URL을 받지 않는다.
 
 [카카오 로그인 공식 REST 문서](https://developers.kakao.com/docs/ko/kakaologin/rest-api)의 인가 코드 교환 및 `/v2/user/me`를 실제 호출한다. 통신 연결·읽기는 각각 5초로 제한한다. 설정 누락은 503을 반환한다.
@@ -53,3 +53,16 @@ Refresh 원문은 DB에 저장하지 않고 SHA-256 지문만 저장한다. 로�
 브라우저 쿠키는 OAuth 요청 연결에만 사용하며 업무 API 인증에는 사용하지 않는다. 세션은 만들지 않는다. 프런트엔드와 API를 같은 사이트의 리버스 프록시로 제공하는 구성을 전제로 한다. 다른 사이트 배포는 별도 CORS·쿠키 정책 설계가 필요하다. HTTPS에서는 Secure 쿠키를 발급한다.
 
 카카오 앱 설정이 아직 없어 실계정 로그인은 미검증이다. 설정 이후 시작 → 동의 → 콜백 → 코드 교환 → 신규 닉네임 가입 → 재로그인까지 실제 브라우저로 확인해야 한다. 이메일 중복 계정·동의 거절도 확인한다.
+
+## 로컬 환경 파일 사용
+
+`.env.example`은 변수 목록 예시다. 실제 키는 Git에서 제외된 `.env.kakao.local`에 저장하고 파일 권한을 600으로 제한한다. Spring Boot는 dotenv 파일을 자동으로 읽지 않으므로, 직접 작성·확인한 파일만 아래처럼 내보내고 실행한다.
+
+```bash
+set -a
+source ./.env.kakao.local
+set +a
+./gradlew bootRun
+```
+
+프런트엔드 완료 화면은 별도로 준비해야 한다. `KAKAO_FRONTEND_URL`에 아무 페이지나 지정하면 리다이렉트 이후 코드 교환·닉네임 가입을 완료할 수 없다.

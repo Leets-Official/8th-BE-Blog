@@ -40,3 +40,8 @@ out/
 data/
 *.mv.db
 *.trace.db
+
+# Local authentication credentials
+.env
+.env.*
+!.env.example
