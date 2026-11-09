@@ -1,20 +1,22 @@
 package com.leets_8th_be.kanghyeonwoo.config;
 
-import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
-import org.springdoc.core.customizers.OperationCustomizer;
-import io.swagger.v3.oas.models.OpenAPI;
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
+
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.examples.Example;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
-import io.swagger.v3.oas.models.examples.Example;
-import io.swagger.v3.oas.models.info.Contact;
-import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
+
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -29,30 +31,33 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI openAPI() {
-        return new OpenAPI().addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement().addList("BearerAuth"))
-                .components(new Components()
-                        .addSchemas("ApiResponseCode", apiResponseCodeSchema())
-                        .addSchemas("ApiResponseVoid", apiResponseVoidSchema()))
-                .info(new Info()
-                        .title("Leets 8th Blog RESTful API")
-                        .description("""
-                                Leets 8기 백엔드 블로그 서비스 API 명세서입니다.
+        return new OpenAPI()
+                .addSecurityItem(
+                        new io.swagger.v3.oas.models.security.SecurityRequirement()
+                                .addList("BearerAuth"))
+                .components(
+                        new Components()
+                                .addSchemas("ApiResponseCode", apiResponseCodeSchema())
+                                .addSchemas("ApiResponseVoid", apiResponseVoidSchema()))
+                .info(
+                        new Info()
+                                .title("Leets 8th Blog RESTful API")
+                                .description(
+                                        """
+                                        Leets 8기 백엔드 블로그 서비스 API 명세서입니다.
 
-                                ### 공통 라우팅 오류
-                                - 등록되지 않은 경로: HTTP 404, `ENDPOINT_NOT_FOUND`
-                                - 지원하지 않는 HTTP 메서드: HTTP 405, `METHOD_NOT_ALLOWED`
+                                        ### 공통 라우팅 오류
+                                        - 등록되지 않은 경로: HTTP 404, `ENDPOINT_NOT_FOUND`
+                                        - 지원하지 않는 HTTP 메서드: HTTP 405, `METHOD_NOT_ALLOWED`
 
-                                오류 응답은 `success: false`, 의미 코드인 `code`, 설명 `message`,
-                                `data: null`로 구성됩니다. API별 예시는 기본 메시지를 사용하며,
-                                실제 메시지는 입력값과 오류 상황에 따라 달라질 수 있습니다.
-                                """)
-                        .version("2.0.0")
-                        .contact(new Contact()
-                                .name("강현우")
-                                .email("wooddang@example.com")))
-                .servers(List.of(
-                        new Server().url("http://localhost:8080").description("로컬 개발 서버")
-                ));
+                                        오류 응답은 `success: false`, 의미 코드인 `code`, 설명 `message`,
+                                        `data: null`로 구성됩니다. API별 예시는 기본 메시지를 사용하며,
+                                        실제 메시지는 입력값과 오류 상황에 따라 달라질 수 있습니다.
+                                        """)
+                                .version("2.0.0")
+                                .contact(new Contact().name("강현우").email("wooddang@example.com")))
+                .servers(
+                        List.of(new Server().url("http://localhost:8080").description("로컬 개발 서버")));
     }
 
     @Bean
@@ -64,12 +69,18 @@ public class OpenApiConfig {
             }
             Map<HttpStatus, List<ApiResponseCode>> byStatus = new LinkedHashMap<>();
             for (ApiResponseCode code : annotation.value()) {
-                byStatus.computeIfAbsent(code.getHttpStatus(), ignored -> new ArrayList<>()).add(code);
+                byStatus.computeIfAbsent(code.getHttpStatus(), ignored -> new ArrayList<>())
+                        .add(code);
             }
             byStatus.computeIfAbsent(HttpStatus.INTERNAL_SERVER_ERROR, ignored -> new ArrayList<>())
                     .add(ApiResponseCode.INTERNAL_SERVER_ERROR);
-            byStatus.forEach((status, codes) -> operation.getResponses().addApiResponse(
-                    String.valueOf(status.value()), errorResponse(status, codes)));
+            byStatus.forEach(
+                    (status, codes) ->
+                            operation
+                                    .getResponses()
+                                    .addApiResponse(
+                                            String.valueOf(status.value()),
+                                            errorResponse(status, codes)));
             return operation;
         };
     }
@@ -92,16 +103,19 @@ public class OpenApiConfig {
                 .addProperty("success", new BooleanSchema().description("성공 여부").example(false))
                 .addProperty("code", codeSchema)
                 .addProperty("message", new StringSchema().description("오류별 설명 메시지"))
-                .addProperty("data", new Schema<>().description("오류 응답은 null").nullable(true).example(null));
+                .addProperty(
+                        "data",
+                        new Schema<>().description("오류 응답은 null").nullable(true).example(null));
     }
 
-    private static io.swagger.v3.oas.models.responses.ApiResponse errorResponse(HttpStatus expectedStatus,
-                                                                                List<ApiResponseCode> responseCodes) {
-        MediaType mediaType = new MediaType()
-                .schema(new Schema<>().$ref("#/components/schemas/ApiResponseVoid"));
+    private static io.swagger.v3.oas.models.responses.ApiResponse errorResponse(
+            HttpStatus expectedStatus, List<ApiResponseCode> responseCodes) {
+        MediaType mediaType =
+                new MediaType().schema(new Schema<>().$ref("#/components/schemas/ApiResponseVoid"));
         for (ApiResponseCode responseCode : responseCodes) {
             if (responseCode.getHttpStatus() != expectedStatus) {
-                throw new IllegalArgumentException(responseCode + " does not map to " + expectedStatus);
+                throw new IllegalArgumentException(
+                        responseCode + " does not map to " + expectedStatus);
             }
             String code = responseCode.name();
             String message = responseCode.getDefaultMessage();
