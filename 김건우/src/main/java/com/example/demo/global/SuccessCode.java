@@ -18,7 +18,13 @@ public enum SuccessCode {
     REPORT_CREATED(HttpStatus.CREATED, "REPORT_201_1", "게시글 신고가 접수되었습니다."),
     REPORT_RESOLVED(HttpStatus.OK, "REPORT_200_1", "신고가 처리 완료되었습니다."),
     COMMENT_CREATED(HttpStatus.CREATED, "COMMENT_201_1", "댓글이 생성되었습니다."),
-    COMMENT_ACCEPTED(HttpStatus.OK, "COMMENT_200_1", "댓글이 채택되었습니다.");
+    COMMENT_ACCEPTED(HttpStatus.OK, "COMMENT_200_1", "댓글이 채택되었습니다."),
+
+    // 6주차
+    SIGNUP_OK(HttpStatus.CREATED, "AUTH_201_1", "회원가입에 성공했습니다."),
+    LOGIN_OK(HttpStatus.OK, "AUTH_200_1", "로그인에 성공했습니다."),
+    TOKEN_REISSUED(HttpStatus.OK, "AUTH_200_2", "토큰이 재발급되었습니다."),
+    USER_ME_OK(HttpStatus.OK, "USER_200_1", "내 정보 조회에 성공했습니다.");
 
     private final HttpStatus status;
     private final String code;

@@ -52,4 +52,24 @@ public final class SwaggerErrorExamples {
             {"isSuccess": false, "code": "COMMENT_409_1", "message": "이미 채택된 댓글입니다.", "data": null}""";
     public static final String ANOTHER_COMMENT_ACCEPTED = """
             {"isSuccess": false, "code": "COMMENT_409_2", "message": "이미 채택된 댓글이 있는 게시글입니다.", "data": null}""";
+
+    // ---- 회원 / 인증 ----
+    public static final String INVALID_SIGNUP = """
+            {"isSuccess": false, "code": "COMMON_400_1", "message": "올바르지 않은 입력값입니다.", "data": {"email": "올바른 이메일 형식으로 입력해주세요."}}""";
+    public static final String INVALID_LOGIN = """
+            {"isSuccess": false, "code": "COMMON_400_1", "message": "올바르지 않은 입력값입니다.", "data": {"email": "이메일을 입력해주세요."}}""";
+    public static final String INVALID_REISSUE = """
+            {"isSuccess": false, "code": "COMMON_400_1", "message": "올바르지 않은 입력값입니다.", "data": {"refreshToken": "refreshToken을 입력해주세요."}}""";
+    public static final String PASSWORD_TOO_LONG = """
+            {"isSuccess": false, "code": "AUTH_400_1", "message": "비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.", "data": null}""";
+    public static final String LOGIN_FAILED = """
+            {"isSuccess": false, "code": "AUTH_401_1", "message": "이메일 또는 비밀번호가 올바르지 않습니다.", "data": null}""";
+    public static final String AUTHENTICATION_REQUIRED = """
+            {"isSuccess": false, "code": "AUTH_401_2", "message": "인증이 필요합니다. 유효한 Access Token을 보내주세요.", "data": null}""";
+    public static final String INVALID_REFRESH_TOKEN = """
+            {"isSuccess": false, "code": "AUTH_401_3", "message": "유효하지 않은 Refresh Token입니다.", "data": null}""";
+    public static final String DUPLICATE_EMAIL = """
+            {"isSuccess": false, "code": "USER_409_1", "message": "이미 가입된 이메일입니다.", "data": null}""";
+    public static final String DUPLICATE_NICKNAME = """
+            {"isSuccess": false, "code": "USER_409_2", "message": "이미 사용 중인 닉네임입니다.", "data": null}""";
 }
