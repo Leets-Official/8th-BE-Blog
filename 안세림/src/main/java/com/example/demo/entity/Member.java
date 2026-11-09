@@ -22,13 +22,16 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, unique = true, length = 20)
+    private String nickname;
+
+    @Column(length = 30)
     private String name;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 15)
+    @Column(length = 15)
     private String tel;
 
     private LocalDate birthDate;
@@ -42,12 +45,13 @@ public class Member extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
-    public Member(String email, String name, String password, String tel, LocalDate birthDate, Gender gender) {
+    private Member(String email, String nickname, String password) {
         this.email = email;
-        this.name = name;
+        this.nickname = nickname;
         this.password = password;
-        this.tel = tel;
-        this.birthDate = birthDate;
-        this.gender = gender;
+    }
+
+    public static Member signUp(String email, String nickname, String encodedPassword) {
+        return new Member(email, nickname, encodedPassword);
     }
 }

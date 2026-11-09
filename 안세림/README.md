@@ -74,3 +74,22 @@
 - 숨김 처리된 게시글은 목록에서 제외되고, 상세 조회 시 404를 반환합니다.
 - 신고가 달린 게시글을 삭제할 때 FK 오류가 나지 않도록, 게시글과 댓글에 달린 신고를 먼저 삭제합니다.
 - 테스트용 게시글 1개, 댓글 1개를 서버 시작 시 생성합니다.
+
+---
+
+# 6주차 과제 - 안세림
+
+## 구현 API
+| 기능 | Method | URI | 인증 |
+|---|---|---|---|
+| 회원가입 | POST | /auth/signup | 불필요 |
+| 로그인 | POST | /auth/login | 불필요 |
+| 토큰 재발급 | POST | /auth/reissue | 불필요 |
+| 내 정보 조회 | GET | /members/me | Access Token |
+
+## 인증 방식
+- 비밀번호는 BCrypt로 암호화해서 저장합니다.
+- 로그인하면 Access Token(10분)과 Refresh Token(7일)을 발급합니다.
+- 요청 시 `Authorization: Bearer <Access Token>` 헤더로 인증합니다.
+- 재발급할 때마다 Refresh Token도 새로 바꾸고(회전), 이미 사용한 Refresh Token으로 요청하면 거절합니다.
+- 게시글 조회(GET)는 누구나 가능하고, 작성·수정·삭제·숨김·신고는 로그인이 필요합니다.
