@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.nullValue;
 
 @SpringBootTest
+@org.springframework.security.test.context.support.WithMockUser(username="1", roles="ADMIN")
 @AutoConfigureMockMvc
 @Transactional
 class PostControllerTest {
@@ -76,6 +77,7 @@ class PostControllerTest {
                 .username("테스터")
                 .email("tester@example.com")
                 .build());
+        org.springframework.security.test.context.TestSecurityContextHolder.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(testUser.getId().toString(),null,java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))));
     }
 
     @Test
@@ -110,7 +112,7 @@ class PostControllerTest {
         mockMvc.perform(post("/api/v2/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"title":"제목","content":"본문","authorId":"not-a-number"}
+                                {"title":{},"content":"본문"}
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -169,7 +171,7 @@ class PostControllerTest {
         request.put("content", "본문");
         request.put("authorId", 999999L);
 
-        mockMvc.perform(post("/api/v2/posts")
+        mockMvc.perform(post("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("999999"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -305,7 +307,7 @@ class PostControllerTest {
         updateRequest.put("content", "내용 변경 시도");
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v2/posts/" + post.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(anotherUser.getId().toString())).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
@@ -380,7 +382,7 @@ class PostControllerTest {
         User anotherUser = userRepository.save(User.builder().username("타인2").email("other2@example.com").build());
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v2/posts/" + post.getId())
-                        .param("authorId", String.valueOf(anotherUser.getId())))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(anotherUser.getId().toString())))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST_ACCESS_DENIED"))

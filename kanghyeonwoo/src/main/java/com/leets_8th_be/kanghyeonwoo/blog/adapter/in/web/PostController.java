@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(ApiPaths.API_V2 + "/posts")
 public class PostController {
 
+    private final com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser currentUser;
     private final CreatePostUseCase createPost;
     private final GetPostUseCase getPost;
     private final UpdatePostUseCase updatePost;
@@ -59,7 +60,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
         PostView post = createPost.create(new CreatePostCommand(request.getTitle(), request.getContent(),
-                new UserId(request.getAuthorId())));
+                currentUser.requireId()));
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
                 .body(ApiResponse.success(ApiResponseCode.RESOURCE_CREATED,
                         "게시글이 성공적으로 등록되었습니다.", toCreateResponse(post)));
@@ -84,7 +85,7 @@ public class PostController {
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Valid @RequestBody PostUpdateRequest request) {
         PostView updated = updatePost.update(new UpdatePostCommand(new PostId(postId),
-                new UserId(request.getAuthorId()), request.getTitle(), request.getContent()));
+                currentUser.requireId(), request.getTitle(), request.getContent()));
         PostDetailResponse response = toDetailResponse(updated);
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS,
                 "게시글이 성공적으로 수정되었습니다.", response));
@@ -95,9 +96,8 @@ public class PostController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시글 삭제 성공", useReturnTypeSchema = true)
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
-            @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,
-            @Parameter(description = "작성자 회원 ID", example = "1") @RequestParam("authorId") Long authorId) {
-        PostId deletedId = deletePost.delete(new DeletePostCommand(new PostId(postId), new UserId(authorId)));
+            @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId) {
+        PostId deletedId = deletePost.delete(new DeletePostCommand(new PostId(postId), currentUser.requireId()));
         PostDeleteResponse response = new PostDeleteResponse(deletedId.value());
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS,
                 "게시글이 성공적으로 삭제되었습니다.", response));

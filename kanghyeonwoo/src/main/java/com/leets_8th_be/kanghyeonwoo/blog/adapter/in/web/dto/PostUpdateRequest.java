@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PostUpdateRequest {
 
-    @Schema(description = "작성자 회원 ID (권한 검증용)", example = "1", minimum = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "작성자 ID는 필수입니다.")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Schema(hidden = true)
     private Long authorId;
 
     @Schema(description = "수정할 게시글 제목", example = "수정된 게시글 제목입니다.", maxLength = 150, requiredMode = Schema.RequiredMode.REQUIRED)

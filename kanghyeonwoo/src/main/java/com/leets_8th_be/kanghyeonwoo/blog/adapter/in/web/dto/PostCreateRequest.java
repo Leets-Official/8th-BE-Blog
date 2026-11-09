@@ -23,7 +23,7 @@ public class PostCreateRequest {
     @NotBlank(message = "본문은 필수 입력 항목입니다.")
     private String content;
 
-    @Schema(description = "작성자 회원 ID", example = "1", minimum = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "작성자 ID는 필수 입력 항목입니다.")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Schema(hidden = true)
     private Long authorId;
 }
