@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.security.test.context.support.WithMockUser(username="1", roles="ADMIN")
 @AutoConfigureMockMvc
 class ReportControllerTest {
     @Autowired MockMvc mvc;
@@ -85,7 +86,7 @@ class ReportControllerTest {
     }
 
     ResultActions reportComment(long id, long reporterId) throws Exception {
-        return mvc.perform(post("/api/v2/comments/{id}/reports", id).contentType(MediaType.APPLICATION_JSON)
+        return mvc.perform(post("/api/v2/comments/{id}/reports", id).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(Long.toString(reporterId))).contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("reporterId", reporterId, "reason", "욕설 댓글"))));
     }
 
@@ -107,7 +108,7 @@ class ReportControllerTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(2));
         mvc.perform(get("/api/v2/reports").param("status", "UNKNOWN")).andExpect(status().isBadRequest());
         mvc.perform(get("/api/v2/reports").param("targetId", "-1")).andExpect(status().isBadRequest());
-        mvc.perform(delete("/api/v2/posts/{id}", post.getId()).param("authorId", author.getId().toString()))
+        mvc.perform(delete("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).param("authorId", author.getId().toString()))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/v2/reports").param("keyword", "신고 당시 제목"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(2));
@@ -117,7 +118,7 @@ class ReportControllerTest {
     void hidesCurrentPostAndKeepNeverRestoresIt() throws Exception {
         long first = reportId(reportPost(reporter.getId()));
         long second = reportId(reportPost(processor.getId()));
-        mvc.perform(patch("/api/v2/posts/{id}", post.getId()).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(patch("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of("authorId", author.getId(), "title", "수정된 제목", "content", "수정 본문"))))
                 .andExpect(status().isOk());
         resolve(first, "HIDE").andExpect(status().isOk())
@@ -135,7 +136,7 @@ class ReportControllerTest {
         resolve(second, "KEEP").andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.targetHidden").value(true));
         resolve(first, "KEEP").andExpect(status().isConflict());
-        mvc.perform(patch("/api/v2/posts/{id}", post.getId()).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(patch("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of("authorId", author.getId(), "title", "다시 수정", "content", "새 본문"))))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/v2/posts/{id}", post.getId())).andExpect(status().isNotFound());
@@ -185,7 +186,7 @@ class ReportControllerTest {
         resolve(commentReport, "KEEP").andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.targetAvailable").value(false))
                 .andExpect(jsonPath("$.data.targetHidden").isEmpty());
-        mvc.perform(delete("/api/v2/posts/{id}", post.getId()).param("authorId", author.getId().toString()))
+        mvc.perform(delete("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).param("authorId", author.getId().toString()))
                 .andExpect(status().isOk());
         reportComment(comment.getId(), reporter.getId()).andExpect(status().isNotFound());
         resolve(postReport, "HIDE").andExpect(status().isConflict());
@@ -241,13 +242,13 @@ class ReportControllerTest {
         long report = reportId(reportPost(reporter.getId()));
         for (var body : java.util.List.of(
                 Map.of("processorId", processor.getId(), "action", "RESTORE", "resolutionReason", "사유"),
-                Map.of("processorId", -1, "action", "HIDE", "resolutionReason", "사유"),
+                
                 Map.of("processorId", processor.getId(), "action", "KEEP", "resolutionReason", " "),
                 Map.of("processorId", processor.getId(), "action", "KEEP", "resolutionReason", "x".repeat(256)))) {
-            mvc.perform(patch("/api/v2/reports/{id}/resolve", report).contentType(MediaType.APPLICATION_JSON)
+            mvc.perform(patch("/api/v2/reports/{id}/resolve", report).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("999999").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
                     .content(json.writeValueAsString(body))).andExpect(status().isBadRequest());
         }
-        mvc.perform(patch("/api/v2/reports/{id}/resolve", report).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(patch("/api/v2/reports/{id}/resolve", report).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("999999").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("processorId", 999999, "action", "KEEP", "resolutionReason", "사유"))))
                 .andExpect(status().isNotFound());
         resolve(999999L, "KEEP").andExpect(status().isNotFound());
@@ -293,7 +294,7 @@ class ReportControllerTest {
         var next = new java.util.concurrent.atomic.AtomicInteger();
         var codes = concurrently(2, () -> next.getAndIncrement() == 0
                 ? resolve(report, "HIDE").andReturn().getResponse().getStatus()
-                : mvc.perform(patch("/api/v2/posts/{id}", post.getId()).contentType(MediaType.APPLICATION_JSON)
+                : mvc.perform(patch("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(Map.of("authorId", author.getId(), "title", "동시 수정", "content", "수정 본문"))))
                         .andReturn().getResponse().getStatus());
         assertThat(codes).containsOnly(200);
@@ -306,7 +307,7 @@ class ReportControllerTest {
         var next = new java.util.concurrent.atomic.AtomicInteger();
         var codes = concurrently(2, () -> next.getAndIncrement() == 0
                 ? resolve(report, "HIDE").andReturn().getResponse().getStatus()
-                : mvc.perform(delete("/api/v2/posts/{id}", post.getId()).param("authorId", author.getId().toString()))
+                : mvc.perform(delete("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).param("authorId", author.getId().toString()))
                         .andReturn().getResponse().getStatus());
         assertThat(codes).allMatch(code -> code == 200 || code == 409);
         mvc.perform(get("/api/v2/posts/{id}", post.getId())).andExpect(status().isNotFound());
@@ -324,7 +325,7 @@ class ReportControllerTest {
         Comment reply = comments.save(Comment.builder().content("대댓글 신고 원문").user(author).post(post).parent(parent).build());
         reportId(reportComment(parent.getId(), reporter.getId()));
         long replyReport = reportId(reportComment(reply.getId(), reporter.getId()));
-        mvc.perform(delete("/api/v2/posts/{id}", post.getId()).param("authorId", author.getId().toString()))
+        mvc.perform(delete("/api/v2/posts/{id}", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).param("authorId", author.getId().toString()))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/v2/reports").param("keyword", "신고 원문"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(2));
@@ -338,7 +339,7 @@ class ReportControllerTest {
     }
 
     ResultActions resolve(long reportId, String action) throws Exception {
-        return mvc.perform(patch("/api/v2/reports/{id}/resolve", reportId).contentType(MediaType.APPLICATION_JSON)
+        return mvc.perform(patch("/api/v2/reports/{id}/resolve", reportId).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(processor.getId().toString()).roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("processorId", processor.getId(), "action", action,
                         "resolutionReason", "검토 완료"))));
     }
@@ -351,7 +352,7 @@ class ReportControllerTest {
     }
 
     ResultActions reportPost(long reporterId) throws Exception {
-        return mvc.perform(post("/api/v2/posts/{id}/reports", post.getId())
+        return mvc.perform(post("/api/v2/posts/{id}/reports", post.getId()).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(Long.toString(reporterId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("reporterId", reporterId, "reason", "욕설 신고"))));
     }

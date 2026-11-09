@@ -44,9 +44,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Report", description = "신고 접수·조회·처리 API (과제용 사용자 ID 방식)")
+@Tag(name = "Report", description = "신고 접수·조회·처리 API")
 @RequestMapping(ApiPaths.API_V2)
 public class ReportController {
+    private final com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser currentUser;
     private final ReportPostUseCase reportPostUseCase;
     private final ReportCommentUseCase reportCommentUseCase;
     private final GetReportsUseCase getReportsUseCase;
@@ -62,7 +63,7 @@ public class ReportController {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus()).body(ApiResponse.success(
                 ApiResponseCode.RESOURCE_CREATED, "게시글 신고가 접수되었습니다.",
                 toCreateResponse(reportPostUseCase.report(new ReportPostCommand(postId,
-                        new UserId(request.reporterId()), request.reason())))));
+                        currentUser.requireId(), request.reason())))));
     }
     @PostMapping("/comments/{commentId}/reports")
     @Operation(summary = "댓글 신고", description = "본인·숨김·삭제 댓글과 숨김 게시글의 댓글은 신고할 수 없습니다. 중복 신고는 409입니다.")
@@ -74,11 +75,11 @@ public class ReportController {
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus()).body(ApiResponse.success(
                 ApiResponseCode.RESOURCE_CREATED, "댓글 신고가 접수되었습니다.",
                 toCreateResponse(reportCommentUseCase.report(new ReportCommentCommand(commentId,
-                        new UserId(request.reporterId()), request.reason())))));
+                        currentUser.requireId(), request.reason())))));
     }
 
     @GetMapping("/reports")
-    @Operation(summary = "신고 목록·스냅샷 검색", description = "필터는 AND, 검색어는 사유·제목/본문 스냅샷을 OR로 검색합니다. 관리자 제한은 없습니다.")
+    @Operation(summary = "신고 목록·스냅샷 검색", description = "필터는 AND, 검색어는 사유·제목/본문 스냅샷을 OR로 검색합니다. 관리자만 조회할 수 있습니다.")
     @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신고 목록 조회 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<PageResponse<ReportResponse>>> getReports(
@@ -104,14 +105,14 @@ public class ReportController {
     }
 
     @PatchMapping("/reports/{reportId}/resolve")
-    @Operation(summary = "신고 처리", description = "존재하는 사용자라면 처리할 수 있습니다. HIDE는 대상 숨김, KEEP는 현재 공개 상태 유지입니다. 재처리는 409입니다.")
+    @Operation(summary = "신고 처리", description = "관리자만 처리할 수 있습니다. HIDE는 대상 숨김, KEEP는 현재 공개 상태 유지입니다. 재처리는 409입니다.")
     @ApiErrorCodes({INVALID_INPUT_VALUE, TYPE_MISMATCH, MISSING_REQUEST_BODY, USER_NOT_FOUND, REPORT_NOT_FOUND, REPORT_ALREADY_RESOLVED, RESOURCE_DELETED})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신고 처리 성공", useReturnTypeSchema = true)
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
             @io.swagger.v3.oas.annotations.Parameter(description = "처리할 신고 ID", example = "1")
             @PathVariable("reportId") Long reportId, @Valid @RequestBody ReportResolveRequest request) {
         ReportResolutionView result = resolveReportUseCase.resolve(new ResolveReportCommand(new ReportId(reportId),
-                new UserId(request.processorId()), ReportAction.valueOf(request.action().name()),
+                currentUser.requireId(), ReportAction.valueOf(request.action().name()),
                 request.resolutionReason()));
         return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", toResolveResponse(result)));
     }
