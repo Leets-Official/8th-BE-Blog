@@ -4,8 +4,10 @@
 
 **Blocked by:** 07
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] 명세의 성공·거절 동작 구현
-- [ ] 관련 단위 또는 API 테스트 통과
-- [ ] 검증 후 커밋
+- [x] 명세의 성공·거절 동작 구현
+- [x] 관련 단위 또는 API 테스트 통과
+- [x] 검증 후 커밋
+
+검증: KakaoApiTest, KakaoClientTest 통과. 실계정 로그인은 카카오 앱 설정 준비 후 확인한다.
