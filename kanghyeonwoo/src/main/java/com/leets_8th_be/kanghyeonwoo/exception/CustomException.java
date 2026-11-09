@@ -1,19 +1,20 @@
 package com.leets_8th_be.kanghyeonwoo.exception;
 
+import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import lombok.Getter;
 
 @Getter
 public class CustomException extends RuntimeException {
 
-    private final ErrorCode errorCode;
+    private final ApiResponseCode responseCode;
 
-    public CustomException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+    public CustomException(ApiResponseCode responseCode) {
+        super(responseCode.getDefaultMessage());
+        this.responseCode = responseCode;
     }
 
-    public CustomException(ErrorCode errorCode, String customMessage) {
+    public CustomException(ApiResponseCode responseCode, String customMessage) {
         super(customMessage);
-        this.errorCode = errorCode;
+        this.responseCode = responseCode;
     }
 }

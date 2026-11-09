@@ -1,5 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.util;
 
+import com.leets_8th_be.kanghyeonwoo.search.domain.BkTree;
+
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;

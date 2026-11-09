@@ -17,9 +17,9 @@ Java 21과 Gradle wrapper를 사용한다. kanghyeonwoo 디렉터리에서 실�
 ## API 시연
 
 ```bash
-curl -G 'http://localhost:8080/api/v1/search/suggestions' --data-urlencode 'keyword=sprng'
-curl -G 'http://localhost:8080/api/v1/search/suggestions' --data-urlencode 'keyword=스프링부투'
-curl 'http://localhost:8080/api/v1/search/trends'
+curl -G 'http://localhost:8080/api/v2/search/suggestions' --data-urlencode 'keyword=sprng'
+curl -G 'http://localhost:8080/api/v2/search/suggestions' --data-urlencode 'keyword=스프링부투'
+curl 'http://localhost:8080/api/v2/search/trends'
 ```
 
 - sprng 추천: spring(거리 1)
@@ -29,7 +29,7 @@ curl 'http://localhost:8080/api/v1/search/trends'
 트렌드나 추천 응답의 keywordId를 아래 ID 자리에 넣는다. ID는 기존 DB 상태에 따라 달라지므로 고정값으로 가정하지 않는다.
 
 ```bash
-curl 'http://localhost:8080/api/v1/search/keywords/ID/stats'
+curl 'http://localhost:8080/api/v2/search/keywords/ID/stats'
 ```
 
 최근·직전 60분 검색량, 상승 점수, 현재 시간대를 포함한 최근 24개 시간대의 검색량을 반환한다. 현재 시간대는 partial=true이고 나머지 빈 구간은 0이다. 시간대는 Asia/Seoul, 저장 시각은 UTC다.
@@ -37,7 +37,7 @@ curl 'http://localhost:8080/api/v1/search/keywords/ID/stats'
 실제 검색을 같은 쿠키로 반복하면 같은 검색어는 5분 내 한 번만 집계한다.
 
 ```bash
-curl -c /tmp/blog-search-cookies -b /tmp/blog-search-cookies -G 'http://localhost:8080/api/v1/posts' --data-urlencode 'keyword=spring'
+curl -c /tmp/blog-search-cookies -b /tmp/blog-search-cookies -G 'http://localhost:8080/api/v2/posts' --data-urlencode 'keyword=spring'
 ```
 
 검색어는 NFC·영문 소문자·공백 통합 후 2~50자로 제한한다. 첫 페이지 검색만 집계한다. 결과가 없어도 검색 이력을 남기지만 추천 사전에는 등록하지 않는다. 목록·추천·트렌드·통계 조회와 두 번째 이후 페이지 조회는 집계하지 않는다.

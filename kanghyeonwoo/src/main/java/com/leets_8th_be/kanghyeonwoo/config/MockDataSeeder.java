@@ -1,11 +1,16 @@
 package com.leets_8th_be.kanghyeonwoo.config;
 
-import com.leets_8th_be.kanghyeonwoo.entity.Comment;
-import com.leets_8th_be.kanghyeonwoo.entity.Post;
-import com.leets_8th_be.kanghyeonwoo.entity.User;
-import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
-import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
-import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreateCommentCommand;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreateCommentUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostCommand;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreatePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.DeleteCommentUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HideCommentUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.user.application.port.in.CreateUserProfileUseCase;
+import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileEmailLookup;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MockDataSeeder implements ApplicationRunner {
     private static final long TEXT_SEED = 20261026L;
-    private final UserRepository users;
-    private final PostRepository posts;
-    private final CommentRepository comments;
+    private final UserProfileEmailLookup users;
+    private final CreateUserProfileUseCase createUsers;
+    private final CreatePostUseCase createPosts;
+    private final HidePostUseCase hidePosts;
+    private final CreateCommentUseCase createComments;
+    private final HideCommentUseCase hideComments;
+    private final DeleteCommentUseCase deleteComments;
 
     @Override
     @Transactional
@@ -35,30 +44,28 @@ public class MockDataSeeder implements ApplicationRunner {
             return;
         }
         var generator = new MockDataGenerator(TEXT_SEED);
-        var authors = new ArrayList<User>();
+        var authors = new ArrayList<UserProfile>();
         for (int i = 0; i < 5; i++) {
-            User user = users.save(User.create(generator.userName(), "mock-user-" + (i + 1) + "@blog.example"));
+            UserProfile user = createUsers.create(generator.userName(), "mock-user-" + (i + 1) + "@blog.example");
             authors.add(user);
-            log.info("목 사용자: userId={}, username={}, email={}", user.getId(), user.getUsername(), user.getEmail());
+            log.info("목 사용자: userId={}, username={}, email={}", user.id().value(), user.username(), user.email());
         }
         for (int i = 0; i < 12; i++) {
-            Post post = Post.create(generator.postTitle(), generator.postContent(),
-                    authors.get(i % authors.size()));
-            if (i >= 10) post.hide();
-            posts.save(post);
-            Comment parent = Comment.create("질문: " + generator.commentContent(),
-                    authors.get((i + 1) % authors.size()), post);
-            if (i == 0 || i == 2) parent.hide();
-            comments.save(parent);
-            Comment reply = comments.save(Comment.builder()
-                    .content("답변: " + generator.commentContent())
-                    .user(authors.get((i + 2) % authors.size())).post(post).parent(parent).build());
-            Comment additional = Comment.create("의견: " + generator.commentContent(),
-                    authors.get((i + 3) % authors.size()), post);
-            if (i == 1 || i == 3) additional.delete();
-            comments.save(additional);
+            var post = createPosts.create(new CreatePostCommand(generator.postTitle(), generator.postContent(),
+                    authors.get(i % authors.size()).id()));
+            var postId = new PostId(post.id().value());
+            var parent = createComments.create(new CreateCommentCommand(postId,
+                    authors.get((i + 1) % authors.size()).id(), null, "질문: " + generator.commentContent()));
+            if (i == 0 || i == 2) hideComments.hide(parent.comment().id());
+            var reply = createComments.create(new CreateCommentCommand(postId,
+                    authors.get((i + 2) % authors.size()).id(), parent.comment().id(), "답변: " + generator.commentContent()));
+            var additional = createComments.create(new CreateCommentCommand(postId,
+                    authors.get((i + 3) % authors.size()).id(), null, "의견: " + generator.commentContent()));
+            if (i == 1 || i == 3) deleteComments.delete(additional.comment().id());
+            if (i >= 10) hidePosts.hide(postId);
             log.info("목 게시글: postId={}, status={}, parentCommentId={}, replyId={}",
-                    post.getId(), post.getStatus(), parent.getId(), reply.getId());
+                    postId.value(), i >= 10 ? "HIDDEN" : "ACTIVE", parent.comment().id().value(),
+                    reply.comment().id().value());
         }
         log.info("목 데이터 생성: 사용자 5명, 게시글 12개(숨김 2개), 댓글 36개(대댓글 12개, 숨김 2개, 삭제 2개)");
     }
