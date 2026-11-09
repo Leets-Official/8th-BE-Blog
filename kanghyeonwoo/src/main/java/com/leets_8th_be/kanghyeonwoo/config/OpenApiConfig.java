@@ -29,7 +29,7 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI openAPI() {
-        return new OpenAPI()
+        return new OpenAPI().addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement().addList("BearerAuth"))
                 .components(new Components()
                         .addSchemas("ApiResponseCode", apiResponseCodeSchema())
                         .addSchemas("ApiResponseVoid", apiResponseVoidSchema()))

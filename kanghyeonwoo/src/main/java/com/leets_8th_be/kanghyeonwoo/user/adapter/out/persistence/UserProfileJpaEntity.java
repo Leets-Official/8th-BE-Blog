@@ -11,7 +11,9 @@ import jakarta.persistence.Column;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+ @jakarta.persistence.UniqueConstraint(name="uk_user_email", columnNames="email"),
+ @jakarta.persistence.UniqueConstraint(name="uk_user_nickname", columnNames="username")})
 class UserProfileJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +24,16 @@ class UserProfileJpaEntity {
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
+
+    private String passwordHash;
+    @Column(unique = true)
+    private String kakaoId;
+    @Column(nullable = false, columnDefinition = "varchar(16) default 'USER'")
+    private String role = "USER";
+    void credentials(String hash, String kakao) { passwordHash = hash; kakaoId = kakao; }
+    String passwordHash() { return passwordHash; }
+    String kakaoId() { return kakaoId; }
+    String role() { return role; }
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
