@@ -62,6 +62,7 @@ public class JpaCommentStore implements CommentStore {
     public CommentView save(Comment comment) {
         CommentJpaEntity entity = comments.findById(comment.id().value())
                 .orElseThrow(() -> new IllegalStateException("저장할 댓글이 없습니다."));
+        entity.updateContent(comment.content());
         if (comment.state() == CommentState.HIDDEN) entity.hide();
         if (comment.deleted()) entity.delete();
         return toView(comments.save(entity));

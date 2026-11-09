@@ -88,4 +88,5 @@ class CommentJpaEntity {
     void delete() { isDeleted = true; }
 
     enum Visibility { ACTIVE, HIDDEN }
+    void updateContent(String value) { this.content=value; }
 }

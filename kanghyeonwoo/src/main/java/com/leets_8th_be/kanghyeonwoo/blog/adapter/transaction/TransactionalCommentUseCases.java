@@ -16,13 +16,14 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class TransactionalCommentUseCases implements GetCommentsUseCase, GetCommentTargetUseCase,
-        InspectCommentTargetUseCase, HideCommentUseCase, CreateCommentUseCase, DeleteCommentUseCase {
+        InspectCommentTargetUseCase, HideCommentUseCase, CreateCommentUseCase, DeleteCommentUseCase, com.leets_8th_be.kanghyeonwoo.blog.application.port.in.ManageOwnCommentUseCase {
     private final GetCommentsUseCase getComments;
     private final GetCommentTargetUseCase getCommentTarget;
     private final HideCommentUseCase hideComment;
     private final CreateCommentUseCase createComment;
     private final DeleteCommentUseCase deleteComment;
     private final CommentStore comments;
+    private final com.leets_8th_be.kanghyeonwoo.blog.application.port.in.ManageOwnCommentUseCase ownComments;
     private final TransactionTemplate transaction;
     private final TransactionTemplate writeTransaction;
 
@@ -31,6 +32,7 @@ public class TransactionalCommentUseCases implements GetCommentsUseCase, GetComm
                                         TransactionTemplate transaction, TransactionTemplate writeTransaction) {
         this.getComments = getComments;
         this.comments = comments;
+        this.ownComments = new com.leets_8th_be.kanghyeonwoo.blog.application.usecase.ManageOwnCommentService(comments);
         this.getCommentTarget = new GetCommentTargetService(comments);
         this.hideComment = new HideCommentService(comments);
         this.createComment = createComment;
@@ -67,5 +69,11 @@ public class TransactionalCommentUseCases implements GetCommentsUseCase, GetComm
     @Override
     public com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView delete(CommentId id) {
         return writeTransaction.execute(status -> deleteComment.delete(id));
+    }
+    @Override public com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView update(CommentId id, com.leets_8th_be.kanghyeonwoo.shared.domain.UserId actor,String content) {
+        return writeTransaction.execute(status -> ownComments.update(id,actor,content));
+    }
+    @Override public com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView deleteOwn(CommentId id, com.leets_8th_be.kanghyeonwoo.shared.domain.UserId actor) {
+        return writeTransaction.execute(status -> ownComments.deleteOwn(id,actor));
     }
 }

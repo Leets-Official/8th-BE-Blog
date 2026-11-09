@@ -32,6 +32,29 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Comment", description = "댓글 목록·본문 검색")
 @RequestMapping(ApiPaths.API_V2)
 public class CommentController {
+    private final com.leets_8th_be.kanghyeonwoo.shared.security.CurrentUser currentUser;
+    private final com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreateCommentUseCase createComment;
+    private final com.leets_8th_be.kanghyeonwoo.blog.application.port.in.ManageOwnCommentUseCase ownComment;
+    public record CommentWrite(@jakarta.validation.constraints.NotBlank String content, @jakarta.validation.constraints.Positive Long parentId) {}
+    @ApiErrorCodes({INVALID_INPUT_VALUE, POST_NOT_FOUND, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_ACCESS_DENIED, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.COMMENT_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode="201",description="성공",useReturnTypeSchema=true)
+    @org.springframework.web.bind.annotation.PostMapping("/posts/{postId}/comments")
+    public ResponseEntity<?> create(@PathVariable Long postId,@jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody CommentWrite r) {
+        var result=createComment.create(new com.leets_8th_be.kanghyeonwoo.blog.application.port.in.CreateCommentCommand(new PostId(postId),currentUser.requireId(),r.parentId()==null?null:new com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId(r.parentId()),r.content()));
+        return ResponseEntity.status(201).body(ApiResponse.success(com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.RESOURCE_CREATED,"댓글이 등록되었습니다.",toResponse(result)));
+    }
+    @ApiErrorCodes({INVALID_INPUT_VALUE, POST_NOT_FOUND, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_ACCESS_DENIED, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.COMMENT_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode="200",description="성공",useReturnTypeSchema=true)
+    @org.springframework.web.bind.annotation.PatchMapping("/comments/{commentId}")
+    public ApiResponse<?> update(@PathVariable Long commentId,@jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody CommentWrite r) {
+        return ApiResponse.success(toResponse(ownComment.update(new com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId(commentId),currentUser.requireId(),r.content())));
+    }
+    @ApiErrorCodes({INVALID_INPUT_VALUE, POST_NOT_FOUND, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.POST_ACCESS_DENIED, com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.COMMENT_NOT_FOUND})
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode="200",description="성공",useReturnTypeSchema=true)
+    @org.springframework.web.bind.annotation.DeleteMapping("/comments/{commentId}")
+    public ApiResponse<?> delete(@PathVariable Long commentId) {
+        return ApiResponse.success(toResponse(ownComment.deleteOwn(new com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId(commentId),currentUser.requireId())));
+    }
     private final GetCommentsUseCase getComments;
 
     @GetMapping("/posts/{postId}/comments")
