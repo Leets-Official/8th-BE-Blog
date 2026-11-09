@@ -56,7 +56,7 @@ public class JpaAccountDirectory implements AccountDirectory {
         if (emailExists(email)
                 || !em.createQuery(
                                 "select u.id from UserProfileJpaEntity u where"
-                                    + " trim(u.username)=:name",
+                                        + " trim(u.username)=:name",
                                 Long.class)
                         .setParameter("name", nickname)
                         .getResultList()

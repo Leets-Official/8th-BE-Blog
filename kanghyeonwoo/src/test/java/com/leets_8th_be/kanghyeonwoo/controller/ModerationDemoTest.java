@@ -83,30 +83,30 @@ class ModerationDemoTest {
                         Map.entry(
                                 "patch /api/v2/posts/{postId}",
                                 "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY"
-                                    + " POST_ACCESS_DENIED POST_NOT_FOUND"),
+                                        + " POST_ACCESS_DENIED POST_NOT_FOUND"),
                         Map.entry(
                                 "delete /api/v2/posts/{postId}",
                                 "INVALID_INPUT_VALUE TYPE_MISMATCH POST_ACCESS_DENIED"
-                                    + " POST_NOT_FOUND"),
+                                        + " POST_NOT_FOUND"),
                         Map.entry(
                                 "get /api/v2/posts/{postId}/comments",
                                 "INVALID_INPUT_VALUE TYPE_MISMATCH POST_NOT_FOUND"),
                         Map.entry(
                                 "post /api/v2/posts/{postId}/reports",
                                 "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY"
-                                    + " SELF_REPORT_FORBIDDEN USER_NOT_FOUND POST_NOT_FOUND"
-                                    + " DUPLICATE_RESOURCE"),
+                                        + " SELF_REPORT_FORBIDDEN USER_NOT_FOUND POST_NOT_FOUND"
+                                        + " DUPLICATE_RESOURCE"),
                         Map.entry(
                                 "post /api/v2/comments/{commentId}/reports",
                                 "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY"
-                                    + " SELF_REPORT_FORBIDDEN USER_NOT_FOUND POST_NOT_FOUND"
-                                    + " COMMENT_NOT_FOUND DUPLICATE_RESOURCE RESOURCE_DELETED"),
+                                        + " SELF_REPORT_FORBIDDEN USER_NOT_FOUND POST_NOT_FOUND"
+                                        + " COMMENT_NOT_FOUND DUPLICATE_RESOURCE RESOURCE_DELETED"),
                         Map.entry("get /api/v2/reports", "INVALID_INPUT_VALUE TYPE_MISMATCH"),
                         Map.entry(
                                 "patch /api/v2/reports/{reportId}/resolve",
                                 "INVALID_INPUT_VALUE TYPE_MISMATCH MISSING_REQUEST_BODY"
-                                    + " USER_NOT_FOUND REPORT_NOT_FOUND REPORT_ALREADY_RESOLVED"
-                                    + " RESOURCE_DELETED"),
+                                        + " USER_NOT_FOUND REPORT_NOT_FOUND REPORT_ALREADY_RESOLVED"
+                                        + " RESOURCE_DELETED"),
                         Map.entry(
                                 "get /api/v2/search/keywords/{keywordId}/stats",
                                 "TYPE_MISMATCH SEARCH_KEYWORD_NOT_FOUND"),

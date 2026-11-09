@@ -1,10 +1,11 @@
 package com.leets_8th_be.kanghyeonwoo.config;
 
-import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryDependsOnPostProcessor;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
 
 @Configuration(proxyBeanMethods = false)
 public class ModerationMigrationConfiguration {

@@ -16,6 +16,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentState;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -27,8 +28,11 @@ public class BlogContentTargetsAdapter implements ManageContentTargetsUseCase {
     private final InspectCommentTargetUseCase inspectComments;
     private final HideCommentUseCase hideComments;
 
-    public BlogContentTargetsAdapter(InspectPostUseCase inspectPosts, HidePostUseCase hidePosts,
-                                     InspectCommentTargetUseCase inspectComments, HideCommentUseCase hideComments) {
+    public BlogContentTargetsAdapter(
+            InspectPostUseCase inspectPosts,
+            HidePostUseCase hidePosts,
+            InspectCommentTargetUseCase inspectComments,
+            HideCommentUseCase hideComments) {
         this.inspectPosts = inspectPosts;
         this.hidePosts = hidePosts;
         this.inspectComments = inspectComments;
@@ -38,8 +42,14 @@ public class BlogContentTargetsAdapter implements ManageContentTargetsUseCase {
     @Override
     public Optional<ContentTargetSnapshot> inspect(ContentTargetType target, Long targetId) {
         return switch (target) {
-            case POST -> inspectPosts.inspect(new PostId(targetId)).map(BlogContentTargetsAdapter::snapshot);
-            case COMMENT -> inspectComments.inspect(new CommentId(targetId)).map(BlogContentTargetsAdapter::snapshot);
+            case POST ->
+                    inspectPosts
+                            .inspect(new PostId(targetId))
+                            .map(BlogContentTargetsAdapter::snapshot);
+            case COMMENT ->
+                    inspectComments
+                            .inspect(new CommentId(targetId))
+                            .map(BlogContentTargetsAdapter::snapshot);
         };
     }
 
@@ -68,21 +78,36 @@ public class BlogContentTargetsAdapter implements ManageContentTargetsUseCase {
     }
 
     private static ContentTargetSnapshot snapshot(PostView post) {
-        return new ContentTargetSnapshot(post.authorId(), post.title(), post.content(),
-                post.state() == PostState.DELETED ? ContentVisibility.DELETED
-                        : post.state() == PostState.HIDDEN ? ContentVisibility.HIDDEN : ContentVisibility.ACTIVE,
+        return new ContentTargetSnapshot(
+                post.authorId(),
+                post.title(),
+                post.content(),
+                post.state() == PostState.DELETED
+                        ? ContentVisibility.DELETED
+                        : post.state() == PostState.HIDDEN
+                                ? ContentVisibility.HIDDEN
+                                : ContentVisibility.ACTIVE,
                 null);
     }
 
     private static ContentTargetSnapshot snapshot(CommentView comment) {
-        ContentVisibility visibility = comment.deleted() ? ContentVisibility.DELETED
-                : comment.state() == CommentState.HIDDEN ? ContentVisibility.HIDDEN : ContentVisibility.ACTIVE;
-        return new ContentTargetSnapshot(comment.authorId(), null, comment.content(), visibility,
+        ContentVisibility visibility =
+                comment.deleted()
+                        ? ContentVisibility.DELETED
+                        : comment.state() == CommentState.HIDDEN
+                                ? ContentVisibility.HIDDEN
+                                : ContentVisibility.ACTIVE;
+        return new ContentTargetSnapshot(
+                comment.authorId(),
+                null,
+                comment.content(),
+                visibility,
                 visibility(comment.postState()));
     }
 
     private static ContentVisibility visibility(PostState state) {
-        return state == PostState.DELETED ? ContentVisibility.DELETED
+        return state == PostState.DELETED
+                ? ContentVisibility.DELETED
                 : state == PostState.HIDDEN ? ContentVisibility.HIDDEN : ContentVisibility.ACTIVE;
     }
 }

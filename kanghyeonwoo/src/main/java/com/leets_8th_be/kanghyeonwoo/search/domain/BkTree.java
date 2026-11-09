@@ -9,23 +9,35 @@ import java.util.Map;
 /** A metric tree using code-point Levenshtein distance, including for Korean syllables. */
 public final class BkTree {
     public record Match(long keywordId, String keyword, int distance) {}
+
     private record Word(long id, String value) {}
+
     private static final class Node {
         final Word keyword;
         final Map<Integer, Node> children = new HashMap<>();
-        Node(Word keyword) { this.keyword = keyword; }
+
+        Node(Word keyword) {
+            this.keyword = keyword;
+        }
     }
+
     private Node root;
 
     public void add(long id, String value) {
         Word keyword = new Word(id, value);
-        if (root == null) { root = new Node(keyword); return; }
+        if (root == null) {
+            root = new Node(keyword);
+            return;
+        }
         Node node = root;
         while (true) {
             int distance = distance(keyword.value(), node.keyword.value());
             if (distance == 0) return;
             Node child = node.children.get(distance);
-            if (child == null) { node.children.put(distance, new Node(keyword)); return; }
+            if (child == null) {
+                node.children.put(distance, new Node(keyword));
+                return;
+            }
             node = child;
         }
     }
@@ -41,9 +53,11 @@ public final class BkTree {
             if (distance > 0 && distance <= radius) {
                 matches.add(new Match(node.keyword.id(), node.keyword.value(), distance));
             }
-            node.children.forEach((edge, child) -> {
-                if (edge >= distance - radius && edge <= distance + radius) pending.add(child);
-            });
+            node.children.forEach(
+                    (edge, child) -> {
+                        if (edge >= distance - radius && edge <= distance + radius)
+                            pending.add(child);
+                    });
         }
         return matches;
     }
@@ -56,8 +70,10 @@ public final class BkTree {
             int[] next = new int[b.length + 1];
             next[0] = i;
             for (int j = 1; j <= b.length; j++) {
-                next[j] = Math.min(Math.min(next[j - 1] + 1, row[j] + 1),
-                        row[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
+                next[j] =
+                        Math.min(
+                                Math.min(next[j - 1] + 1, row[j] + 1),
+                                row[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
             }
             row = next;
         }

@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.shared.web;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,10 @@ public class ApiResponse<T> {
     @Schema(description = "성공 여부", example = "true")
     private boolean success;
 
-    @Schema(description = "성공 또는 오류 의미 코드", example = "SUCCESS", implementation = ApiResponseCode.class)
+    @Schema(
+            description = "성공 또는 오류 의미 코드",
+            example = "SUCCESS",
+            implementation = ApiResponseCode.class)
     private ApiResponseCode code;
 
     @Schema(description = "응답 메시지", example = "요청이 성공적으로 처리되었습니다.")

@@ -8,9 +8,9 @@ import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportTargetSnapsh
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ResolveReportUseCase;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportStore;
+import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetKind;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetPort;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReporterDirectory;
-import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetKind;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.Report;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
@@ -24,8 +24,11 @@ public class ResolveReportService implements ResolveReportUseCase {
     private final ReportTargetPort targets;
     private final Clock clock;
 
-    public ResolveReportService(ReporterDirectory reporters, ReportStore reports,
-                                ReportTargetPort targets, Clock clock) {
+    public ResolveReportService(
+            ReporterDirectory reporters,
+            ReportStore reports,
+            ReportTargetPort targets,
+            Clock clock) {
         this.reporters = reporters;
         this.reports = reports;
         this.targets = targets;
@@ -36,15 +39,27 @@ public class ResolveReportService implements ResolveReportUseCase {
     public ReportResolutionView resolve(ResolveReportCommand command) {
         if (!reporters.exists(command.processorId())) throw new ReporterNotFound();
         Report pending = reports.findForUpdate(command.reportId()).orElseThrow(ReportNotFound::new);
-        Report resolved = pending.resolve(command.action(), command.resolutionReason(), command.processorId(),
-                LocalDateTime.now(clock));
-        TargetVisibility visibility = resolveTarget(toTargetKind(pending.target()), pending.targetId(), command.action());
+        Report resolved =
+                pending.resolve(
+                        command.action(),
+                        command.resolutionReason(),
+                        command.processorId(),
+                        LocalDateTime.now(clock));
+        TargetVisibility visibility =
+                resolveTarget(toTargetKind(pending.target()), pending.targetId(), command.action());
         reports.save(resolved);
-        return new ReportResolutionView(resolved.id(), resolved.state(), resolved.action(), resolved.processorId(),
-                resolved.resolvedAt(), visibility.available(), visibility.hidden());
+        return new ReportResolutionView(
+                resolved.id(),
+                resolved.state(),
+                resolved.action(),
+                resolved.processorId(),
+                resolved.resolvedAt(),
+                visibility.available(),
+                visibility.hidden());
     }
 
-    private TargetVisibility resolveTarget(ReportTargetKind target, Long targetId, ReportAction action) {
+    private TargetVisibility resolveTarget(
+            ReportTargetKind target, Long targetId, ReportAction action) {
         ReportTargetSnapshot current = targets.find(target, targetId).orElse(null);
         if (isDeleted(target, current)) return deletedTarget(action);
         if (action != ReportAction.HIDE) return new TargetVisibility(true, current.hidden());
@@ -55,7 +70,8 @@ public class ResolveReportService implements ResolveReportUseCase {
     }
 
     private static boolean isDeleted(ReportTargetKind target, ReportTargetSnapshot snapshot) {
-        return snapshot == null || snapshot.deleted()
+        return snapshot == null
+                || snapshot.deleted()
                 || target == ReportTargetKind.COMMENT && snapshot.parentPostDeleted();
     }
 
@@ -68,6 +84,5 @@ public class ResolveReportService implements ResolveReportUseCase {
         return new TargetVisibility(false, null);
     }
 
-    private record TargetVisibility(boolean available, Boolean hidden) {
-    }
+    private record TargetVisibility(boolean available, Boolean hidden) {}
 }

@@ -9,5 +9,4 @@ public record ReportTargetSnapshot(
         boolean hidden,
         boolean deleted,
         boolean parentPostActive,
-        boolean parentPostDeleted) {
-}
+        boolean parentPostDeleted) {}

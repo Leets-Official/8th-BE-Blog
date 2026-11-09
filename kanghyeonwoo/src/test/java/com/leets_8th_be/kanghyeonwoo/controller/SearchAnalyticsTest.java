@@ -318,7 +318,7 @@ class SearchAnalyticsTest {
         MockHttpSession retrySession = new MockHttpSession();
         jdbc.execute(
                 "ALTER TABLE search_keyword_buckets ADD CONSTRAINT test_bucket_failure CHECK"
-                    + " (search_count <= 1)");
+                        + " (search_count <= 1)");
         try {
             mvc.perform(
                             get("/api/v2/posts")

@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
 @Schema(description = "검색어 통계 및 최근 24개 시간대 검색량")

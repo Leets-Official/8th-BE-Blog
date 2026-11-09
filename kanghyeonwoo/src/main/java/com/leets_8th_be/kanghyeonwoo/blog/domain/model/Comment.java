@@ -2,8 +2,13 @@ package com.leets_8th_be.kanghyeonwoo.blog.domain.model;
 
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
-public record Comment(CommentId id, UserId authorId, CommentId parentId, String content,
-                      CommentState state, boolean deleted) {
+public record Comment(
+        CommentId id,
+        UserId authorId,
+        CommentId parentId,
+        String content,
+        CommentState state,
+        boolean deleted) {
     public static Comment create(UserId authorId, CommentId parentId, String content) {
         return new Comment(null, authorId, parentId, content, CommentState.ACTIVE, false);
     }

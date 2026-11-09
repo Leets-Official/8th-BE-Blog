@@ -18,7 +18,7 @@ class CommentOwnershipApiTest extends AuthApiSupport {
                                         .contentType("application/json")
                                         .content(
                                                 "{\"title\":\"comment"
-                                                    + " post\",\"content\":\"content\"}"))
+                                                        + " post\",\"content\":\"content\"}"))
                         .andExpect(status().isCreated())
                         .andReturn();
         long id =

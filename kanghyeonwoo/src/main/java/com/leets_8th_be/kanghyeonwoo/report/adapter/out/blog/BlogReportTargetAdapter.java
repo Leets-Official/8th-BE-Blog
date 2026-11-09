@@ -7,6 +7,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.ManageContentTarge
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportTargetSnapshot;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetKind;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.out.ReportTargetPort;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -21,12 +22,16 @@ public class BlogReportTargetAdapter implements ReportTargetPort {
 
     @Override
     public Optional<ReportTargetSnapshot> find(ReportTargetKind target, Long targetId) {
-        return blogTargets.inspect(toBlogType(target), targetId).map(BlogReportTargetAdapter::toReportSnapshot);
+        return blogTargets
+                .inspect(toBlogType(target), targetId)
+                .map(BlogReportTargetAdapter::toReportSnapshot);
     }
 
     @Override
     public Optional<ReportTargetSnapshot> hide(ReportTargetKind target, Long targetId) {
-        return blogTargets.hide(toBlogType(target), targetId).map(BlogReportTargetAdapter::toReportSnapshot);
+        return blogTargets
+                .hide(toBlogType(target), targetId)
+                .map(BlogReportTargetAdapter::toReportSnapshot);
     }
 
     private static ContentTargetType toBlogType(ReportTargetKind target) {
@@ -38,7 +43,10 @@ public class BlogReportTargetAdapter implements ReportTargetPort {
 
     private static ReportTargetSnapshot toReportSnapshot(ContentTargetSnapshot snapshot) {
         ContentVisibility parent = snapshot.parentPostVisibility();
-        return new ReportTargetSnapshot(snapshot.authorId(), snapshot.title(), snapshot.content(),
+        return new ReportTargetSnapshot(
+                snapshot.authorId(),
+                snapshot.title(),
+                snapshot.content(),
                 snapshot.visibility() == ContentVisibility.HIDDEN,
                 snapshot.visibility() == ContentVisibility.DELETED,
                 parent == null || parent == ContentVisibility.ACTIVE,

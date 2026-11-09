@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
 import jakarta.persistence.*;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,11 +46,7 @@ public class Post extends BaseTimeEntity {
     }
 
     public static Post create(String title, String content, User user) {
-        return Post.builder()
-                .title(title)
-                .content(content)
-                .user(user)
-                .build();
+        return Post.builder().title(title).content(content).user(user).build();
     }
 
     public void hide() {

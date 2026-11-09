@@ -15,7 +15,9 @@ public class GetReportsService implements GetReportsUseCase {
 
     @Override
     public ReportPage getReports(ReportSearchQuery query) {
-        if (query.page() < 1 || query.size() < 1 || query.size() > 100
+        if (query.page() < 1
+                || query.size() < 1
+                || query.size() > 100
                 || (query.targetId() != null && query.targetId() < 1)) {
             throw new InvalidReportQuery();
         }

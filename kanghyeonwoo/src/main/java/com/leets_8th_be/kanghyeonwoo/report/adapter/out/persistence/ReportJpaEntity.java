@@ -1,11 +1,12 @@
 package com.leets_8th_be.kanghyeonwoo.report.adapter.out.persistence;
 
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.Report;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
+import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportState;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
-import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
-import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAction;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,8 +23,12 @@ import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reports", uniqueConstraints = @UniqueConstraint(
-        name = "uk_report_reporter_target", columnNames = {"reporter_id", "target_type", "target_id"}))
+@Table(
+        name = "reports",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_report_reporter_target",
+                        columnNames = {"reporter_id", "target_type", "target_id"}))
 class ReportJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -70,8 +75,7 @@ class ReportJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected ReportJpaEntity() {
-    }
+    protected ReportJpaEntity() {}
 
     static ReportJpaEntity from(Report report) {
         ReportJpaEntity entity = new ReportJpaEntity();
@@ -86,10 +90,19 @@ class ReportJpaEntity {
     }
 
     Report toDomain() {
-        return new Report(new ReportId(id), new UserId(reporterId), targetType, targetId, reason,
-                targetTitleSnapshot, targetContentSnapshot, status,
-                action == null ? null : ReportAction.valueOf(action), resolutionReason,
-                processorId == null ? null : new UserId(processorId), resolvedAt);
+        return new Report(
+                new ReportId(id),
+                new UserId(reporterId),
+                targetType,
+                targetId,
+                reason,
+                targetTitleSnapshot,
+                targetContentSnapshot,
+                status,
+                action == null ? null : ReportAction.valueOf(action),
+                resolutionReason,
+                processorId == null ? null : new UserId(processorId),
+                resolvedAt);
     }
 
     void applyResolution(Report report) {
@@ -112,17 +125,55 @@ class ReportJpaEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    Long getId() { return id; }
-    Long getReporterId() { return reporterId; }
-    ReportState getStatus() { return status; }
-    String getReason() { return reason; }
-    ReportTarget getTargetType() { return targetType; }
-    Long getTargetId() { return targetId; }
-    String getTargetTitleSnapshot() { return targetTitleSnapshot; }
-    String getTargetContentSnapshot() { return targetContentSnapshot; }
-    String getAction() { return action; }
-    String getResolutionReason() { return resolutionReason; }
-    Long getProcessorId() { return processorId; }
-    LocalDateTime getCreatedAt() { return createdAt; }
-    LocalDateTime getResolvedAt() { return resolvedAt; }
+    Long getId() {
+        return id;
+    }
+
+    Long getReporterId() {
+        return reporterId;
+    }
+
+    ReportState getStatus() {
+        return status;
+    }
+
+    String getReason() {
+        return reason;
+    }
+
+    ReportTarget getTargetType() {
+        return targetType;
+    }
+
+    Long getTargetId() {
+        return targetId;
+    }
+
+    String getTargetTitleSnapshot() {
+        return targetTitleSnapshot;
+    }
+
+    String getTargetContentSnapshot() {
+        return targetContentSnapshot;
+    }
+
+    String getAction() {
+        return action;
+    }
+
+    String getResolutionReason() {
+        return resolutionReason;
+    }
+
+    Long getProcessorId() {
+        return processorId;
+    }
+
+    LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
 }

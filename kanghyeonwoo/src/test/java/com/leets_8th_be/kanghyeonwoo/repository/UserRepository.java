@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.repository;
 
 import com.leets_8th_be.kanghyeonwoo.entity.User;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

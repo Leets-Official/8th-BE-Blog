@@ -14,7 +14,9 @@ import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForb
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportAlreadyResolved;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -91,10 +93,15 @@ public class ReportExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex) {
         for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
-            if (cause instanceof ConstraintViolationException violation && violation.getConstraintName() != null
-                    && violation.getConstraintName().toLowerCase(Locale.ROOT).contains("uk_report_reporter_target")) {
+            if (cause instanceof ConstraintViolationException violation
+                    && violation.getConstraintName() != null
+                    && violation
+                            .getConstraintName()
+                            .toLowerCase(Locale.ROOT)
+                            .contains("uk_report_reporter_target")) {
                 return errorResponse(ApiResponseCode.DUPLICATE_RESOURCE);
             }
         }
@@ -106,7 +113,8 @@ public class ReportExceptionHandler {
         return errorResponse(code, code.getDefaultMessage());
     }
 
-    private static ResponseEntity<ApiResponse<Void>> errorResponse(ApiResponseCode code, String message) {
+    private static ResponseEntity<ApiResponse<Void>> errorResponse(
+            ApiResponseCode code, String message) {
         return ResponseEntity.status(code.getHttpStatus()).body(ApiResponse.fail(code, message));
     }
 }

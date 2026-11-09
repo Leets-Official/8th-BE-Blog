@@ -7,7 +7,11 @@ import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 
 import java.time.LocalDateTime;
 
-public record ReportResolutionView(ReportId id, ReportState state, ReportAction action,
-                                   UserId processorId, LocalDateTime resolvedAt,
-                                   boolean targetAvailable, Boolean targetHidden) {
-}
+public record ReportResolutionView(
+        ReportId id,
+        ReportState state,
+        ReportAction action,
+        UserId processorId,
+        LocalDateTime resolvedAt,
+        boolean targetAvailable,
+        Boolean targetHidden) {}

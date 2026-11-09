@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,5 +25,4 @@ public class PostSummaryResponse {
 
     @Schema(description = "작성 일시")
     private LocalDateTime createdAt;
-
 }

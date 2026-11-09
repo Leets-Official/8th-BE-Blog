@@ -1,16 +1,17 @@
 package com.leets_8th_be.kanghyeonwoo.shared.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ApiResponseTest {
 
     @Test
     @DisplayName("의미 코드 enum과 데이터로 성공 응답을 생성할 수 있다.")
     void successWithEnumCode() {
-        ApiResponse<String> response = ApiResponse.success(ApiResponseCode.SUCCESS, "성공 메시지", "data");
+        ApiResponse<String> response =
+                ApiResponse.success(ApiResponseCode.SUCCESS, "성공 메시지", "data");
 
         assertThat(response.isSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo(ApiResponseCode.SUCCESS);
@@ -31,7 +32,8 @@ class ApiResponseTest {
     @Test
     @DisplayName("의미 코드 enum으로 실패 응답을 생성할 수 있다.")
     void failWithEnumCode() throws Exception {
-        ApiResponse<Void> response = ApiResponse.fail(ApiResponseCode.POST_NOT_FOUND, "해당 ID의 게시글을 찾을 수 없습니다.");
+        ApiResponse<Void> response =
+                ApiResponse.fail(ApiResponseCode.POST_NOT_FOUND, "해당 ID의 게시글을 찾을 수 없습니다.");
 
         assertThat(response.isSuccess()).isFalse();
         assertThat(response.getCode()).isEqualTo(ApiResponseCode.POST_NOT_FOUND);

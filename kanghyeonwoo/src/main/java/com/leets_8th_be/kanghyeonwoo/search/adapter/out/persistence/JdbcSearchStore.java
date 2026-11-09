@@ -1,39 +1,41 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.out.persistence;
 
-import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
-import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
-import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchPostProjectionStore;
-import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchDemoDataStore;
 import com.leets_8th_be.kanghyeonwoo.search.application.contract.SearchDemoData;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.PostProjection;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPost;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPostPage;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchDemoDataStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchPostProjectionStore;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
+import com.leets_8th_be.kanghyeonwoo.search.domain.SearchNormalization;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.concurrent.locks.ReentrantLock;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
 
 @Repository
-public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, SearchDemoDataStore {
+public class JdbcSearchStore
+        implements SearchStore, SearchPostProjectionStore, SearchDemoDataStore {
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transactions;
@@ -53,7 +55,9 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
     }
 
     public List<Keyword> dictionary() {
-        return jdbc.query("SELECT * FROM search_keywords WHERE suggestible = TRUE ORDER BY id", this::keyword);
+        return jdbc.query(
+                "SELECT * FROM search_keywords WHERE suggestible = TRUE ORDER BY id",
+                this::keyword);
     }
 
     public List<Keyword> keywords() {
@@ -61,8 +65,9 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
     }
 
     public Keyword find(long id) {
-        return jdbc.query("SELECT * FROM search_keywords WHERE id = ?", this::keyword, id)
-                .stream().findFirst().orElse(null);
+        return jdbc.query("SELECT * FROM search_keywords WHERE id = ?", this::keyword, id).stream()
+                .findFirst()
+                .orElse(null);
     }
 
     // This application runs one server. All search writers share this lock through commit.
@@ -71,79 +76,132 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
     }
 
     public void record(String word, String sessionKey, boolean hasResults, Instant at) {
-        write(() -> {
-            Keyword keyword = ensureKeyword(word, hasResults && SearchNormalization.canSuggest(word), at);
-            jdbc.queryForObject("SELECT id FROM search_keywords WHERE id = ? FOR UPDATE", Long.class, keyword.id());
-            List<Instant> previous = jdbc.query("""
-                    SELECT last_counted_at FROM search_dedup_states WHERE keyword_id = ? AND session_key = ?
-                    """, (rs, row) -> rs.getObject(1, OffsetDateTime.class).toInstant(), keyword.id(), sessionKey);
-            if (!previous.isEmpty() && at.isBefore(previous.getFirst().plusSeconds(300))) return;
-            jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", keyword.id(), time(at));
-            incrementBucket(keyword.id(), at);
-            jdbc.update("""
-                    MERGE INTO search_dedup_states(keyword_id, session_key, last_counted_at)
-                    KEY(keyword_id, session_key) VALUES (?, ?, ?)
-                    """, keyword.id(), sessionKey, time(at));
-        });
+        write(
+                () -> {
+                    Keyword keyword =
+                            ensureKeyword(
+                                    word, hasResults && SearchNormalization.canSuggest(word), at);
+                    jdbc.queryForObject(
+                            "SELECT id FROM search_keywords WHERE id = ? FOR UPDATE",
+                            Long.class,
+                            keyword.id());
+                    List<Instant> previous =
+                            jdbc.query(
+                                    """
+SELECT last_counted_at FROM search_dedup_states WHERE keyword_id = ? AND session_key = ?
+""",
+                                    (rs, row) -> rs.getObject(1, OffsetDateTime.class).toInstant(),
+                                    keyword.id(),
+                                    sessionKey);
+                    if (!previous.isEmpty() && at.isBefore(previous.getFirst().plusSeconds(300)))
+                        return;
+                    jdbc.update(
+                            "INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)",
+                            keyword.id(),
+                            time(at));
+                    incrementBucket(keyword.id(), at);
+                    jdbc.update(
+                            """
+MERGE INTO search_dedup_states(keyword_id, session_key, last_counted_at)
+KEY(keyword_id, session_key) VALUES (?, ?, ?)
+""",
+                            keyword.id(),
+                            sessionKey,
+                            time(at));
+                });
     }
 
     private void incrementBucket(long keywordId, Instant at) {
         OffsetDateTime minute = time(at.truncatedTo(ChronoUnit.MINUTES));
-        int changed = jdbc.update("""
-                UPDATE search_keyword_buckets SET search_count = search_count + 1
-                WHERE keyword_id = ? AND bucket_start = ?
-                """, keywordId, minute);
-        if (changed == 0) jdbc.update("""
-                INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count) VALUES (?, ?, 1)
-                """, keywordId, minute);
+        int changed =
+                jdbc.update(
+                        """
+                        UPDATE search_keyword_buckets SET search_count = search_count + 1
+                        WHERE keyword_id = ? AND bucket_start = ?
+                        """,
+                        keywordId,
+                        minute);
+        if (changed == 0)
+            jdbc.update(
+                    """
+INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count) VALUES (?, ?, 1)
+""",
+                    keywordId,
+                    minute);
     }
 
     public void rebuildBuckets() {
-        write(() -> {
-            jdbc.update("DELETE FROM search_keyword_buckets");
-            jdbc.update("""
-                    INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
-                    SELECT keyword_id, DATE_TRUNC('MINUTE', searched_at), COUNT(*) FROM search_events
-                    GROUP BY keyword_id, DATE_TRUNC('MINUTE', searched_at)
-                    """);
-        });
+        write(
+                () -> {
+                    jdbc.update("DELETE FROM search_keyword_buckets");
+                    jdbc.update(
+                            """
+INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
+SELECT keyword_id, DATE_TRUNC('MINUTE', searched_at), COUNT(*) FROM search_events
+GROUP BY keyword_id, DATE_TRUNC('MINUTE', searched_at)
+""");
+                });
     }
 
     public void cleanup(Instant now) {
-        write(() -> {
-            Instant cutoff = now.minus(Duration.ofDays(30));
-            jdbc.update("DELETE FROM search_events WHERE searched_at < ?", time(cutoff));
-            jdbc.update("DELETE FROM search_dedup_states WHERE last_counted_at < ?", time(cutoff));
-            jdbc.update("DELETE FROM search_keyword_buckets WHERE bucket_start < ?",
-                    time(cutoff.truncatedTo(ChronoUnit.MINUTES)));
-            Instant minute = cutoff.truncatedTo(ChronoUnit.MINUTES);
-            jdbc.update("DELETE FROM search_keyword_buckets WHERE bucket_start = ?", time(minute));
-            jdbc.update("""
-                    INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
-                    SELECT keyword_id, ?, COUNT(*) FROM search_events
-                    WHERE searched_at >= ? AND searched_at < ? GROUP BY keyword_id
-                    """, time(minute), time(minute), time(minute.plus(1, ChronoUnit.MINUTES)));
-        });
+        write(
+                () -> {
+                    Instant cutoff = now.minus(Duration.ofDays(30));
+                    jdbc.update("DELETE FROM search_events WHERE searched_at < ?", time(cutoff));
+                    jdbc.update(
+                            "DELETE FROM search_dedup_states WHERE last_counted_at < ?",
+                            time(cutoff));
+                    jdbc.update(
+                            "DELETE FROM search_keyword_buckets WHERE bucket_start < ?",
+                            time(cutoff.truncatedTo(ChronoUnit.MINUTES)));
+                    Instant minute = cutoff.truncatedTo(ChronoUnit.MINUTES);
+                    jdbc.update(
+                            "DELETE FROM search_keyword_buckets WHERE bucket_start = ?",
+                            time(minute));
+                    jdbc.update(
+                            """
+INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
+SELECT keyword_id, ?, COUNT(*) FROM search_events
+WHERE searched_at >= ? AND searched_at < ? GROUP BY keyword_id
+""",
+                            time(minute),
+                            time(minute),
+                            time(minute.plus(1, ChronoUnit.MINUTES)));
+                });
     }
 
     private Keyword ensureKeyword(String word, boolean suggestible, Instant at) {
-        List<Keyword> matches = jdbc.query("SELECT * FROM search_keywords WHERE normalized_keyword = ?",
-                this::keyword, word);
+        List<Keyword> matches =
+                jdbc.query(
+                        "SELECT * FROM search_keywords WHERE normalized_keyword = ?",
+                        this::keyword,
+                        word);
         if (matches.isEmpty()) {
-            jdbc.update("INSERT INTO search_keywords(normalized_keyword, suggestible, created_at) VALUES (?, ?, ?)",
-                    word, suggestible, time(at));
+            jdbc.update(
+                    "INSERT INTO search_keywords(normalized_keyword, suggestible, created_at)"
+                            + " VALUES (?, ?, ?)",
+                    word,
+                    suggestible,
+                    time(at));
             if (suggestible) dictionaryChanged();
         } else if (suggestible && !matches.getFirst().suggestible()) {
-            jdbc.update("UPDATE search_keywords SET suggestible = TRUE WHERE id = ?", matches.getFirst().id());
+            jdbc.update(
+                    "UPDATE search_keywords SET suggestible = TRUE WHERE id = ?",
+                    matches.getFirst().id());
             dictionaryChanged();
         }
-        return jdbc.queryForObject("SELECT * FROM search_keywords WHERE normalized_keyword = ?", this::keyword, word);
+        return jdbc.queryForObject(
+                "SELECT * FROM search_keywords WHERE normalized_keyword = ?", this::keyword, word);
     }
 
     private void dictionaryChanged() {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override public void afterCommit() { dictionaryVersion.incrementAndGet(); }
-        });
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        dictionaryVersion.incrementAndGet();
+                    }
+                });
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
@@ -158,11 +216,17 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
 
     @Override
     public void upsert(PostProjection post) {
-        jdbc.update("""
-                MERGE INTO search_post_projections(post_id, title, normalized_title, author_id, created_at, visible)
-                KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
-                """, post.id(), post.title(), SearchNormalization.normalize(post.title()), post.authorId(),
-                post.createdAt(), post.visible());
+        jdbc.update(
+                """
+MERGE INTO search_post_projections(post_id, title, normalized_title, author_id, created_at, visible)
+KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
+""",
+                post.id(),
+                post.title(),
+                SearchNormalization.normalize(post.title()),
+                post.authorId(),
+                post.createdAt(),
+                post.visible());
     }
 
     @Override
@@ -172,20 +236,39 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
 
     @Override
     public SearchPostPage search(int page, int size, String normalizedKeyword) {
-        String condition = normalizedKeyword == null ? "" : " AND normalized_title LIKE ? ESCAPE '!'";
-        Object[] parameters = normalizedKeyword == null ? new Object[]{}
-                : new Object[]{"%" + escapeLike(normalizedKeyword) + "%"};
-        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM search_post_projections WHERE visible = TRUE" + condition,
-                Long.class, parameters);
-        String query = "SELECT post_id, title, author_id, created_at FROM search_post_projections "
-                + "WHERE visible = TRUE" + condition + " ORDER BY created_at DESC, post_id DESC LIMIT ? OFFSET ?";
+        String condition =
+                normalizedKeyword == null ? "" : " AND normalized_title LIKE ? ESCAPE '!'";
+        Object[] parameters =
+                normalizedKeyword == null
+                        ? new Object[] {}
+                        : new Object[] {"%" + escapeLike(normalizedKeyword) + "%"};
+        Long total =
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM search_post_projections WHERE visible = TRUE"
+                                + condition,
+                        Long.class,
+                        parameters);
+        String query =
+                "SELECT post_id, title, author_id, created_at FROM search_post_projections "
+                        + "WHERE visible = TRUE"
+                        + condition
+                        + " ORDER BY created_at DESC, post_id DESC LIMIT ? OFFSET ?";
         Object[] pageParameters = java.util.Arrays.copyOf(parameters, parameters.length + 2);
         pageParameters[parameters.length] = size;
         pageParameters[parameters.length + 1] = (long) (page - 1) * size;
-        List<SearchPost> results = jdbc.query(query, (rs, row) -> new SearchPost(rs.getLong("post_id"),
-                rs.getString("title"), rs.getLong("author_id"), rs.getTimestamp("created_at").toLocalDateTime()), pageParameters);
+        List<SearchPost> results =
+                jdbc.query(
+                        query,
+                        (rs, row) ->
+                                new SearchPost(
+                                        rs.getLong("post_id"),
+                                        rs.getString("title"),
+                                        rs.getLong("author_id"),
+                                        rs.getTimestamp("created_at").toLocalDateTime()),
+                        pageParameters);
         long elements = total == null ? 0 : total;
-        return new SearchPostPage(results, page, size, elements, (int) Math.ceil(elements / (double) size));
+        return new SearchPostPage(
+                results, page, size, elements, (int) Math.ceil(elements / (double) size));
     }
 
     private static String escapeLike(String value) {
@@ -197,46 +280,61 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
         if (fullStart.isBefore(start)) fullStart = fullStart.plus(1, ChronoUnit.MINUTES);
         Instant fullEnd = end.truncatedTo(ChronoUnit.MINUTES);
         if (!fullStart.isBefore(fullEnd)) return rawCounts(start, end, keywordId);
-        Map<Long, Long> counts = new HashMap<>(queryCounts("""
-                SELECT keyword_id, SUM(search_count) AS total FROM search_keyword_buckets
-                WHERE bucket_start >= ? AND bucket_start < ? %s GROUP BY keyword_id
-                """, fullStart, fullEnd, keywordId));
+        Map<Long, Long> counts =
+                new HashMap<>(
+                        queryCounts(
+                                """
+SELECT keyword_id, SUM(search_count) AS total FROM search_keyword_buckets
+WHERE bucket_start >= ? AND bucket_start < ? %s GROUP BY keyword_id
+""",
+                                fullStart, fullEnd, keywordId));
         rawCounts(start, fullStart, keywordId).forEach((id, n) -> counts.merge(id, n, Long::sum));
         rawCounts(fullEnd, end, keywordId).forEach((id, n) -> counts.merge(id, n, Long::sum));
         return counts;
     }
 
     private Map<Long, Long> rawCounts(Instant start, Instant end, Long keywordId) {
-        return queryCounts("""
+        return queryCounts(
+                """
                 SELECT keyword_id, COUNT(*) AS total FROM search_events
                 WHERE searched_at >= ? AND searched_at < ? %s GROUP BY keyword_id
-                """, start, end, keywordId);
+                """,
+                start, end, keywordId);
     }
 
     private Map<Long, Long> queryCounts(String sql, Instant start, Instant end, Long keywordId) {
         String filter = keywordId == null ? "" : "AND keyword_id = ?";
-        Object[] parameters = keywordId == null ? new Object[]{time(start), time(end)}
-                : new Object[]{time(start), time(end), keywordId};
-        return jdbc.query(sql.formatted(filter),
-                        (rs, row) -> Map.entry(rs.getLong("keyword_id"), rs.getLong("total")), parameters)
-                .stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Object[] parameters =
+                keywordId == null
+                        ? new Object[] {time(start), time(end)}
+                        : new Object[] {time(start), time(end), keywordId};
+        return jdbc
+                .query(
+                        sql.formatted(filter),
+                        (rs, row) -> Map.entry(rs.getLong("keyword_id"), rs.getLong("total")),
+                        parameters)
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private Keyword keyword(ResultSet rs, int row) throws SQLException {
-        return new Keyword(rs.getLong("id"), rs.getString("normalized_keyword"), rs.getBoolean("suggestible"));
+        return new Keyword(
+                rs.getLong("id"), rs.getString("normalized_keyword"), rs.getBoolean("suggestible"));
     }
 
     public void importDemo(SearchDemoData data) {
-        boolean outerTransaction = TransactionSynchronizationManager.isActualTransactionActive()
-                && TransactionSynchronizationManager.isSynchronizationActive();
+        boolean outerTransaction =
+                TransactionSynchronizationManager.isActualTransactionActive()
+                        && TransactionSynchronizationManager.isSynchronizationActive();
         if (outerTransaction) {
             writes.lock();
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCompletion(int status) {
-                    writes.unlock();
-                }
-            });
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCompletion(int status) {
+                            writes.unlock();
+                        }
+                    });
             requiredTransactions.executeWithoutResult(status -> importRows(data));
             return;
         }
@@ -251,18 +349,26 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
     private void importRows(SearchDemoData data) {
         Map<Long, Long> ids = new HashMap<>();
         for (SearchDemoData.DemoKeyword keyword : data.keywords()) {
-            Keyword saved = ensureKeyword(keyword.keyword(), keyword.suggestible(), keyword.createdAt());
+            Keyword saved =
+                    ensureKeyword(keyword.keyword(), keyword.suggestible(), keyword.createdAt());
             ids.put(keyword.sourceId(), saved.id());
         }
         for (SearchDemoData.DemoEvent event : data.events()) {
             long id = ids.get(event.sourceKeywordId());
-            jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", id, time(event.searchedAt()));
+            jdbc.update(
+                    "INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)",
+                    id,
+                    time(event.searchedAt()));
             incrementBucket(id, event.searchedAt());
         }
         for (SearchDemoData.DemoDedupState state : data.states()) {
-            jdbc.update("""
-                    INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
-                    """, ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));
+            jdbc.update(
+                    """
+INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
+""",
+                    ids.get(state.sourceKeywordId()),
+                    state.sessionKey(),
+                    time(state.lastCountedAt()));
         }
     }
 

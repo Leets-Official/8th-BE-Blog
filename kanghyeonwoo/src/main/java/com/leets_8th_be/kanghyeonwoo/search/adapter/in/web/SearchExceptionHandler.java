@@ -5,6 +5,7 @@ import com.leets_8th_be.kanghyeonwoo.search.application.exception.SearchKeywordN
 import com.leets_8th_be.kanghyeonwoo.search.domain.InvalidSearchKeyword;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ public class SearchExceptionHandler {
     }
 
     private static ResponseEntity<ApiResponse<Void>> errorResponse(ApiResponseCode code) {
-        return ResponseEntity.status(code.getHttpStatus()).body(ApiResponse.fail(code, code.getDefaultMessage()));
+        return ResponseEntity.status(code.getHttpStatus())
+                .body(ApiResponse.fail(code, code.getDefaultMessage()));
     }
 }

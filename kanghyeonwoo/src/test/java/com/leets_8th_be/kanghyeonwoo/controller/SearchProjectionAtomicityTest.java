@@ -38,7 +38,7 @@ class SearchProjectionAtomicityTest {
         String title = "projection-failure-" + UUID.randomUUID();
         jdbc.execute(
                 "ALTER TABLE search_post_projections ADD CONSTRAINT test_projection_failure CHECK"
-                    + " (title <> '"
+                        + " (title <> '"
                         + title
                         + "')");
         try {

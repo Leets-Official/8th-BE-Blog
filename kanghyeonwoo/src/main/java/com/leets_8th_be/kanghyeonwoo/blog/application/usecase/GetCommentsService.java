@@ -18,7 +18,10 @@ public class GetCommentsService implements GetCommentsUseCase {
 
     @Override
     public CommentPage getComments(CommentSearchQuery query) {
-        if (query.postId().value() < 1 || query.page() < 1 || query.size() < 1 || query.size() > 100) {
+        if (query.postId().value() < 1
+                || query.page() < 1
+                || query.size() < 1
+                || query.size() > 100) {
             throw new InvalidCommentQuery();
         }
         posts.get(query.postId());

@@ -1,8 +1,9 @@
 package com.leets_8th_be.kanghyeonwoo.user.adapter.out.persistence;
 
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.out.UserProfileStore;
-import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -18,13 +19,23 @@ public class JpaUserProfileStore implements UserProfileStore {
     @Override
     public Optional<UserProfile> findById(UserId id) {
         return users.findById(id.value())
-                .map(user -> new UserProfile(new UserId(user.getId()), user.getUsername(), user.getEmail()));
+                .map(
+                        user ->
+                                new UserProfile(
+                                        new UserId(user.getId()),
+                                        user.getUsername(),
+                                        user.getEmail()));
     }
 
     @Override
     public Optional<UserProfile> findByEmail(String email) {
-        return users.findByEmail(email).map(user -> new UserProfile(new UserId(user.getId()),
-                user.getUsername(), user.getEmail()));
+        return users.findByEmail(email)
+                .map(
+                        user ->
+                                new UserProfile(
+                                        new UserId(user.getId()),
+                                        user.getUsername(),
+                                        user.getEmail()));
     }
 
     @Override

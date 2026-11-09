@@ -10,7 +10,9 @@ import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RebuildSearchSug
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.CreateUserProfileUseCase;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileEmailLookup;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
@@ -48,10 +50,11 @@ public class SearchDemoSeeder implements ApplicationRunner {
         SearchDemoData data = loadExampleData();
         if (users.findByEmail(DEMO_EMAIL).isEmpty()) {
             UserId authorId = createUsers.create("검색 데모 작성자", DEMO_EMAIL).id();
-            createPosts.create(new CreatePostCommand("Spring Boot와 Java 시작하기",
-                    "검색 추천과 집계를 확인하는 데모 게시글입니다.", authorId));
-            createPosts.create(new CreatePostCommand("JPA와 스프링부트 실습",
-                    "스프링과 JPA 검색 결과를 확인합니다.", authorId));
+            createPosts.create(
+                    new CreatePostCommand(
+                            "Spring Boot와 Java 시작하기", "검색 추천과 집계를 확인하는 데모 게시글입니다.", authorId));
+            createPosts.create(
+                    new CreatePostCommand("JPA와 스프링부트 실습", "스프링과 JPA 검색 결과를 확인합니다.", authorId));
             importSearchData.importData(data);
         }
         rebuildSuggestionsAfterCommit();
@@ -59,26 +62,36 @@ public class SearchDemoSeeder implements ApplicationRunner {
 
     private SearchDemoData loadExampleData() throws Exception {
         JsonNode example;
-        try (InputStream input = new ClassPathResource("demo/search-example.json").getInputStream()) {
+        try (InputStream input =
+                new ClassPathResource("demo/search-example.json").getInputStream()) {
             example = mapper.readTree(input);
         }
         Instant anchor = clock.instant().truncatedTo(ChronoUnit.MINUTES);
-        Duration shift = Duration.between(Instant.parse(example.get("reference_time").asText()), anchor);
+        Duration shift =
+                Duration.between(Instant.parse(example.get("reference_time").asText()), anchor);
         var keywords = new ArrayList<SearchDemoData.DemoKeyword>();
         for (JsonNode row : example.get("search_keywords")) {
-            keywords.add(new SearchDemoData.DemoKeyword(row.get("id").asLong(),
-                    row.get("normalized_keyword").asText(), row.get("suggestible").asBoolean(),
-                    shifted(row.get("created_at"), shift)));
+            keywords.add(
+                    new SearchDemoData.DemoKeyword(
+                            row.get("id").asLong(),
+                            row.get("normalized_keyword").asText(),
+                            row.get("suggestible").asBoolean(),
+                            shifted(row.get("created_at"), shift)));
         }
         var events = new ArrayList<SearchDemoData.DemoEvent>();
         for (JsonNode row : example.get("search_events")) {
-            events.add(new SearchDemoData.DemoEvent(row.get("keyword_id").asLong(),
-                    shifted(row.get("searched_at"), shift)));
+            events.add(
+                    new SearchDemoData.DemoEvent(
+                            row.get("keyword_id").asLong(),
+                            shifted(row.get("searched_at"), shift)));
         }
         var states = new ArrayList<SearchDemoData.DemoDedupState>();
         for (JsonNode row : example.get("search_dedup_states")) {
-            states.add(new SearchDemoData.DemoDedupState(row.get("keyword_id").asLong(),
-                    row.get("session_key").asText(), shifted(row.get("last_counted_at"), shift)));
+            states.add(
+                    new SearchDemoData.DemoDedupState(
+                            row.get("keyword_id").asLong(),
+                            row.get("session_key").asText(),
+                            shifted(row.get("last_counted_at"), shift)));
         }
         return new SearchDemoData(keywords, events, states);
     }
@@ -88,12 +101,13 @@ public class SearchDemoSeeder implements ApplicationRunner {
             rebuildSuggestions.rebuild();
             return;
         }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                rebuildSuggestions.rebuild();
-            }
-        });
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        rebuildSuggestions.rebuild();
+                    }
+                });
     }
 
     private Instant shifted(JsonNode value, Duration shift) {
