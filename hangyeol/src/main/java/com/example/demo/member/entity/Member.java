@@ -11,21 +11,32 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false , unique = true)
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "member" , fetch = FetchType.LAZY)
-    private List<Post> posts= new ArrayList<>();
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<Post> posts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member" , fetch = FetchType.LAZY)
-    private List<Comment> comments= new ArrayList<>();
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
+    @Builder
+    public Member(String email, String password, String name) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+    }
 }
