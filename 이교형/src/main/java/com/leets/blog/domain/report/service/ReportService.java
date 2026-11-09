@@ -59,10 +59,12 @@ public class ReportService {
         return ReportResponse.from(save(Report.ofComment(reporter, comment, reason, request.detail())));
     }
 
-    // 신고 처리 (PENDING → RESOLVED): 회원(401) → 관리자(403) → 신고 ID(400) → 신고 존재(404) → 이미 처리됨(409)
+    // 신고 처리 (PENDING → RESOLVED): 탈퇴한 관리자(401) → 신고 존재(404) → 이미 처리됨(409)
+    // 로그인(401)·관리자(403) 확인은 SecurityConfig에서 컨트롤러 도달 전에 처리
     @Transactional
     public ReportResolveResponse resolve(Long memberId, Long reportId) {
-        memberReader.getAdmin(memberId);
+        // 토큰 발급 후 탈퇴한 관리자는 토큰이 만료되기 전이라도 막음
+        memberReader.getActiveMember(memberId);
         Report report = findReport(reportId);
         report.resolve();
         return ReportResolveResponse.from(report);

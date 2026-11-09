@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: 8th-be-blog
+  datasource:
+    url: jdbc:mysql://localhost:3306/blog?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+jwt:
+  secret: ${JWT_SECRET}            # Base64 문자열, 디코딩했을 때 32바이트 이상 (HS256)
+  access-token-validity: 30m
+  refresh-token-validity: 14d
