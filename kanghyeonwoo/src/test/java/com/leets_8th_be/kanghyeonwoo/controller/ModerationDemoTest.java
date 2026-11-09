@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@org.springframework.security.test.context.support.WithMockUser(username="1", roles="ADMIN")
 @AutoConfigureMockMvc
 @ActiveProfiles("moderation-demo")
 class ModerationDemoTest {
@@ -123,7 +124,11 @@ class ModerationDemoTest {
         String specification = mvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.info.version").value("2.0.0"))
-                .andExpect(jsonPath("$.paths.length()", org.hamcrest.Matchers.is(11)))
+                .andExpect(jsonPath("$.paths.length()", org.hamcrest.Matchers.is(20)))
+                .andExpect(jsonPath("$.components.securitySchemes.BearerAuth.scheme").value("bearer"))
+                .andExpect(jsonPath("$.paths['/api/v2/auth/signup'].post.responses['409']").exists())
+                .andExpect(jsonPath("$.paths['/api/v2/auth/kakao/start'].get").exists())
+                .andExpect(jsonPath("$.paths['/api/v2/comments/{commentId}'].patch").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts'].post").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts'].get").exists())
                 .andExpect(jsonPath("$.paths['/api/v2/posts/{postId}'].get").exists())
@@ -147,7 +152,7 @@ class ModerationDemoTest {
         assertThat(codes).contains("SUCCESS", "RESOURCE_CREATED", "POST_NOT_FOUND", "ENDPOINT_NOT_FOUND");
         var requiredPostFields = JsonPath.<List<String>>read(specification,
                 "$.components.schemas.PostCreateRequest.required");
-        assertThat(requiredPostFields).contains("title", "content", "authorId");
+        assertThat(requiredPostFields).containsExactlyInAnyOrder("title", "content");
         assertThat(JsonPath.<Integer>read(specification,
                 "$.components.schemas.PostCreateRequest.properties.title.maxLength")).isEqualTo(150);
         assertThat(JsonPath.<List<String>>read(specification,

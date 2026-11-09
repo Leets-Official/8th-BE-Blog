@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@org.springframework.security.test.context.support.WithMockUser(username="1", roles="ADMIN")
 @AutoConfigureMockMvc
 class AssignmentControllerTest {
 

@@ -230,6 +230,19 @@ class HexagonalBoundaryTest {
                 .map(type -> type.getName()).toList()).isEmpty();
     }
 
+    @Test
+    void authenticationCoreDoesNotDependOnFrameworksOrConcreteAdapters() {
+        classes().that().resideInAnyPackage(ROOT + ".auth.application..")
+                .should().onlyDependOnClassesThat().resideOutsideOfPackages(
+                        "org.springframework..", "jakarta.persistence..", "jakarta.servlet..", "io.jsonwebtoken..",
+                        ROOT + ".user..", ROOT + ".blog..", ROOT + ".report..", ROOT + ".search..")
+                .check(applicationClasses());
+        classes().that().resideInAnyPackage(ROOT + ".auth.application..")
+                .should().onlyDependOnClassesThat().haveNameNotMatching(
+                        ROOT.replace(".", "\\.") + "\\.auth\\.(AuthService|KakaoAuthService|JwtTokens|LoginSessions|OAuthTickets|KakaoClient|AuthenticationAdapters|KakaoAdapters)")
+                .check(applicationClasses());
+    }
+
     private static com.tngtech.archunit.core.domain.JavaClasses applicationClasses() {
         return new ClassFileImporter().importPath("build/classes/java/main");
     }

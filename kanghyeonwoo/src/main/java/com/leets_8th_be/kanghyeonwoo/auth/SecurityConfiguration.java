@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 @SecurityScheme(name="BearerAuth",type=SecuritySchemeType.HTTP,scheme="bearer",bearerFormat="JWT")
 public class SecurityConfiguration {
  @Bean PasswordEncoder passwordEncoder() {return new BCryptPasswordEncoder();}
+ @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type=org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
  @Bean SecurityFilterChain security(HttpSecurity http,JwtTokens jwt,AccountDirectory accounts,ObjectMapper json) throws Exception {
   return http.csrf(c->c.disable()).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
    .requestCache(c->c.disable()).formLogin(c->c.disable()).httpBasic(c->c.disable())

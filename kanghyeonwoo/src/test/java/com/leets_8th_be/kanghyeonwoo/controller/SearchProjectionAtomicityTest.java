@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@org.springframework.security.test.context.support.WithMockUser(username="1", roles="ADMIN")
 @AutoConfigureMockMvc
 class SearchProjectionAtomicityTest {
     @Autowired MockMvc mvc;
@@ -31,7 +32,7 @@ class SearchProjectionAtomicityTest {
         String title = "projection-failure-" + UUID.randomUUID();
         jdbc.execute("ALTER TABLE search_post_projections ADD CONSTRAINT test_projection_failure CHECK (title <> '" + title + "')");
         try {
-            mvc.perform(post("/api/v2/posts").contentType(MediaType.APPLICATION_JSON)
+            mvc.perform(post("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(author.getId().toString())).contentType(MediaType.APPLICATION_JSON)
                             .content(json.writeValueAsString(Map.of("title", title, "content", "본문", "authorId", author.getId()))))
                     .andExpect(status().isInternalServerError());
             Integer persistedPosts = jdbc.queryForObject("SELECT COUNT(*) FROM posts WHERE title = ?", Integer.class, title);

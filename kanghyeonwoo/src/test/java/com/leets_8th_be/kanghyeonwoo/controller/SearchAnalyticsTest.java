@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = {"spring.datasource.hikari.maximum-pool-size=2",
         "spring.datasource.hikari.connection-timeout=1000"})
+@org.springframework.security.test.context.support.WithMockUser(username="1", roles="ADMIN")
 @AutoConfigureMockMvc
 @Import(SearchAnalyticsTest.TimeConfiguration.class)
 class SearchAnalyticsTest {
@@ -46,7 +47,7 @@ class SearchAnalyticsTest {
     @Test
     void ranksAKeywordAfterSixIndependentSearchesEvenWithoutResults() throws Exception {
         for (int i = 0; i < 6; i++) {
-            mvc.perform(get("/api/v2/posts").param("keyword", "risingword").session(new MockHttpSession()))
+            mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "risingword").session(new MockHttpSession()))
                     .andExpect(status().isOk());
         }
         clock.set(NOW);
@@ -61,13 +62,13 @@ class SearchAnalyticsTest {
     void countsAgainAtFiveMinutesAndFillsTwentyFourHourlyIntervals() throws Exception {
         MockHttpSession session = new MockHttpSession();
         clock.set(NOW.minusSeconds(600));
-        mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").session(session)).andExpect(status().isOk());
         clock.set(NOW.minusSeconds(301));
-        mvc.perform(get("/api/v2/posts").param("keyword", " SPRING ").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", " SPRING ").session(session)).andExpect(status().isOk());
         clock.set(NOW.minusSeconds(300));
-        mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").session(session)).andExpect(status().isOk());
         clock.set(NOW);
-        String body = mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+        String body = mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(2))
                 .andReturn().getResponse().getContentAsString();
         Number id = com.jayway.jsonpath.JsonPath.read(body, "$.data[0].keywordId");
@@ -87,14 +88,14 @@ class SearchAnalyticsTest {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Integer>>();
             for (int i = 0; i < 12; i++) requests.add(() -> mvc.perform(
-                    get("/api/v2/posts").param("keyword", "spring").session(session))
+                    get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").session(session))
                     .andReturn().getResponse().getStatus());
             for (var result : executor.invokeAll(requests)) {
                 org.assertj.core.api.Assertions.assertThat(result.get()).isEqualTo(200);
             }
         }
         clock.set(NOW);
-        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(1));
     }
 
@@ -104,7 +105,7 @@ class SearchAnalyticsTest {
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Void>>();
             for (int i = 0; i < 12; i++) requests.add(() -> {
-                mvc.perform(get("/api/v2/search/suggestions").param("keyword", "concurrentsprng"))
+                mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "concurrentsprng"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.data[0].keyword").value("concurrentspring"));
                 return null;
@@ -117,12 +118,12 @@ class SearchAnalyticsTest {
     void excludesListPaginationAndSuggestionRequestsFromSearchCounts() throws Exception {
         MockHttpSession session = new MockHttpSession();
         mvc.perform(get("/api/v2/posts").session(session)).andExpect(status().isOk());
-        mvc.perform(get("/api/v2/posts").param("keyword", "spring").param("page", "2").session(session))
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").param("page", "2").session(session))
                 .andExpect(status().isOk());
-        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "spring").session(session))
+        mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").session(session))
                 .andExpect(status().isOk());
         clock.set(NOW);
-        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[0].recentSearchCount").value(0));
     }
 
@@ -147,9 +148,9 @@ class SearchAnalyticsTest {
     @Test
     void rejectsInvalidInputsAndUnknownKeywordIds() throws Exception {
         mvc.perform(get("/api/v2/search/suggestions")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "a")).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v2/posts").param("keyword", "x".repeat(51))).andExpect(status().isBadRequest());
-        mvc.perform(get("/api/v2/posts").param("size", "0")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "a")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "x".repeat(51))).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("size", "0")).andExpect(status().isBadRequest());
         mvc.perform(get("/api/v2/search/keywords/999999/stats"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("SEARCH_KEYWORD_NOT_FOUND"));
     }
@@ -175,7 +176,7 @@ class SearchAnalyticsTest {
         searchAt("sprang", NOW.minusSeconds(600), 2);
         searchAt("sprung", NOW.minusSeconds(600), 3);
         clock.set(NOW);
-        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "sprng"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].keyword").value("sprung"))
                 .andExpect(jsonPath("$.data[1].keyword").value("sprang"))
@@ -203,18 +204,18 @@ class SearchAnalyticsTest {
         MockHttpSession retrySession = new MockHttpSession();
         jdbc.execute("ALTER TABLE search_keyword_buckets ADD CONSTRAINT test_bucket_failure CHECK (search_count <= 1)");
         try {
-            mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(retrySession))
+            mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").session(retrySession))
                     .andExpect(status().isInternalServerError());
             clock.set(NOW);
-            mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+            mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "sprng"))
                     .andExpect(jsonPath("$.data[?(@.keyword == 'spring')].recentSearchCount").value(org.hamcrest.Matchers.contains(1)));
         } finally {
             jdbc.execute("ALTER TABLE search_keyword_buckets DROP CONSTRAINT test_bucket_failure");
         }
         clock.set(NOW.minusSeconds(120));
-        mvc.perform(get("/api/v2/posts").param("keyword", "spring").session(retrySession)).andExpect(status().isOk());
+        mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "spring").session(retrySession)).andExpect(status().isOk());
         clock.set(NOW);
-        mvc.perform(get("/api/v2/search/suggestions").param("keyword", "sprng"))
+        mvc.perform(get("/api/v2/search/suggestions").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[?(@.keyword == 'spring')].recentSearchCount").value(org.hamcrest.Matchers.contains(2)));
     }
 
@@ -224,7 +225,7 @@ class SearchAnalyticsTest {
 
     private void searchAt(String keyword, Instant at, int count) throws Exception {
         clock.set(at);
-        for (int i = 0; i < count; i++) mvc.perform(get("/api/v2/posts").param("keyword", keyword)
+        for (int i = 0; i < count; i++) mvc.perform(get("/api/v2/posts").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("1")).param("keyword", keyword)
                 .session(new MockHttpSession())).andExpect(status().isOk());
     }
 
