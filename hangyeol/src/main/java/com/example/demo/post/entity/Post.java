@@ -26,6 +26,7 @@ public class Post extends BaseEntity {
     @Column(nullable = false , columnDefinition = "TEXT")
     private String content;
 
+    @Builder.Default
     @OneToMany(mappedBy = "post" , fetch = FetchType.LAZY)
     private List<Comment> comments= new ArrayList<>();
 
