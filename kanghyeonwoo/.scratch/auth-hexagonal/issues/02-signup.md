@@ -4,8 +4,10 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] 기존 API 계약 및 토큰 정책 보존
-- [ ] 관련 단위·통합 검사 통과
-- [ ] 변경 검증 후 커밋
+- [x] 기존 API 계약 및 토큰 정책 보존
+- [x] 관련 단위·통합 검사 통과
+- [x] 변경 검증 후 커밋
+
+검증: SignupUseCaseTest, AuthApiTest, AuthBoundaryTest 통과.

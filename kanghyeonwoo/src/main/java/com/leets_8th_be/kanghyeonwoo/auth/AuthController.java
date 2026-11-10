@@ -1,6 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
 import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService.Tokens;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.SignupUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.domain.model.EmailNormalization;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
@@ -19,8 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v2/auth")
 public class AuthController {
     private final AuthService auth;
+    private final SignupUseCase signup;
 
-    public AuthController(AuthService auth) {
+    public AuthController(AuthService auth, SignupUseCase signup) {
+        this.signup = signup;
         this.auth = auth;
     }
 
@@ -30,7 +34,7 @@ public class AuthController {
             @NotBlank @Size(max = 50) String nickname) {
         public Signup {
             if (email != null) {
-                email = AuthService.email(email);
+                email = EmailNormalization.normalize(email);
             }
             if (nickname != null) {
                 nickname = nickname.trim();
@@ -43,7 +47,7 @@ public class AuthController {
             @NotBlank @Size(max = 72) String password) {
         public Login {
             if (email != null) {
-                email = AuthService.email(email);
+                email = EmailNormalization.normalize(email);
             }
         }
     }
@@ -59,7 +63,7 @@ public class AuthController {
             useReturnTypeSchema = true)
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody Signup request) {
-        long userId = auth.signup(request.email(), request.password(), request.nickname());
+        long userId = signup.signup(request.email(), request.password(), request.nickname());
         SignupResponse response = new SignupResponse(userId);
         ApiResponse<SignupResponse> body =
                 ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "회원가입이 완료되었습니다.", response);

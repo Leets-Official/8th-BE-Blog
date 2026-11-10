@@ -1,5 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
+import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import org.springframework.core.annotation.Order;
@@ -12,6 +13,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(basePackages = "com.leets_8th_be.kanghyeonwoo.auth")
 @Order(-100)
 public class AuthExceptionHandler {
+    @ExceptionHandler(AuthenticationFailure.class)
+    ResponseEntity<ApiResponse<Void>> domainFailure(AuthenticationFailure failure) {
+        ApiResponseCode code = switch (failure.reason()) {
+            case INVALID_INPUT -> ApiResponseCode.INVALID_INPUT_VALUE;
+            case INVALID_CREDENTIALS -> ApiResponseCode.UNAUTHORIZED;
+            case ACCOUNT_CONFLICT -> ApiResponseCode.DUPLICATE_RESOURCE;
+            case PROVIDER_UNAVAILABLE -> ApiResponseCode.OAUTH_UNAVAILABLE;
+        };
+        return ResponseEntity.status(code.getHttpStatus()).body(ApiResponse.fail(code, failure.getMessage()));
+    }
+
     @ExceptionHandler(AuthFailure.class)
     ResponseEntity<ApiResponse<Void>> failure(AuthFailure e) {
         return ResponseEntity.status(e.code.getHttpStatus()).body(ApiResponse.fail(e.code, e.getMessage()));
