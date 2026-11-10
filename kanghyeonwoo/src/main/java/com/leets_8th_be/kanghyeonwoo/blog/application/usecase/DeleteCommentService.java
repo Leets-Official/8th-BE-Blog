@@ -8,9 +8,14 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 
 public class DeleteCommentService implements DeleteCommentUseCase {
     private final CommentStore comments;
-    public DeleteCommentService(CommentStore comments) { this.comments = comments; }
-    @Override public CommentView delete(CommentId id) {
-        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new).comment();
+
+    public DeleteCommentService(CommentStore comments) {
+        this.comments = comments;
+    }
+
+    @Override
+    public CommentView delete(CommentId id) {
+        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new);
         return comments.save(comment.delete());
     }
 }

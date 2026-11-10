@@ -4,7 +4,6 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.InspectPostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
-
 import java.util.Optional;
 
 public class InspectPostService implements InspectPostUseCase {

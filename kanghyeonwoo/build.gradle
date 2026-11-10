@@ -1,49 +1,58 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.11'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'pmd'
+    id 'checkstyle'
+    id 'org.sonarqube' version '7.5.0.8588'
+    id 'com.diffplug.spotless' version '8.11.0'
+    id 'org.springframework.boot' version '3.5.11'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.leets_8th_be'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-	sourceCompatibility = '21'
-	targetCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
-	implementation 'net.datafaker:datafaker:2.7.0'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'com.tngtech.archunit:archunit:1.5.1'
-	testCompileOnly 'org.projectlombok:lombok'
-	testAnnotationProcessor 'org.projectlombok:lombok'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+    implementation 'net.datafaker:datafaker:2.7.0'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.tngtech.archunit:archunit:1.5.1'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 // Uses BLOG_DB_URL when set; otherwise adds fixtures to the existing local data/blog database.
@@ -53,4 +62,75 @@ tasks.register('seedMockData', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.leets_8th_be.kanghyeonwoo.config.MockDataLoader'
     workingDir = projectDir
+}
+
+spotless {
+    java {
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        palantirJavaFormat('2.102.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+pmd {
+    toolVersion = '7.10.0'
+    ruleSets = []
+    ruleSetFiles = files('config/pmd/ruleset.xml')
+    consoleOutput = true
+}
+
+checkstyle {
+    toolVersion = '10.21.4'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+// Sonar 설정만 읽으며 .env의 다른 값이나 토큰은 출력하지 않는다.
+def sonarLocalSettings = [:]
+def sonarEnvFile = file('.env')
+if (sonarEnvFile.isFile()) {
+    sonarEnvFile.eachLine('UTF-8') { line ->
+        def entry = line =~ /^\s*(?:export\s+)?(SONAR_HOST_URL|SONAR_TOKEN)\s*=\s*(.*?)\s*$/
+        if (entry.matches()) {
+            def value = entry[0][2]
+            if (value.length() >= 2 &&
+                    ((value.startsWith('"') && value.endsWith('"')) ||
+                    (value.startsWith("'") && value.endsWith("'")))) {
+                value = value.substring(1, value.length() - 1)
+            }
+            sonarLocalSettings[entry[0][1]] = value
+        }
+    }
+}
+
+sonar {
+    properties {
+        property 'sonar.projectKey', 'leets-blog-kanghyeonwoo'
+        property 'sonar.projectName', 'Leets Blog'
+        property 'sonar.host.url', providers.environmentVariable('SONAR_HOST_URL')
+                .getOrElse(sonarLocalSettings['SONAR_HOST_URL'] ?: 'http://localhost:9000')
+        def sonarToken = providers.environmentVariable('SONAR_TOKEN')
+                .getOrElse(sonarLocalSettings['SONAR_TOKEN'] ?: '')
+        if (sonarToken) {
+            property 'sonar.token', sonarToken
+        }
+    }
+}
+
+tasks.named('sonar') {
+    dependsOn 'classes', 'testClasses'
+}
+
+// Keep existing developer commands while Spotless owns the implementation.
+tasks.register('javaFormat') {
+    group = 'formatting'
+    description = 'Alias for spotlessApply.'
+    dependsOn 'spotlessApply'
+}
+
+tasks.register('javaFormatCheck') {
+    group = 'verification'
+    description = 'Alias for spotlessCheck.'
+    dependsOn 'spotlessCheck'
 }

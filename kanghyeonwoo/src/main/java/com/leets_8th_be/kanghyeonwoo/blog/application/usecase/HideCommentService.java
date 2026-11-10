@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.blog.application.usecase;
 
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.CommentNotFound;
+import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HideCommentUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.CommentStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
@@ -13,9 +14,11 @@ public class HideCommentService implements HideCommentUseCase {
     }
 
     @Override
-    public com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView hide(CommentId id) {
-        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new).comment();
-        if (comment.deleted()) throw new CommentNotFound();
+    public CommentView hide(CommentId id) {
+        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new);
+        if (comment.deleted()) {
+            throw new CommentNotFound();
+        }
         return comments.save(comment.hide());
     }
 }

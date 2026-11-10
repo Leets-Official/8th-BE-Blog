@@ -4,8 +4,8 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostUseCase;
-import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostDeleted;
 

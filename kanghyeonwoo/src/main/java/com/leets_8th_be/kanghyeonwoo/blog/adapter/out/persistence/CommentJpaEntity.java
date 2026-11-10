@@ -1,7 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.out.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,10 +9,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import jakarta.persistence.OneToMany;
-
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +57,7 @@ class CommentJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    protected CommentJpaEntity() {
-    }
+    protected CommentJpaEntity() {}
 
     static CommentJpaEntity create(String content, Long userId, PostJpaEntity post, CommentJpaEntity parent) {
         CommentJpaEntity entity = new CommentJpaEntity();
@@ -68,24 +68,66 @@ class CommentJpaEntity {
         return entity;
     }
 
-    @jakarta.persistence.PrePersist
-    void prepareInsert() { createdAt = updatedAt = LocalDateTime.now(); }
+    @PrePersist
+    void prepareInsert() {
+        createdAt = updatedAt = LocalDateTime.now();
+    }
 
-    @jakarta.persistence.PreUpdate
-    void prepareUpdate() { updatedAt = LocalDateTime.now(); }
+    @PreUpdate
+    void prepareUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
-    Long getId() { return id; }
-    Visibility getStatus() { return status; }
-    String getContent() { return content; }
-    boolean isDeleted() { return isDeleted; }
-    Long getUserId() { return userId; }
-    Long getPostId() { return post == null ? null : post.getId(); }
-    PostJpaEntity.Visibility getPostStatus() { return post == null ? null : post.getStatus(); }
-    Long getParentId() { return parent == null ? null : parent.getId(); }
-    LocalDateTime getCreatedAt() { return createdAt; }
+    Long getId() {
+        return id;
+    }
 
-    void hide() { status = Visibility.HIDDEN; }
-    void delete() { isDeleted = true; }
+    Visibility getStatus() {
+        return status;
+    }
 
-    enum Visibility { ACTIVE, HIDDEN }
+    String getContent() {
+        return content;
+    }
+
+    boolean isDeleted() {
+        return isDeleted;
+    }
+
+    Long getUserId() {
+        return userId;
+    }
+
+    Long getPostId() {
+        return post == null ? null : post.getId();
+    }
+
+    PostJpaEntity.Visibility getPostStatus() {
+        return post == null ? null : post.getStatus();
+    }
+
+    Long getParentId() {
+        return parent == null ? null : parent.getId();
+    }
+
+    LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    void hide() {
+        status = Visibility.HIDDEN;
+    }
+
+    void delete() {
+        isDeleted = true;
+    }
+
+    enum Visibility {
+        ACTIVE,
+        HIDDEN
+    }
+
+    void updateContent(String value) {
+        this.content = value;
+    }
 }

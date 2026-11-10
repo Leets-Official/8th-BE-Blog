@@ -1,5 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.leets_8th_be.kanghyeonwoo.config.JpaConfig;
 import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
 import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
@@ -10,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(JpaConfig.class)
@@ -33,14 +33,16 @@ class CommentTest {
     @DisplayName("Comment를 생성하고 Post에 addComment로 추가하면 연관관계가 양방향으로 동기화된다.")
     void createCommentWithPostAssociation() {
         // given
-        User author = userRepository.save(User.builder().username("author").email("author@example.com").build());
-        User commenter = userRepository.save(User.builder().username("commenter").email("commenter@example.com").build());
-        Post post = postRepository.save(Post.builder().title("게시글 제목").content("본문").user(author).build());
+        User author = userRepository.save(
+                User.builder().username("author").email("author@example.com").build());
+        User commenter = userRepository.save(User.builder()
+                .username("commenter")
+                .email("commenter@example.com")
+                .build());
+        Post post = postRepository.save(
+                Post.builder().title("게시글 제목").content("본문").user(author).build());
 
-        Comment comment = Comment.builder()
-                .content("댓글 내용입니다.")
-                .user(commenter)
-                .build();
+        Comment comment = Comment.builder().content("댓글 내용입니다.").user(commenter).build();
 
         // when
         post.addComment(comment);
@@ -60,7 +62,8 @@ class CommentTest {
     @DisplayName("Post가 삭제되면 영속성 전이(CascadeType.ALL) 및 orphanRemoval에 의해 연관된 Comment도 함께 삭제된다.")
     void deletePostCascadesToComments() {
         // given
-        User author = userRepository.save(User.builder().username("author").email("author3@example.com").build());
+        User author = userRepository.save(
+                User.builder().username("author").email("author3@example.com").build());
         Post post = Post.builder().title("삭제될 글").content("본문").user(author).build();
         Comment comment = Comment.builder().content("삭제될 댓글").user(author).build();
         post.addComment(comment);
@@ -85,11 +88,15 @@ class CommentTest {
     @DisplayName("댓글에 대댓글을 추가하면 계층형 자기참조 관계(parent-children)가 양방향으로 동기화된다.")
     void addReplyCommentSuccess() {
         // given
-        User author = userRepository.save(User.builder().username("author").email("author4@example.com").build());
-        User replyAuthor = userRepository.save(User.builder().username("replyUser").email("reply@example.com").build());
-        Post post = postRepository.save(Post.builder().title("게시글").content("내용").user(author).build());
+        User author = userRepository.save(
+                User.builder().username("author").email("author4@example.com").build());
+        User replyAuthor = userRepository.save(
+                User.builder().username("replyUser").email("reply@example.com").build());
+        Post post = postRepository.save(
+                Post.builder().title("게시글").content("내용").user(author).build());
 
-        Comment parent = Comment.builder().content("부모 댓글").user(author).post(post).build();
+        Comment parent =
+                Comment.builder().content("부모 댓글").user(author).post(post).build();
         commentRepository.save(parent);
 
         Comment child = Comment.builder().content("자식 대댓글").user(replyAuthor).build();
@@ -113,11 +120,15 @@ class CommentTest {
     @DisplayName("부모 댓글 delete() 호출 시 isDeleted=true로 마스킹되며 하위 대댓글은 정상 보존된다.")
     void deleteParentCommentMasksAndPreservesChildren() {
         // given
-        User author = userRepository.save(User.builder().username("author").email("author5@example.com").build());
-        Post post = postRepository.save(Post.builder().title("글").content("글").user(author).build());
+        User author = userRepository.save(
+                User.builder().username("author").email("author5@example.com").build());
+        Post post = postRepository.save(
+                Post.builder().title("글").content("글").user(author).build());
 
-        Comment parent = Comment.builder().content("삭제될 원본 댓글").user(author).post(post).build();
-        Comment child = Comment.builder().content("남겨질 대댓글").user(author).post(post).build();
+        Comment parent =
+                Comment.builder().content("삭제될 원본 댓글").user(author).post(post).build();
+        Comment child =
+                Comment.builder().content("남겨질 대댓글").user(author).post(post).build();
         parent.addChildComment(child);
 
         commentRepository.save(parent);

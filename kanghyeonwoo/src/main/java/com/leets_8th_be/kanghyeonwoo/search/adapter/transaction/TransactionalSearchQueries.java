@@ -13,15 +13,18 @@ import java.util.List;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-public class TransactionalSearchQueries implements GetSearchKeywordStatsUseCase,
-        GetSearchSuggestionsUseCase, GetSearchTrendsUseCase {
+public class TransactionalSearchQueries
+        implements GetSearchKeywordStatsUseCase, GetSearchSuggestionsUseCase, GetSearchTrendsUseCase {
     private final SearchKeywordStatsService stats;
     private final SearchSuggestionService suggestions;
     private final SearchTrendService trends;
     private final TransactionTemplate reads;
 
-    public TransactionalSearchQueries(SearchKeywordStatsService stats, SearchSuggestionService suggestions,
-                                      SearchTrendService trends, TransactionTemplate reads) {
+    public TransactionalSearchQueries(
+            SearchKeywordStatsService stats,
+            SearchSuggestionService suggestions,
+            SearchTrendService trends,
+            TransactionTemplate reads) {
         this.stats = stats;
         this.suggestions = suggestions;
         this.trends = trends;
@@ -30,7 +33,18 @@ public class TransactionalSearchQueries implements GetSearchKeywordStatsUseCase,
         this.reads.setIsolationLevel(TransactionDefinition.ISOLATION_REPEATABLE_READ);
     }
 
-    @Override public SearchKeywordStats stats(long id) { return reads.execute(status -> stats.stats(id)); }
-    @Override public List<SearchSuggestion> suggest(String keyword) { return reads.execute(status -> suggestions.suggest(keyword)); }
-    @Override public List<SearchTrend> trends() { return reads.execute(status -> trends.trends()); }
+    @Override
+    public SearchKeywordStats stats(long id) {
+        return reads.execute(status -> stats.stats(id));
+    }
+
+    @Override
+    public List<SearchSuggestion> suggest(String keyword) {
+        return reads.execute(status -> suggestions.suggest(keyword));
+    }
+
+    @Override
+    public List<SearchTrend> trends() {
+        return reads.execute(status -> trends.trends());
+    }
 }

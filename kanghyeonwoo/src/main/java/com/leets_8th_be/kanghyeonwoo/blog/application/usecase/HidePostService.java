@@ -3,8 +3,8 @@ package com.leets_8th_be.kanghyeonwoo.blog.application.usecase;
 import com.leets_8th_be.kanghyeonwoo.blog.application.exception.PostNotFound;
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.HidePostUseCase;
-import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPort;
+import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
 

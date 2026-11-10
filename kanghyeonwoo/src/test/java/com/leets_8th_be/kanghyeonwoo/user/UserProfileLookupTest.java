@@ -1,18 +1,17 @@
 package com.leets_8th_be.kanghyeonwoo.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.leets_8th_be.kanghyeonwoo.entity.User;
 import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
-import com.leets_8th_be.kanghyeonwoo.user.application.model.UserProfile;
+import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
+import com.leets_8th_be.kanghyeonwoo.user.application.contract.UserProfile;
 import com.leets_8th_be.kanghyeonwoo.user.application.port.in.UserProfileLookup;
-import com.leets_8th_be.kanghyeonwoo.user.domain.model.UserId;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional

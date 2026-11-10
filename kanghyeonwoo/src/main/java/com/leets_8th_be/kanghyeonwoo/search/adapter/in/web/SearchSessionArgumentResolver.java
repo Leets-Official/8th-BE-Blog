@@ -21,8 +21,11 @@ public class SearchSessionArgumentResolver implements HandlerMethodArgumentResol
     }
 
     @Override
-    public SearchSession resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
-                                         NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+    public SearchSession resolveArgument(
+            MethodParameter parameter,
+            ModelAndViewContainer container,
+            NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory) {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         return () -> resolveKey(request);
     }
