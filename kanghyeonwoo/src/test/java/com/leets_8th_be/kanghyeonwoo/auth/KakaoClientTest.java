@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -21,9 +23,9 @@ class KakaoClientTest {
                 "https://web.example/callback",
                 builder.build());
         server.expect(requestTo("https://kauth.kakao.com/oauth/token"))
-                .andExpect(method(org.springframework.http.HttpMethod.POST))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("grant_type=authorization_code")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("client_secret=app-secret")))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().string(Matchers.containsString("grant_type=authorization_code")))
+                .andExpect(content().string(Matchers.containsString("client_secret=app-secret")))
                 .andRespond(withSuccess("{\"access_token\":\"kakao-access\"}", MediaType.APPLICATION_JSON));
         server.expect(requestTo("https://kapi.kakao.com/v2/user/me"))
                 .andExpect(header("Authorization", "Bearer kakao-access"))

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -24,7 +25,7 @@ class ModerationSchemaMigrationTest {
                 .isEqualTo("PENDING");
         assertThatThrownBy(() -> jdbc.update(
                         "insert into reports(id, reporter_id, target_type," + " target_id) values (2, 2, 'POST', 1)"))
-                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+                .isInstanceOf(DataIntegrityViolationException.class);
         assertThat(jdbc.queryForObject("select count(*) from reports", Long.class))
                 .isEqualTo(1L);
     }

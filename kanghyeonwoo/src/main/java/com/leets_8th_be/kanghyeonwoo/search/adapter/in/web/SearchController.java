@@ -19,6 +19,7 @@ import com.leets_8th_be.kanghyeonwoo.shared.web.ApiPaths;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +47,7 @@ public class SearchController {
             useReturnTypeSchema = true)
     @GetMapping("/keywords/{keywordId}/stats")
     public ResponseEntity<ApiResponse<SearchKeywordStatsResponse>> stats(
-            @io.swagger.v3.oas.annotations.Parameter(description = "검색어 ID", example = "1") @PathVariable("keywordId")
-                    long id) {
+            @Parameter(description = "검색어 ID", example = "1") @PathVariable("keywordId") long id) {
         SearchKeywordStats result = statistics.stats(id);
         SearchKeywordStatsResponse response = toStatsResponse(result);
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "검색어 통계 조회가 완료되었습니다.", response));
@@ -74,9 +74,7 @@ public class SearchController {
             useReturnTypeSchema = true)
     @GetMapping("/suggestions")
     public ResponseEntity<ApiResponse<List<SearchSuggestionResponse>>> suggest(
-            @io.swagger.v3.oas.annotations.Parameter(description = "추천 기준 검색어 (2~50자)", example = "sprng")
-                    @RequestParam("keyword")
-                    String keyword) {
+            @Parameter(description = "추천 기준 검색어 (2~50자)", example = "sprng") @RequestParam("keyword") String keyword) {
         List<SearchSuggestionResponse> response = suggestions.suggest(keyword).stream()
                 .map(SearchController::toSuggestionResponse)
                 .toList();

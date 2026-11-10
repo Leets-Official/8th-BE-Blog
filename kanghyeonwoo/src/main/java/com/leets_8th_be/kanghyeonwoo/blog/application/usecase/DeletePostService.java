@@ -7,6 +7,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostProjectionPor
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.out.PostStore;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostDeleted;
+import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 
 public class DeletePostService implements DeletePostUseCase {
     private final PostStore posts;
@@ -18,7 +19,7 @@ public class DeletePostService implements DeletePostUseCase {
     }
 
     @Override
-    public com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId delete(DeletePostCommand command) {
+    public PostId delete(DeletePostCommand command) {
         Post post = posts.findForUpdate(command.postId()).orElseThrow(PostNotFound::new);
         Post deleted;
         try {

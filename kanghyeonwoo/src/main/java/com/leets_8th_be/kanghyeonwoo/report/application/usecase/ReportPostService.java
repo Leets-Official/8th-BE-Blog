@@ -4,6 +4,7 @@ import com.leets_8th_be.kanghyeonwoo.report.application.exception.DuplicateRepor
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.InvalidReportRequest;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.PostTargetNotFound;
 import com.leets_8th_be.kanghyeonwoo.report.application.exception.ReporterNotFound;
+import com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden;
 import com.leets_8th_be.kanghyeonwoo.report.application.model.ReportView;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostCommand;
 import com.leets_8th_be.kanghyeonwoo.report.application.port.in.ReportPostUseCase;
@@ -38,7 +39,7 @@ public class ReportPostService implements ReportPostUseCase {
             throw new PostTargetNotFound();
         }
         if (command.reporterId().equals(post.authorId())) {
-            throw new com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden();
+            throw new SelfReportForbidden();
         }
         if (reports.exists(command.reporterId(), ReportTarget.POST, command.postId())) {
             throw new DuplicateReport();

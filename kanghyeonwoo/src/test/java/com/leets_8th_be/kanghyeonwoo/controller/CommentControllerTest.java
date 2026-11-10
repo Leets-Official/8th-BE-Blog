@@ -3,18 +3,24 @@ package com.leets_8th_be.kanghyeonwoo.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.leets_8th_be.kanghyeonwoo.entity.*;
-import com.leets_8th_be.kanghyeonwoo.repository.*;
+import com.leets_8th_be.kanghyeonwoo.entity.Comment;
+import com.leets_8th_be.kanghyeonwoo.entity.Post;
+import com.leets_8th_be.kanghyeonwoo.entity.User;
+import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 @Transactional
 class CommentControllerTest {
@@ -34,7 +40,7 @@ class CommentControllerTest {
     JdbcTemplate jdbc;
 
     @Autowired
-    jakarta.persistence.EntityManager entities;
+    EntityManager entities;
 
     @Test
     void listsFlatCommentsAndMasksHiddenOrDeletedContentBeforeSearching() throws Exception {

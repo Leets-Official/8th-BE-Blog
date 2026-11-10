@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -205,17 +206,10 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
                 + "WHERE visible = TRUE"
                 + condition
                 + " ORDER BY created_at DESC, post_id DESC LIMIT ? OFFSET ?";
-        Object[] pageParameters = java.util.Arrays.copyOf(parameters, parameters.length + 2);
+        Object[] pageParameters = Arrays.copyOf(parameters, parameters.length + 2);
         pageParameters[parameters.length] = size;
         pageParameters[parameters.length + 1] = (long) (page - 1) * size;
-        List<SearchPost> results = jdbc.query(
-                query,
-                (rs, row) -> new SearchPost(
-                        rs.getLong("post_id"),
-                        rs.getString("title"),
-                        rs.getLong("author_id"),
-                        rs.getTimestamp("created_at").toLocalDateTime()),
-                pageParameters);
+        List<SearchPost> results = jdbc.query(query, this::searchPost, pageParameters);
         long elements = total == null ? 0 : total;
         return new SearchPostPage(results, page, size, elements, (int) Math.ceil(elements / (double) size));
     }
@@ -261,6 +255,14 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
                         parameters)
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private SearchPost searchPost(ResultSet result, int row) throws SQLException {
+        return new SearchPost(
+                result.getLong("post_id"),
+                result.getString("title"),
+                result.getLong("author_id"),
+                result.getTimestamp("created_at").toLocalDateTime());
     }
 
     private Keyword keyword(ResultSet rs, int row) throws SQLException {

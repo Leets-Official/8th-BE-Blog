@@ -10,18 +10,23 @@ import com.leets_8th_be.kanghyeonwoo.entity.CommentStatus;
 import com.leets_8th_be.kanghyeonwoo.entity.Post;
 import com.leets_8th_be.kanghyeonwoo.entity.PostStatus;
 import com.leets_8th_be.kanghyeonwoo.entity.User;
-import com.leets_8th_be.kanghyeonwoo.repository.*;
+import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.ReportRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 @ActiveProfiles("mock-data")
 class MockDataSeederTest {
@@ -92,7 +97,7 @@ class MockDataSeederTest {
                 .andExpect(jsonPath("$.data.items[?(@.parentId == " + hiddenParent.getId() + ")].id")
                         .isNotEmpty())
                 .andExpect(jsonPath("$.data.items[?(@.status == 'HIDDEN')].content")
-                        .value(org.hamcrest.Matchers.contains("숨김 처리된 댓글입니다.")));
+                        .value(Matchers.contains("숨김 처리된 댓글입니다.")));
         mvc.perform(get("/api/v2/posts/{id}/comments", visiblePostId).param("keyword", "질문"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(0));

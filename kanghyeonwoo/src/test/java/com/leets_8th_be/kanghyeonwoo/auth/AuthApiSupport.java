@@ -3,20 +3,28 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@org.springframework.boot.test.context.SpringBootTest
-@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-@org.springframework.test.annotation.DirtiesContext(
-        classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 abstract class AuthApiSupport {
-    @org.springframework.beans.factory.annotation.Autowired
-    protected org.springframework.test.web.servlet.MockMvc mvc;
+    @Autowired
+    protected MockMvc mvc;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    protected com.fasterxml.jackson.databind.ObjectMapper json;
+    @Autowired
+    protected ObjectMapper json;
 
-    protected com.fasterxml.jackson.databind.JsonNode signupAndLogin(String name) throws Exception {
+    protected JsonNode signupAndLogin(String name) throws Exception {
         String body = json.writeValueAsString(
-                java.util.Map.of("email", name + "@example.com", "password", "password123", "nickname", name));
+                Map.of("email", name + "@example.com", "password", "password123", "nickname", name));
         mvc.perform(post("/api/v2/auth/signup").contentType("application/json").content(body))
                 .andExpect(status().isCreated());
         var result = mvc.perform(post("/api/v2/auth/login")

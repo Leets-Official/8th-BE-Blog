@@ -19,22 +19,27 @@ public class SearchKeywordStatsService {
     private final SearchTrendService trends;
     private final Clock clock;
 
-    public SearchKeywordStats stats(long id) {
-        SearchStore.Keyword keyword = store.find(id);
+    public SearchKeywordStats stats(long keywordId) {
+        SearchStore.Keyword keyword = store.find(keywordId);
         if (keyword == null) {
             throw new SearchKeywordNotFound();
         }
         Instant now = clock.instant();
-        SearchTrendService.Comparison comparison = trends.compare(id, now);
+        SearchTrendService.Comparison comparison = trends.compare(keywordId, now);
         ZonedDateTime hour = now.atZone(ZoneId.of("Asia/Seoul")).truncatedTo(ChronoUnit.HOURS);
         List<SearchHourlyCount> hourly = new ArrayList<>();
-        for (int i = 23; i >= 0; i--) {
-            ZonedDateTime start = hour.minusHours(i);
-            Instant end = i == 0 ? now : start.plusHours(1).toInstant();
-            hourly.add(
-                    new SearchHourlyCount(start.toOffsetDateTime(), store.count(id, start.toInstant(), end), i == 0));
+        for (int hoursAgo = 23; hoursAgo >= 0; hoursAgo--) {
+            ZonedDateTime start = hour.minusHours(hoursAgo);
+            Instant end = hoursAgo == 0 ? now : start.plusHours(1).toInstant();
+            hourly.add(new SearchHourlyCount(
+                    start.toOffsetDateTime(), store.count(keywordId, start.toInstant(), end), hoursAgo == 0));
         }
         return new SearchKeywordStats(
-                id, keyword.keyword(), comparison.current(id), comparison.previous(id), comparison.score(id), hourly);
+                keywordId,
+                keyword.keyword(),
+                comparison.current(keywordId),
+                comparison.previous(keywordId),
+                comparison.score(keywordId),
+                hourly);
     }
 }

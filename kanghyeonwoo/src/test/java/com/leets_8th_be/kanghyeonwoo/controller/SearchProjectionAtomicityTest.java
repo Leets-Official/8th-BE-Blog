@@ -15,10 +15,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 class SearchProjectionAtomicityTest {
     @Autowired

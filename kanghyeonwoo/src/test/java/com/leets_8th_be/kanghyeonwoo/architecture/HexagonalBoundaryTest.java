@@ -5,8 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.leets_8th_be.kanghyeonwoo.blog.application.model.CommentView;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.Comment;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 class HexagonalBoundaryTest {
@@ -146,15 +149,15 @@ class HexagonalBoundaryTest {
             }
         }
 
-        String[] applicationInternals = java.util.Arrays.stream(new String[] {"blog", "user", "report", "search"})
-                .flatMap(module -> java.util.stream.Stream.of(
+        String[] applicationInternals = Arrays.stream(new String[] {"blog", "user", "report", "search"})
+                .flatMap(module -> Stream.of(
                         ROOT + "." + module + ".application.model..",
                         ROOT + "." + module + ".application.usecase..",
                         ROOT + "." + module + ".application.port..",
                         ROOT + "." + module + ".application.exception.."))
                 .toArray(String[]::new);
-        String[] forbidden = java.util.stream.Stream.concat(
-                        java.util.stream.Stream.of(
+        String[] forbidden = Stream.concat(
+                        Stream.of(
                                 "org.springframework..",
                                 "jakarta.persistence..",
                                 "jakarta.servlet..",
@@ -166,7 +169,7 @@ class HexagonalBoundaryTest {
                                 ROOT + ".user.adapter..",
                                 ROOT + ".report.adapter..",
                                 ROOT + ".search.adapter.."),
-                        java.util.Arrays.stream(applicationInternals))
+                        Arrays.stream(applicationInternals))
                 .toArray(String[]::new);
         ArchRule rule = classes()
                 .that()
@@ -213,14 +216,14 @@ class HexagonalBoundaryTest {
     @Test
     void commentUseCaseResultsDoNotExposeDomainAggregates() {
         assertThat(CommentView.class.isRecord()).isTrue();
-        assertThat(java.util.Arrays.stream(CommentView.class.getRecordComponents())
+        assertThat(Arrays.stream(CommentView.class.getRecordComponents())
                         .noneMatch(component -> component.getType() == Comment.class))
                 .isTrue();
     }
 
     private static ArchRule disallowForeignInternals(String owner, String... otherModules) {
-        String[] forbiddenPackages = java.util.Arrays.stream(otherModules)
-                .flatMap(module -> java.util.stream.Stream.of(
+        String[] forbiddenPackages = Arrays.stream(otherModules)
+                .flatMap(module -> Stream.of(
                         ROOT + "." + module + ".domain..",
                         ROOT + "." + module + ".adapter..",
                         ROOT + "." + module + ".config..",
@@ -348,7 +351,7 @@ class HexagonalBoundaryTest {
                 .check(applicationClasses());
     }
 
-    private static com.tngtech.archunit.core.domain.JavaClasses applicationClasses() {
+    private static JavaClasses applicationClasses() {
         return new ClassFileImporter().importPath("build/classes/java/main");
     }
 }

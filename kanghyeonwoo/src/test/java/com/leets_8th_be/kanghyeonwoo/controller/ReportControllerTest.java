@@ -5,9 +5,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.leets_8th_be.kanghyeonwoo.entity.*;
-import com.leets_8th_be.kanghyeonwoo.repository.*;
+import com.leets_8th_be.kanghyeonwoo.entity.Comment;
+import com.leets_8th_be.kanghyeonwoo.entity.Post;
+import com.leets_8th_be.kanghyeonwoo.entity.ReportTargetType;
+import com.leets_8th_be.kanghyeonwoo.entity.User;
+import com.leets_8th_be.kanghyeonwoo.repository.CommentRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.PostRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.ReportRepository;
+import com.leets_8th_be.kanghyeonwoo.repository.UserRepository;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,13 +31,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 class ReportControllerTest {
     @Autowired
@@ -112,8 +129,7 @@ class ReportControllerTest {
 
     ResultActions reportComment(long id, long reporterId) throws Exception {
         return mvc.perform(post("/api/v2/comments/{id}/reports", id)
-                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(
-                        Long.toString(reporterId)))
+                .with(SecurityMockMvcRequestPostProcessors.user(Long.toString(reporterId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("reporterId", reporterId, "reason", "욕설 댓글"))));
     }
@@ -326,7 +342,7 @@ class ReportControllerTest {
     @Test
     void rejectsInvalidProcessingAndFilterInputs() throws Exception {
         long report = reportId(reportPost(reporter.getId()));
-        for (var body : java.util.List.of(
+        for (var body : List.of(
                 Map.of("processorId", processor.getId(), "action", "RESTORE", "resolutionReason", "사유"),
                 Map.of("processorId", processor.getId(), "action", "KEEP", "resolutionReason", " "),
                 Map.of("processorId", processor.getId(), "action", "KEEP", "resolutionReason", "x".repeat(256)))) {
@@ -354,11 +370,10 @@ class ReportControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private java.util.List<Integer> concurrently(int count, java.util.concurrent.Callable<Integer> request)
-            throws Exception {
-        var start = new java.util.concurrent.CountDownLatch(1);
-        try (var executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
-            var futures = new java.util.ArrayList<java.util.concurrent.Future<Integer>>();
+    private List<Integer> concurrently(int count, Callable<Integer> request) throws Exception {
+        var start = new CountDownLatch(1);
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            var futures = new ArrayList<Future<Integer>>();
             for (int i = 0; i < count; i++) {
                 futures.add(executor.submit(() -> {
                     start.await();
@@ -366,9 +381,9 @@ class ReportControllerTest {
                 }));
             }
             start.countDown();
-            var statuses = new java.util.ArrayList<Integer>();
+            var statuses = new ArrayList<Integer>();
             for (var future : futures) {
-                statuses.add(future.get(15, java.util.concurrent.TimeUnit.SECONDS));
+                statuses.add(future.get(15, TimeUnit.SECONDS));
             }
             return statuses;
         }
@@ -377,8 +392,8 @@ class ReportControllerTest {
     @Test
     void concurrentDifferentDecisionsPreserveTheSuccessfulAction() throws Exception {
         long report = reportId(reportPost(reporter.getId()));
-        var next = new java.util.concurrent.atomic.AtomicInteger();
-        var results = new java.util.concurrent.ConcurrentHashMap<String, Integer>();
+        var next = new AtomicInteger();
+        var results = new ConcurrentHashMap<String, Integer>();
         concurrently(2, () -> {
             String action = next.getAndIncrement() == 0 ? "KEEP" : "HIDE";
             int code = resolve(report, action).andReturn().getResponse().getStatus();
@@ -396,7 +411,7 @@ class ReportControllerTest {
     @Test
     void hidingAndEditingCannotRestoreAnActiveState() throws Exception {
         long report = reportId(reportPost(reporter.getId()));
-        var next = new java.util.concurrent.atomic.AtomicInteger();
+        var next = new AtomicInteger();
         var codes = concurrently(
                 2,
                 () -> next.getAndIncrement() == 0
@@ -418,7 +433,7 @@ class ReportControllerTest {
     @Test
     void hidingAndDeletingPreserveTheReportWithoutPartialResolution() throws Exception {
         long report = reportId(reportPost(reporter.getId()));
-        var next = new java.util.concurrent.atomic.AtomicInteger();
+        var next = new AtomicInteger();
         var codes = concurrently(
                 2,
                 () -> next.getAndIncrement() == 0
@@ -481,7 +496,7 @@ class ReportControllerTest {
 
     ResultActions resolve(long reportId, String action) throws Exception {
         return mvc.perform(patch("/api/v2/reports/{id}/resolve", reportId)
-                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(
+                .with(SecurityMockMvcRequestPostProcessors.user(
                                 processor.getId().toString())
                         .roles("ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -498,8 +513,7 @@ class ReportControllerTest {
 
     ResultActions reportPost(long reporterId) throws Exception {
         return mvc.perform(post("/api/v2/posts/{id}/reports", post.getId())
-                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(
-                        Long.toString(reporterId)))
+                .with(SecurityMockMvcRequestPostProcessors.user(Long.toString(reporterId)))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("reporterId", reporterId, "reason", "욕설 신고"))));
     }

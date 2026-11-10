@@ -11,19 +11,21 @@ import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @SpringBootTest
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 @ActiveProfiles("moderation-demo")
 class ModerationDemoTest {
@@ -139,7 +141,7 @@ class ModerationDemoTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        Number postId = com.jayway.jsonpath.JsonPath.read(result, "$.data.items[0].id");
+        Number postId = JsonPath.read(result, "$.data.items[0].id");
         mvc.perform(get("/api/v2/posts/{id}/comments", postId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(3));
@@ -170,7 +172,7 @@ class ModerationDemoTest {
                         .exists())
                 .andExpect(jsonPath("$.components.schemas.Tokens.properties.refreshToken")
                         .exists())
-                .andExpect(jsonPath("$.paths.length()", org.hamcrest.Matchers.is(20)))
+                .andExpect(jsonPath("$.paths.length()", Matchers.is(20)))
                 .andExpect(jsonPath("$.components.securitySchemes.BearerAuth.scheme")
                         .value("bearer"))
                 .andExpect(jsonPath("$.paths['/api/v2/auth/signup'].post.responses['409']")

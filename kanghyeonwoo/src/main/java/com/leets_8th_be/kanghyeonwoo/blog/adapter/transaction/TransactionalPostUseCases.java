@@ -11,6 +11,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.InspectPostUseCase
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostCommand;
 import com.leets_8th_be.kanghyeonwoo.blog.application.port.in.UpdatePostUseCase;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
+import java.util.Optional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public class TransactionalPostUseCases
@@ -59,7 +60,7 @@ public class TransactionalPostUseCases
     }
 
     @Override
-    public java.util.Optional<PostView> inspect(PostId id) {
+    public Optional<PostView> inspect(PostId id) {
         return readTransaction.execute(status -> inspectPost.inspect(id));
     }
 

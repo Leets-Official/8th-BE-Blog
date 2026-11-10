@@ -3,14 +3,21 @@ package com.leets_8th_be.kanghyeonwoo.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.jayway.jsonpath.JsonPath;
+import com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import org.assertj.core.api.Assertions;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +29,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(
         properties = {"spring.datasource.hikari.maximum-pool-size=2", "spring.datasource.hikari.connection-timeout=1000"
         })
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 @Import(SearchAnalyticsTest.TimeConfiguration.class)
 class SearchAnalyticsTest {
@@ -43,7 +51,7 @@ class SearchAnalyticsTest {
     JdbcTemplate jdbc;
 
     @Autowired
-    com.leets_8th_be.kanghyeonwoo.search.application.port.out.SearchStore searchStore;
+    SearchStore searchStore;
 
     @BeforeEach
     void resetSearches() {
@@ -108,7 +116,7 @@ class SearchAnalyticsTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        Number id = com.jayway.jsonpath.JsonPath.read(body, "$.data[0].keywordId");
+        Number id = JsonPath.read(body, "$.data[0].keywordId");
         mvc.perform(get("/api/v2/search/keywords/" + id + "/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.currentCount").value(2))
@@ -135,7 +143,7 @@ class SearchAnalyticsTest {
                         .getStatus());
             }
             for (var result : executor.invokeAll(requests)) {
-                org.assertj.core.api.Assertions.assertThat(result.get()).isEqualTo(200);
+                Assertions.assertThat(result.get()).isEqualTo(200);
             }
         }
         clock.set(NOW);
@@ -149,7 +157,7 @@ class SearchAnalyticsTest {
 
     @Test
     void concurrentSuggestionsObserveANewDictionaryEntryWithASmallConnectionPool() throws Exception {
-        searchStore.seedDictionary(java.util.List.of("concurrentspring"), clock.instant());
+        searchStore.seedDictionary(List.of("concurrentspring"), clock.instant());
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Void>>();
             for (int i = 0; i < 12; i++) {
@@ -244,22 +252,20 @@ class SearchAnalyticsTest {
     @Test
     void retentionKeepsTheCutoffMinuteConsistentWithRemainingHistory() {
         Instant now = NOW.plusSeconds(30);
-        Instant cutoff = now.minus(java.time.Duration.ofDays(30));
+        Instant cutoff = now.minus(Duration.ofDays(30));
         searchStore.record("retention", "expired-session", false, cutoff.minusSeconds(1));
         searchStore.record("retention", "retained-session", false, cutoff);
-        Instant minute = cutoff.truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
-        org.assertj.core.api.Assertions.assertThat(
-                        searchStore.counts(minute, minute.plusSeconds(60)).values())
+        Instant minute = cutoff.truncatedTo(ChronoUnit.MINUTES);
+        Assertions.assertThat(searchStore.counts(minute, minute.plusSeconds(60)).values())
                 .containsExactly(2L);
         searchStore.cleanup(now);
-        org.assertj.core.api.Assertions.assertThat(
-                        searchStore.counts(minute, minute.plusSeconds(60)).values())
+        Assertions.assertThat(searchStore.counts(minute, minute.plusSeconds(60)).values())
                 .containsExactly(1L);
     }
 
     @Test
     void recommendationTiesUseRecentSearchCountsThenKeywordOrder() throws Exception {
-        searchStore.seedDictionary(java.util.List.of("sprang", "sprung"), clock.instant());
+        searchStore.seedDictionary(List.of("sprang", "sprung"), clock.instant());
         searchAt("spring", NOW.minusSeconds(600), 2);
         searchAt("sprang", NOW.minusSeconds(600), 2);
         searchAt("sprung", NOW.minusSeconds(600), 3);
@@ -309,7 +315,7 @@ class SearchAnalyticsTest {
                                     .SecurityMockMvcRequestPostProcessors.user("1"))
                             .param("keyword", "sprng"))
                     .andExpect(jsonPath("$.data[?(@.keyword == 'spring')].recentSearchCount")
-                            .value(org.hamcrest.Matchers.contains(1)));
+                            .value(Matchers.contains(1)));
         } finally {
             jdbc.execute("ALTER TABLE search_keyword_buckets DROP CONSTRAINT test_bucket_failure");
         }
@@ -328,7 +334,7 @@ class SearchAnalyticsTest {
                                         .SecurityMockMvcRequestPostProcessors.user("1"))
                                 .param("keyword", "sprng"))
                 .andExpect(jsonPath("$.data[?(@.keyword == 'spring')].recentSearchCount")
-                        .value(org.hamcrest.Matchers.contains(2)));
+                        .value(Matchers.contains(2)));
     }
 
     private void searchAt(Instant at, int count) throws Exception {

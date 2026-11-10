@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -48,7 +50,7 @@ class KakaoApiTest {
                 .andReturn()
                 .getResponse();
         String code = callback.getRedirectedUrl().split("code=")[1];
-        String body = json.writeValueAsString(java.util.Map.of("code", code));
+        String body = json.writeValueAsString(Map.of("code", code));
         var exchanged = mvc.perform(post("/api/v2/auth/kakao/exchange")
                         .cookie(browser)
                         .contentType("application/json")
@@ -67,7 +69,7 @@ class KakaoApiTest {
         mvc.perform(post("/api/v2/auth/kakao/signup")
                         .cookie(browser)
                         .contentType("application/json")
-                        .content(json.writeValueAsString(java.util.Map.of("signupToken", signup, "nickname", "카카오회원"))))
+                        .content(json.writeValueAsString(Map.of("signupToken", signup, "nickname", "카카오회원"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isString());
         var nextStart = mvc.perform(get("/api/v2/auth/kakao/start"))
@@ -85,8 +87,8 @@ class KakaoApiTest {
         mvc.perform(post("/api/v2/auth/kakao/exchange")
                         .cookie(nextBrowser)
                         .contentType("application/json")
-                        .content(json.writeValueAsString(java.util.Map.of(
-                                "code", nextCallback.getRedirectedUrl().split("code=")[1]))))
+                        .content(json.writeValueAsString(
+                                Map.of("code", nextCallback.getRedirectedUrl().split("code=")[1]))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.tokens.accessToken").isString())
                 .andExpect(jsonPath("$.data.signupToken").isEmpty());
@@ -104,7 +106,7 @@ class KakaoApiTest {
                 .andExpect(status().isCreated());
         when(client.identity("duplicate")).thenReturn(new KakaoClient.Identity("duplicate-id", "existing@example.com"));
         when(client.identity("missing")).thenReturn(new KakaoClient.Identity("missing-id", null));
-        for (String code : java.util.List.of("duplicate", "missing")) {
+        for (String code : List.of("duplicate", "missing")) {
             var start = mvc.perform(get("/api/v2/auth/kakao/start"))
                     .andExpect(status().isFound())
                     .andReturn()

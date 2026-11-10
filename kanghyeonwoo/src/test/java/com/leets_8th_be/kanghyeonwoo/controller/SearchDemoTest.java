@@ -3,16 +3,18 @@ package com.leets_8th_be.kanghyeonwoo.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@org.springframework.security.test.context.support.WithMockUser(username = "1", roles = "ADMIN")
+@WithMockUser(username = "1", roles = "ADMIN")
 @AutoConfigureMockMvc
 @ActiveProfiles("demo")
 @Import(SearchAnalyticsTest.TimeConfiguration.class)
@@ -40,7 +42,7 @@ class SearchDemoTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        Number id = com.jayway.jsonpath.JsonPath.read(body, "$.data[0].keywordId");
+        Number id = JsonPath.read(body, "$.data[0].keywordId");
         mvc.perform(get("/api/v2/search/keywords/" + id + "/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.currentCount").value(10))

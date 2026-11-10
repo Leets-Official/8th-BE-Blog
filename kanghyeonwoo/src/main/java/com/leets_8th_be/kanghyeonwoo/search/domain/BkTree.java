@@ -67,19 +67,24 @@ public final class BkTree {
     }
 
     public static int distance(String first, String second) {
-        int[] a = first.codePoints().toArray(), b = second.codePoints().toArray();
-        int[] row = new int[b.length + 1];
-        for (int j = 0; j <= b.length; j++) {
-            row[j] = j;
+        int[] firstCodePoints = first.codePoints().toArray();
+        int[] secondCodePoints = second.codePoints().toArray();
+        int[] previousRow = new int[secondCodePoints.length + 1];
+        for (int column = 0; column <= secondCodePoints.length; column++) {
+            previousRow[column] = column;
         }
-        for (int i = 1; i <= a.length; i++) {
-            int[] next = new int[b.length + 1];
-            next[0] = i;
-            for (int j = 1; j <= b.length; j++) {
-                next[j] = Math.min(Math.min(next[j - 1] + 1, row[j] + 1), row[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
+        for (int row = 1; row <= firstCodePoints.length; row++) {
+            int[] currentRow = new int[secondCodePoints.length + 1];
+            currentRow[0] = row;
+            for (int column = 1; column <= secondCodePoints.length; column++) {
+                int insertion = currentRow[column - 1] + 1;
+                int deletion = previousRow[column] + 1;
+                boolean sameCharacter = firstCodePoints[row - 1] == secondCodePoints[column - 1];
+                int substitution = previousRow[column - 1] + (sameCharacter ? 0 : 1);
+                currentRow[column] = Math.min(Math.min(insertion, deletion), substitution);
             }
-            row = next;
+            previousRow = currentRow;
         }
-        return row[b.length];
+        return previousRow[secondCodePoints.length];
     }
 }

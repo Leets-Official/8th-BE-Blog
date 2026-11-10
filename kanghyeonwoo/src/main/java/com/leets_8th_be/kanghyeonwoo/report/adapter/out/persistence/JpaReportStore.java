@@ -11,6 +11,7 @@ import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportId;
 import com.leets_8th_be.kanghyeonwoo.report.domain.model.ReportTarget;
 import com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence.TextSearch;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -44,7 +45,7 @@ public class JpaReportStore implements ReportStore {
     }
 
     @Override
-    public java.util.Optional<Report> findForUpdate(ReportId id) {
+    public Optional<Report> findForUpdate(ReportId id) {
         return reports.findForUpdate(id.value()).map(ReportJpaEntity::toDomain);
     }
 

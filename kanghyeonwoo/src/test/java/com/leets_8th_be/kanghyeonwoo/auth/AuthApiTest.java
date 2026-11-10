@@ -3,13 +3,20 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
-@org.springframework.test.annotation.DirtiesContext(
-        classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc
 class AuthApiTest extends AuthApiSupport {
@@ -42,7 +49,7 @@ class AuthApiTest extends AuthApiSupport {
                 .andExpect(status().isOk());
         mvc.perform(get("/api/v2/health").header("Authorization", "Bearer " + refresh))
                 .andExpect(status().isUnauthorized());
-        String req = json.writeValueAsString(java.util.Map.of("refreshToken", refresh));
+        String req = json.writeValueAsString(Map.of("refreshToken", refresh));
         var rotated = mvc.perform(post("/api/v2/auth/reissue")
                         .contentType("application/json")
                         .content(req))
@@ -52,12 +59,12 @@ class AuthApiTest extends AuthApiSupport {
                 .get("data")
                 .get("refreshToken")
                 .asText();
-        org.assertj.core.api.Assertions.assertThat(next).isNotEqualTo(refresh);
+        Assertions.assertThat(next).isNotEqualTo(refresh);
         mvc.perform(post("/api/v2/auth/reissue").contentType("application/json").content(req))
                 .andExpect(status().isUnauthorized());
         mvc.perform(post("/api/v2/auth/reissue")
                         .contentType("application/json")
-                        .content(json.writeValueAsString(java.util.Map.of("refreshToken", next))))
+                        .content(json.writeValueAsString(Map.of("refreshToken", next))))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -67,17 +74,16 @@ class AuthApiTest extends AuthApiSupport {
     @Test
     void badPasswordUnknownEmailExpiredAndTamperedTokensAreRejected() throws Exception {
         var tokens = signupAndLogin("reject");
-        for (String email : java.util.List.of("reject@example.com", "unknown@example.com")) {
+        for (String email : List.of("reject@example.com", "unknown@example.com")) {
             mvc.perform(post("/api/v2/auth/login")
                             .contentType("application/json")
-                            .content(
-                                    json.writeValueAsString(java.util.Map.of("email", email, "password", "wrongpass"))))
+                            .content(json.writeValueAsString(Map.of("email", email, "password", "wrongpass"))))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
         }
-        String expired = jwt.issue(1, "access", "session", java.time.Duration.ofSeconds(-10));
+        String expired = jwt.issue(1, "access", "session", Duration.ofSeconds(-10));
         String token = tokens.get("accessToken").asText();
-        for (String invalid : java.util.List.of(expired, token.substring(0, token.lastIndexOf('.') + 1) + "invalid")) {
+        for (String invalid : List.of(expired, token.substring(0, token.lastIndexOf('.') + 1) + "invalid")) {
             mvc.perform(get("/api/v2/health").header("Authorization", "Bearer " + invalid))
                     .andExpect(status().isUnauthorized());
         }
@@ -94,15 +100,15 @@ class AuthApiTest extends AuthApiSupport {
                 .andReturn();
         var other = json.readTree(second.getResponse().getContentAsString()).get("data");
         String body = json.writeValueAsString(
-                java.util.Map.of("refreshToken", first.get("refreshToken").asText()));
+                Map.of("refreshToken", first.get("refreshToken").asText()));
         mvc.perform(post("/api/v2/auth/logout").contentType("application/json").content(body))
                 .andExpect(status().isOk());
         mvc.perform(post("/api/v2/auth/reissue").contentType("application/json").content(body))
                 .andExpect(status().isUnauthorized());
         mvc.perform(post("/api/v2/auth/reissue")
                         .contentType("application/json")
-                        .content(json.writeValueAsString(java.util.Map.of(
-                                "refreshToken", other.get("refreshToken").asText()))))
+                        .content(json.writeValueAsString(
+                                Map.of("refreshToken", other.get("refreshToken").asText()))))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/v2/health")
                         .header(
@@ -113,11 +119,11 @@ class AuthApiTest extends AuthApiSupport {
 
     @Test
     void concurrentSignupAndRefreshHaveExactlyOneWinner() throws Exception {
-        try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+        try (var pool = Executors.newFixedThreadPool(2)) {
             String body = "{\"email\":\"race@example.com\",\"password\":\"password123\",\"nickname\":\"race-user\"}";
-            var ready = new java.util.concurrent.CountDownLatch(2);
-            var go = new java.util.concurrent.CountDownLatch(1);
-            java.util.concurrent.Callable<Integer> signup = () -> {
+            var ready = new CountDownLatch(2);
+            var go = new CountDownLatch(1);
+            Callable<Integer> signup = () -> {
                 ready.countDown();
                 go.await();
                 return mvc.perform(post("/api/v2/auth/signup")
@@ -131,8 +137,7 @@ class AuthApiTest extends AuthApiSupport {
             var second = pool.submit(signup);
             ready.await();
             go.countDown();
-            org.assertj.core.api.Assertions.assertThat(java.util.List.of(first.get(), second.get()))
-                    .containsExactlyInAnyOrder(201, 409);
+            Assertions.assertThat(List.of(first.get(), second.get())).containsExactlyInAnyOrder(201, 409);
             var login = mvc.perform(post("/api/v2/auth/login")
                             .contentType("application/json")
                             .content(body))
@@ -142,14 +147,14 @@ class AuthApiTest extends AuthApiSupport {
                     .path("data")
                     .path("refreshToken")
                     .asText();
-            var readyRefresh = new java.util.concurrent.CountDownLatch(2);
-            var goRefresh = new java.util.concurrent.CountDownLatch(1);
-            java.util.concurrent.Callable<Integer> rotate = () -> {
+            var readyRefresh = new CountDownLatch(2);
+            var goRefresh = new CountDownLatch(1);
+            Callable<Integer> rotate = () -> {
                 readyRefresh.countDown();
                 goRefresh.await();
                 return mvc.perform(post("/api/v2/auth/reissue")
                                 .contentType("application/json")
-                                .content(json.writeValueAsString(java.util.Map.of("refreshToken", refresh))))
+                                .content(json.writeValueAsString(Map.of("refreshToken", refresh))))
                         .andReturn()
                         .getResponse()
                         .getStatus();
@@ -158,8 +163,7 @@ class AuthApiTest extends AuthApiSupport {
             var r2 = pool.submit(rotate);
             readyRefresh.await();
             goRefresh.countDown();
-            org.assertj.core.api.Assertions.assertThat(java.util.List.of(r1.get(), r2.get()))
-                    .containsExactlyInAnyOrder(200, 401);
+            Assertions.assertThat(List.of(r1.get(), r2.get())).containsExactlyInAnyOrder(200, 401);
         }
     }
 }

@@ -47,13 +47,8 @@ public class SearchTrendService {
     public List<SearchTrend> trends() {
         Comparison comparison = compare(clock.instant());
         List<SearchStore.Keyword> ranked = store.keywords().stream()
-                .filter(k ->
-                        comparison.current(k.id()) >= 5 && comparison.current(k.id()) > comparison.previous(k.id()))
-                .sorted(Comparator.<SearchStore.Keyword>comparingDouble(k -> comparison.score(k.id()))
-                        .reversed()
-                        .thenComparing(Comparator.<SearchStore.Keyword>comparingLong(k -> comparison.current(k.id()))
-                                .reversed())
-                        .thenComparing(SearchStore.Keyword::keyword))
+                .filter(keyword -> isRisingKeyword(keyword, comparison))
+                .sorted(trendRanking(comparison))
                 .limit(10)
                 .toList();
         List<SearchTrend> result = new ArrayList<>();
@@ -67,5 +62,19 @@ public class SearchTrendService {
                     comparison.score(keyword.id())));
         }
         return result;
+    }
+
+    private static boolean isRisingKeyword(SearchStore.Keyword keyword, Comparison comparison) {
+        long currentCount = comparison.current(keyword.id());
+        return currentCount >= 5 && currentCount > comparison.previous(keyword.id());
+    }
+
+    private static Comparator<SearchStore.Keyword> trendRanking(Comparison comparison) {
+        return Comparator.<SearchStore.Keyword>comparingDouble(keyword -> comparison.score(keyword.id()))
+                .reversed()
+                .thenComparing(
+                        Comparator.<SearchStore.Keyword>comparingLong(keyword -> comparison.current(keyword.id()))
+                                .reversed())
+                .thenComparing(SearchStore.Keyword::keyword);
     }
 }

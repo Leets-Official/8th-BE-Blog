@@ -14,6 +14,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId;
 import com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostState;
 import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
@@ -25,14 +26,12 @@ class CreatePostServiceTest {
         AuthorDirectory authors = ignored -> false;
         PostStore posts = new PostStore() {
             @Override
-            public com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView save(
-                    com.leets_8th_be.kanghyeonwoo.blog.domain.model.Post post) {
+            public PostView save(Post post) {
                 throw new AssertionError("post must not be stored when the author does not exist");
             }
 
             @Override
-            public Optional<com.leets_8th_be.kanghyeonwoo.blog.application.model.PostView> findActiveById(
-                    com.leets_8th_be.kanghyeonwoo.blog.domain.model.PostId postId) {
+            public Optional<PostView> findActiveById(PostId postId) {
                 return Optional.empty();
             }
 
@@ -42,8 +41,8 @@ class CreatePostServiceTest {
             }
 
             @Override
-            public java.util.List<PostView> findAll() {
-                return java.util.List.of();
+            public List<PostView> findAll() {
+                return List.of();
             }
 
             @Override
@@ -87,8 +86,8 @@ class CreatePostServiceTest {
             }
 
             @Override
-            public java.util.List<PostView> findAll() {
-                return java.util.List.of();
+            public List<PostView> findAll() {
+                return List.of();
             }
 
             @Override

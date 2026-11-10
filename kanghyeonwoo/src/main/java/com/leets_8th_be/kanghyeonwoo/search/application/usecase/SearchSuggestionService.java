@@ -49,25 +49,33 @@ public class SearchSuggestionService implements RebuildSearchSuggestionsUseCase 
     private List<BkTree.Match> candidates(String keyword) {
         indexLock.lock();
         try {
-            long current = store.dictionaryVersion();
-            if (version != current) {
-                try {
-                    store.dictionary().forEach(word -> {
-                        if (!indexedIds.contains(word.id())) {
-                            tree.add(word.id(), word.keyword());
-                            indexedIds.add(word.id());
-                        }
-                    });
-                    version = current;
-                } catch (RuntimeException failure) {
-                    rebuild();
-                }
-            }
+            refreshIndexIfChanged();
             int length = keyword.codePointCount(0, keyword.length());
             return tree.find(keyword, length <= 4 ? 1 : 2);
         } finally {
             indexLock.unlock();
         }
+    }
+
+    private void refreshIndexIfChanged() {
+        long currentVersion = store.dictionaryVersion();
+        if (version == currentVersion) {
+            return;
+        }
+        try {
+            store.dictionary().forEach(this::indexIfMissing);
+            version = currentVersion;
+        } catch (RuntimeException failure) {
+            rebuild();
+        }
+    }
+
+    private void indexIfMissing(SearchStore.Keyword keyword) {
+        if (indexedIds.contains(keyword.id())) {
+            return;
+        }
+        tree.add(keyword.id(), keyword.keyword());
+        indexedIds.add(keyword.id());
     }
 
     public List<SearchSuggestion> suggest(String input) {
@@ -76,8 +84,11 @@ public class SearchSuggestionService implements RebuildSearchSuggestionsUseCase 
         List<BkTree.Match> matches = candidates(keyword);
         Map<Long, Long> counts = store.counts(now.minus(1, ChronoUnit.HOURS), now);
         return matches.stream()
-                .map(m -> new SearchSuggestion(
-                        m.keywordId(), m.keyword(), m.distance(), counts.getOrDefault(m.keywordId(), 0L)))
+                .map(match -> new SearchSuggestion(
+                        match.keywordId(),
+                        match.keyword(),
+                        match.distance(),
+                        counts.getOrDefault(match.keywordId(), 0L)))
                 .sorted(Comparator.comparingInt(SearchSuggestion::distance)
                         .thenComparing(Comparator.comparingLong(SearchSuggestion::recentSearchCount)
                                 .reversed())

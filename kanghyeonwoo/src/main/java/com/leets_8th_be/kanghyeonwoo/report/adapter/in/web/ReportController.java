@@ -211,8 +211,7 @@ public class ReportController {
                 report.createdAt(),
                 report.action() == null
                         ? null
-                        : com.leets_8th_be.kanghyeonwoo.report.adapter.in.web.dto.ReportResolutionAction.valueOf(
-                                report.action().name()),
+                        : ReportResolutionAction.valueOf(report.action().name()),
                 report.resolutionReason(),
                 report.processorId() == null ? null : report.processorId().value(),
                 report.resolvedAt());
