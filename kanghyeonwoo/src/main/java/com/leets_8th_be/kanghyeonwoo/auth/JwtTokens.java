@@ -23,7 +23,9 @@ public class JwtTokens implements AuthenticationPorts.Tokens {
     public JwtTokens(@Value("${auth.jwt-secret:}") String secret) {
         if (secret.isBlank()) {
             key = Jwts.SIG.HS256.key().build();
-        } else key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+        } else {
+            key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+        }
     }
 
     public String issue(long userId, String type, String session, Duration ttl) {

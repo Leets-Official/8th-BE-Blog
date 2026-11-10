@@ -434,8 +434,7 @@ class PostControllerTest {
 
         User reporter = userRepository.save(
                 User.builder().username("신고자").email("reporter@test.com").build());
-        com.leets_8th_be.kanghyeonwoo.entity.Report report = reportRepository.save(
-                com.leets_8th_be.kanghyeonwoo.entity.Report.ofPost(reporter, post, "부적절한 게시글 신고"));
+        reportRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Report.ofPost(reporter, post, "부적절한 게시글 신고"));
 
         // when: 게시글 삭제 요청
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
@@ -477,9 +476,8 @@ class PostControllerTest {
 
         User reporter = userRepository.save(
                 User.builder().username("신고자2").email("reporter2@test.com").build());
-        com.leets_8th_be.kanghyeonwoo.entity.Report report =
-                reportRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Report.ofComment(
-                        reporter, post.getComments().get(0), "욕설 신고"));
+        reportRepository.save(com.leets_8th_be.kanghyeonwoo.entity.Report.ofComment(
+                reporter, post.getComments().get(0), "욕설 신고"));
 
         // when: 게시글 삭제 요청
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
@@ -507,7 +505,9 @@ class PostControllerTest {
 
     @Test
     void paginatesSearchResultsWithTotalCountsAndRejectsInvalidPages() throws Exception {
-        for (int i = 1; i <= 3; i++) createPost("pagination " + i, "본문");
+        for (int i = 1; i <= 3; i++) {
+            createPost("pagination " + i, "본문");
+        }
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v2/posts")
                         .param("keyword", "pagination")
                         .param("page", "2")

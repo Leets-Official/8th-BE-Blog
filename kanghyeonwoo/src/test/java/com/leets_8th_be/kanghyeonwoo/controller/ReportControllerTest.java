@@ -359,14 +359,17 @@ class ReportControllerTest {
         var start = new java.util.concurrent.CountDownLatch(1);
         try (var executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
             var futures = new java.util.ArrayList<java.util.concurrent.Future<Integer>>();
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++) {
                 futures.add(executor.submit(() -> {
                     start.await();
                     return request.call();
                 }));
+            }
             start.countDown();
             var statuses = new java.util.ArrayList<Integer>();
-            for (var future : futures) statuses.add(future.get(15, java.util.concurrent.TimeUnit.SECONDS));
+            for (var future : futures) {
+                statuses.add(future.get(15, java.util.concurrent.TimeUnit.SECONDS));
+            }
             return statuses;
         }
     }

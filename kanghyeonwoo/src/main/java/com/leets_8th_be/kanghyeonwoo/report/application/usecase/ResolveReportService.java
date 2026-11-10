@@ -33,7 +33,9 @@ public class ResolveReportService implements ResolveReportUseCase {
 
     @Override
     public ReportResolutionView resolve(ResolveReportCommand command) {
-        if (!reporters.exists(command.processorId())) throw new ReporterNotFound();
+        if (!reporters.exists(command.processorId())) {
+            throw new ReporterNotFound();
+        }
         Report pending = reports.findForUpdate(command.reportId()).orElseThrow(ReportNotFound::new);
         Report resolved = pending.resolve(
                 command.action(), command.resolutionReason(), command.processorId(), LocalDateTime.now(clock));
@@ -52,11 +54,17 @@ public class ResolveReportService implements ResolveReportUseCase {
 
     private TargetVisibility resolveTarget(ReportTargetKind target, Long targetId, ReportAction action) {
         ReportTargetSnapshot current = targets.find(target, targetId).orElse(null);
-        if (isDeleted(target, current)) return deletedTarget(action);
-        if (action != ReportAction.HIDE) return new TargetVisibility(true, current.hidden());
+        if (isDeleted(target, current)) {
+            return deletedTarget(action);
+        }
+        if (action != ReportAction.HIDE) {
+            return new TargetVisibility(true, current.hidden());
+        }
 
         ReportTargetSnapshot hidden = targets.hide(target, targetId).orElse(null);
-        if (isDeleted(target, hidden)) return deletedTarget(action);
+        if (isDeleted(target, hidden)) {
+            return deletedTarget(action);
+        }
         return new TargetVisibility(true, true);
     }
 
@@ -71,7 +79,9 @@ public class ResolveReportService implements ResolveReportUseCase {
     }
 
     private TargetVisibility deletedTarget(ReportAction action) {
-        if (action == ReportAction.HIDE) throw new DeletedReportTarget();
+        if (action == ReportAction.HIDE) {
+            throw new DeletedReportTarget();
+        }
         return new TargetVisibility(false, null);
     }
 

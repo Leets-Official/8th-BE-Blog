@@ -10,7 +10,9 @@ public final class SearchNormalization {
     private SearchNormalization() {}
 
     public static String normalize(String input) {
-        if (input == null) return "";
+        if (input == null) {
+            return "";
+        }
         return Normalizer.normalize(
                 WHITESPACE.matcher(input).replaceAll(" ").strip().toLowerCase(Locale.ROOT), Normalizer.Form.NFC);
     }
@@ -18,7 +20,9 @@ public final class SearchNormalization {
     public static String requireKeyword(String input) {
         String keyword = normalize(input);
         int length = keyword.codePointCount(0, keyword.length());
-        if (length < 2 || length > 50) throw new InvalidSearchKeyword();
+        if (length < 2 || length > 50) {
+            throw new InvalidSearchKeyword();
+        }
         return keyword;
     }
 

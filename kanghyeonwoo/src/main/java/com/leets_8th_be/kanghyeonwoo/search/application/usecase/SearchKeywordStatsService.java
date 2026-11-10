@@ -21,7 +21,9 @@ public class SearchKeywordStatsService {
 
     public SearchKeywordStats stats(long id) {
         SearchStore.Keyword keyword = store.find(id);
-        if (keyword == null) throw new SearchKeywordNotFound();
+        if (keyword == null) {
+            throw new SearchKeywordNotFound();
+        }
         Instant now = clock.instant();
         SearchTrendService.Comparison comparison = trends.compare(id, now);
         ZonedDateTime hour = now.atZone(ZoneId.of("Asia/Seoul")).truncatedTo(ChronoUnit.HOURS);

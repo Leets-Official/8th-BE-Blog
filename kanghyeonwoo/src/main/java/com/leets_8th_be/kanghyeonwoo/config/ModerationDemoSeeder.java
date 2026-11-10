@@ -33,7 +33,9 @@ public class ModerationDemoSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (users.findByEmail(AUTHOR_EMAIL).isPresent()) return;
+        if (users.findByEmail(AUTHOR_EMAIL).isPresent()) {
+            return;
+        }
         var author = createUsers.create("신고 데모 작성자", AUTHOR_EMAIL);
         var reporter = createUsers.create("신고 데모 신고자", "moderation-reporter@blog.example");
         var processor = createUsers.create("신고 데모 처리자", "moderation-processor@blog.example");

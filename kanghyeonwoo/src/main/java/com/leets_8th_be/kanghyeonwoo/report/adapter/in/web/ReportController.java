@@ -87,12 +87,13 @@ public class ReportController {
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportPost(
             @Parameter(description = "신고할 게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Valid @RequestBody ReportCreateRequest request) {
+        ReportPostCommand command = new ReportPostCommand(postId, currentUser.requireId(), request.reason());
+        ReportView report = reportPostUseCase.report(command);
+        ReportCreateResponse response = toCreateResponse(report);
+        ApiResponse<ReportCreateResponse> body =
+                ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "게시글 신고가 접수되었습니다.", response);
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
-                .body(ApiResponse.success(
-                        ApiResponseCode.RESOURCE_CREATED,
-                        "게시글 신고가 접수되었습니다.",
-                        toCreateResponse(reportPostUseCase.report(
-                                new ReportPostCommand(postId, currentUser.requireId(), request.reason())))));
+                .body(body);
     }
 
     @PostMapping("/comments/{commentId}/reports")
@@ -115,12 +116,13 @@ public class ReportController {
     public ResponseEntity<ApiResponse<ReportCreateResponse>> reportComment(
             @Parameter(description = "신고할 댓글 ID", example = "1") @PathVariable("commentId") Long commentId,
             @Valid @RequestBody ReportCreateRequest request) {
+        ReportCommentCommand command = new ReportCommentCommand(commentId, currentUser.requireId(), request.reason());
+        ReportView report = reportCommentUseCase.report(command);
+        ReportCreateResponse response = toCreateResponse(report);
+        ApiResponse<ReportCreateResponse> body =
+                ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "댓글 신고가 접수되었습니다.", response);
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
-                .body(ApiResponse.success(
-                        ApiResponseCode.RESOURCE_CREATED,
-                        "댓글 신고가 접수되었습니다.",
-                        toCreateResponse(reportCommentUseCase.report(
-                                new ReportCommentCommand(commentId, currentUser.requireId(), request.reason())))));
+                .body(body);
     }
 
     @GetMapping("/reports")
@@ -187,7 +189,8 @@ public class ReportController {
                 currentUser.requireId(),
                 ReportAction.valueOf(request.action().name()),
                 request.resolutionReason()));
-        return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", toResolveResponse(result)));
+        ReportResolveResponse response = toResolveResponse(result);
+        return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", response));
     }
 
     private static ReportCreateResponse toCreateResponse(ReportView report) {

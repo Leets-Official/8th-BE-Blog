@@ -98,7 +98,9 @@ class ModerationDemoTest {
             assertThat(responses.isObject()).as(operation).isTrue();
             var actualCodes = new ArrayList<String>();
             responses.properties().forEach(response -> {
-                if (Integer.parseInt(response.getKey()) < 400) return;
+                if (Integer.parseInt(response.getKey()) < 400) {
+                    return;
+                }
                 var media = response.getValue().path("content").path("application/json");
                 assertThat(media.path("schema").path("$ref").asText())
                         .as(operation)
@@ -119,7 +121,9 @@ class ModerationDemoTest {
                 });
             });
             var expectedCodes = new ArrayList<String>();
-            if (!errors.isEmpty()) expectedCodes.addAll(List.of(errors.split(" ")));
+            if (!errors.isEmpty()) {
+                expectedCodes.addAll(List.of(errors.split(" ")));
+            }
             expectedCodes.add("INTERNAL_SERVER_ERROR");
             assertThat(actualCodes).as(operation).containsExactlyInAnyOrderElementsOf(expectedCodes);
         });

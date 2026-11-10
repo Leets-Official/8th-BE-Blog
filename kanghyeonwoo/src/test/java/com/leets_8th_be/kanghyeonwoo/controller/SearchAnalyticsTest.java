@@ -124,7 +124,7 @@ class SearchAnalyticsTest {
         MockHttpSession session = new MockHttpSession();
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Integer>>();
-            for (int i = 0; i < 12; i++)
+            for (int i = 0; i < 12; i++) {
                 requests.add(() -> mvc.perform(get("/api/v2/posts")
                                 .with(org.springframework.security.test.web.servlet.request
                                         .SecurityMockMvcRequestPostProcessors.user("1"))
@@ -133,6 +133,7 @@ class SearchAnalyticsTest {
                         .andReturn()
                         .getResponse()
                         .getStatus());
+            }
             for (var result : executor.invokeAll(requests)) {
                 org.assertj.core.api.Assertions.assertThat(result.get()).isEqualTo(200);
             }
@@ -151,7 +152,7 @@ class SearchAnalyticsTest {
         searchStore.seedDictionary(java.util.List.of("concurrentspring"), clock.instant());
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var requests = new ArrayList<Callable<Void>>();
-            for (int i = 0; i < 12; i++)
+            for (int i = 0; i < 12; i++) {
                 requests.add(() -> {
                     mvc.perform(get("/api/v2/search/suggestions")
                                     .with(org.springframework.security.test.web.servlet.request
@@ -161,7 +162,10 @@ class SearchAnalyticsTest {
                             .andExpect(jsonPath("$.data[0].keyword").value("concurrentspring"));
                     return null;
                 });
-            for (var result : executor.invokeAll(requests)) result.get();
+            }
+            for (var result : executor.invokeAll(requests)) {
+                result.get();
+            }
         }
     }
 
@@ -333,13 +337,14 @@ class SearchAnalyticsTest {
 
     private void searchAt(String keyword, Instant at, int count) throws Exception {
         clock.set(at);
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++) {
             mvc.perform(get("/api/v2/posts")
                             .with(org.springframework.security.test.web.servlet.request
                                     .SecurityMockMvcRequestPostProcessors.user("1"))
                             .param("keyword", keyword)
                             .session(new MockHttpSession()))
                     .andExpect(status().isOk());
+        }
     }
 
     @TestConfiguration

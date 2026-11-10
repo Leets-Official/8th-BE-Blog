@@ -30,14 +30,26 @@ public class ReportCommentService implements ReportCommentUseCase {
 
     @Override
     public ReportView report(ReportCommentCommand command) {
-        if (command.commentId() < 1) throw new InvalidReportRequest();
-        if (!reporters.exists(command.reporterId())) throw new ReporterNotFound();
+        if (command.commentId() < 1) {
+            throw new InvalidReportRequest();
+        }
+        if (!reporters.exists(command.reporterId())) {
+            throw new ReporterNotFound();
+        }
         var comment =
                 targets.find(ReportTargetKind.COMMENT, command.commentId()).orElseThrow(CommentTargetNotFound::new);
-        if (!comment.parentPostActive()) throw new ParentPostUnavailable();
-        if (comment.deleted()) throw new DeletedCommentReport();
-        if (comment.hidden()) throw new CommentTargetNotFound();
-        if (command.reporterId().equals(comment.authorId())) throw new SelfReportForbidden();
+        if (!comment.parentPostActive()) {
+            throw new ParentPostUnavailable();
+        }
+        if (comment.deleted()) {
+            throw new DeletedCommentReport();
+        }
+        if (comment.hidden()) {
+            throw new CommentTargetNotFound();
+        }
+        if (command.reporterId().equals(comment.authorId())) {
+            throw new SelfReportForbidden();
+        }
         if (reports.exists(command.reporterId(), ReportTarget.COMMENT, command.commentId())) {
             throw new DuplicateReport();
         }

@@ -23,11 +23,15 @@ public class CreateCommentService implements CreateCommentUseCase {
 
     @Override
     public CommentView create(CreateCommentCommand command) {
-        if (!authors.exists(command.authorId())) throw new AuthorNotFound();
+        if (!authors.exists(command.authorId())) {
+            throw new AuthorNotFound();
+        }
         posts.get(command.postId());
         if (command.parentId() != null) {
             var parent = comments.findTarget(command.parentId()).orElseThrow(CommentNotFound::new);
-            if (!parent.postId().equals(command.postId())) throw new CommentNotFound();
+            if (!parent.postId().equals(command.postId())) {
+                throw new CommentNotFound();
+            }
         }
         return comments.create(
                 command.postId(), Comment.create(command.authorId(), command.parentId(), command.content()));

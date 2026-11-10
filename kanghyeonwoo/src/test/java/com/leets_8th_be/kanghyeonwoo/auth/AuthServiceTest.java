@@ -44,9 +44,10 @@ class AuthServiceTest {
         when(accounts.byEmail("known@example.com"))
                 .thenReturn(Optional.of(new Account(1, encoder.encode("password123"), null, "USER")));
         when(accounts.byEmail("legacy@example.com")).thenReturn(Optional.of(new Account(2, null, null, "USER")));
-        for (String email : java.util.List.of("unknown@example.com", "known@example.com", "legacy@example.com"))
+        for (String email : java.util.List.of("unknown@example.com", "known@example.com", "legacy@example.com")) {
             assertThatThrownBy(() -> auth.login(email, "wrong-password"))
                     .isInstanceOf(AuthFailure.class)
                     .hasMessage("인증에 실패했습니다.");
+        }
     }
 }

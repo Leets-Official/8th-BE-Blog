@@ -32,7 +32,9 @@ public final class BkTree {
         Node node = root;
         while (true) {
             int distance = distance(keyword.value(), node.keyword.value());
-            if (distance == 0) return;
+            if (distance == 0) {
+                return;
+            }
             Node child = node.children.get(distance);
             if (child == null) {
                 node.children.put(distance, new Node(keyword));
@@ -44,7 +46,9 @@ public final class BkTree {
 
     public List<Match> find(String input, int radius) {
         List<Match> matches = new ArrayList<>();
-        if (root == null) return matches;
+        if (root == null) {
+            return matches;
+        }
         ArrayDeque<Node> pending = new ArrayDeque<>();
         pending.add(root);
         while (!pending.isEmpty()) {
@@ -54,7 +58,9 @@ public final class BkTree {
                 matches.add(new Match(node.keyword.id(), node.keyword.value(), distance));
             }
             node.children.forEach((edge, child) -> {
-                if (edge >= distance - radius && edge <= distance + radius) pending.add(child);
+                if (edge >= distance - radius && edge <= distance + radius) {
+                    pending.add(child);
+                }
             });
         }
         return matches;
@@ -63,7 +69,9 @@ public final class BkTree {
     public static int distance(String first, String second) {
         int[] a = first.codePoints().toArray(), b = second.codePoints().toArray();
         int[] row = new int[b.length + 1];
-        for (int j = 0; j <= b.length; j++) row[j] = j;
+        for (int j = 0; j <= b.length; j++) {
+            row[j] = j;
+        }
         for (int i = 1; i <= a.length; i++) {
             int[] next = new int[b.length + 1];
             next[0] = i;

@@ -49,8 +49,12 @@ public class JpaPostStore implements PostStore {
         } else {
             entity = posts.findById(post.id().value()).orElseThrow(() -> new IllegalStateException("저장할 게시글이 없습니다."));
             entity.updateContent(post.title(), post.content());
-            if (post.state() == PostState.HIDDEN) entity.hide();
-            if (post.state() == PostState.DELETED) entity.markDeleted();
+            if (post.state() == PostState.HIDDEN) {
+                entity.hide();
+            }
+            if (post.state() == PostState.DELETED) {
+                entity.markDeleted();
+            }
         }
         return toView(posts.save(entity));
     }

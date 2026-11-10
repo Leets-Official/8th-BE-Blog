@@ -23,23 +23,31 @@ public record Post(PostId id, String title, String content, UserId authorId, Pos
     }
 
     public void requireAuthor(UserId actorId) {
-        if (!authorId.equals(actorId)) throw new PostAccessDenied();
+        if (!authorId.equals(actorId)) {
+            throw new PostAccessDenied();
+        }
     }
 
     public Post update(UserId actorId, String title, String content) {
-        if (state == PostState.DELETED) throw new PostDeleted();
+        if (state == PostState.DELETED) {
+            throw new PostDeleted();
+        }
         requireAuthor(actorId);
         return new Post(id, title, content, authorId, state);
     }
 
     public Post delete(UserId actorId) {
-        if (state == PostState.DELETED) throw new PostDeleted();
+        if (state == PostState.DELETED) {
+            throw new PostDeleted();
+        }
         requireAuthor(actorId);
         return new Post(id, title, content, authorId, PostState.DELETED);
     }
 
     public Post hide() {
-        if (state != PostState.ACTIVE) return this;
+        if (state != PostState.ACTIVE) {
+            return this;
+        }
         return new Post(id, title, content, authorId, PostState.HIDDEN);
     }
 }

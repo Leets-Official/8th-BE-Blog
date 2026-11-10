@@ -14,7 +14,9 @@ class BkTreeTest {
                 List.of("cake", "cook", "boon", "boo", "books", "book"))) {
             BkTree tree = new BkTree();
             long id = 1;
-            for (String word : words) tree.add(id++, word);
+            for (String word : words) {
+                tree.add(id++, word);
+            }
             assertThat(tree.find("book", 1))
                     .extracting(BkTree.Match::keyword)
                     .containsExactlyInAnyOrder("books", "boo", "boon", "cook");

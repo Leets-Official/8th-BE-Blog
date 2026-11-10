@@ -58,7 +58,9 @@ public class MockDataSeeder implements ApplicationRunner {
             var postId = new PostId(post.id().value());
             var parent = createComments.create(new CreateCommentCommand(
                     postId, authors.get((i + 1) % authors.size()).id(), null, "질문: " + generator.commentContent()));
-            if (i == 0 || i == 2) hideComments.hide(parent.id());
+            if (i == 0 || i == 2) {
+                hideComments.hide(parent.id());
+            }
             var reply = createComments.create(new CreateCommentCommand(
                     postId,
                     authors.get((i + 2) % authors.size()).id(),
@@ -66,8 +68,12 @@ public class MockDataSeeder implements ApplicationRunner {
                     "답변: " + generator.commentContent()));
             var additional = createComments.create(new CreateCommentCommand(
                     postId, authors.get((i + 3) % authors.size()).id(), null, "의견: " + generator.commentContent()));
-            if (i == 1 || i == 3) deleteComments.delete(additional.id());
-            if (i >= 10) hidePosts.hide(postId);
+            if (i == 1 || i == 3) {
+                deleteComments.delete(additional.id());
+            }
+            if (i >= 10) {
+                hidePosts.hide(postId);
+            }
             log.info(
                     "목 게시글: postId={}, status={}, parentCommentId={}, replyId={}",
                     postId.value(),

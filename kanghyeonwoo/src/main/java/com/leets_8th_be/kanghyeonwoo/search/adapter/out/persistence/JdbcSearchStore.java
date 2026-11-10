@@ -76,37 +76,41 @@ public class JdbcSearchStore implements SearchStore, SearchPostProjectionStore, 
             jdbc.queryForObject("SELECT id FROM search_keywords WHERE id = ? FOR UPDATE", Long.class, keyword.id());
             List<Instant> previous = jdbc.query(
                     """
-SELECT last_counted_at FROM search_dedup_states WHERE keyword_id = ? AND session_key = ?
-""", (rs, row) -> rs.getObject(1, OffsetDateTime.class).toInstant(), keyword.id(), sessionKey);
-            if (!previous.isEmpty() && at.isBefore(previous.getFirst().plusSeconds(300))) return;
+                        SELECT last_counted_at FROM search_dedup_states WHERE keyword_id = ? AND session_key = ?
+                        """, (rs, row) -> rs.getObject(1, OffsetDateTime.class).toInstant(), keyword.id(), sessionKey);
+            if (!previous.isEmpty() && at.isBefore(previous.getFirst().plusSeconds(300))) {
+                return;
+            }
             jdbc.update("INSERT INTO search_events(keyword_id, searched_at) VALUES (?, ?)", keyword.id(), time(at));
             incrementBucket(keyword.id(), at);
             jdbc.update("""
-MERGE INTO search_dedup_states(keyword_id, session_key, last_counted_at)
-KEY(keyword_id, session_key) VALUES (?, ?, ?)
-""", keyword.id(), sessionKey, time(at));
+                MERGE INTO search_dedup_states(keyword_id, session_key, last_counted_at)
+                KEY(keyword_id, session_key) VALUES (?, ?, ?)
+                """, keyword.id(), sessionKey, time(at));
         });
     }
 
     private void incrementBucket(long keywordId, Instant at) {
         OffsetDateTime minute = time(at.truncatedTo(ChronoUnit.MINUTES));
         int changed = jdbc.update("""
-                        UPDATE search_keyword_buckets SET search_count = search_count + 1
-                        WHERE keyword_id = ? AND bucket_start = ?
-                        """, keywordId, minute);
-        if (changed == 0) jdbc.update("""
-INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count) VALUES (?, ?, 1)
-""", keywordId, minute);
+                                    UPDATE search_keyword_buckets SET search_count = search_count + 1
+                                    WHERE keyword_id = ? AND bucket_start = ?
+                                    """, keywordId, minute);
+        if (changed == 0) {
+            jdbc.update("""
+            INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count) VALUES (?, ?, 1)
+            """, keywordId, minute);
+        }
     }
 
     public void rebuildBuckets() {
         write(() -> {
             jdbc.update("DELETE FROM search_keyword_buckets");
             jdbc.update("""
-INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
-SELECT keyword_id, DATE_TRUNC('MINUTE', searched_at), COUNT(*) FROM search_events
-GROUP BY keyword_id, DATE_TRUNC('MINUTE', searched_at)
-""");
+                INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
+                SELECT keyword_id, DATE_TRUNC('MINUTE', searched_at), COUNT(*) FROM search_events
+                GROUP BY keyword_id, DATE_TRUNC('MINUTE', searched_at)
+                """);
         });
     }
 
@@ -121,10 +125,10 @@ GROUP BY keyword_id, DATE_TRUNC('MINUTE', searched_at)
             Instant minute = cutoff.truncatedTo(ChronoUnit.MINUTES);
             jdbc.update("DELETE FROM search_keyword_buckets WHERE bucket_start = ?", time(minute));
             jdbc.update("""
-INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
-SELECT keyword_id, ?, COUNT(*) FROM search_events
-WHERE searched_at >= ? AND searched_at < ? GROUP BY keyword_id
-""", time(minute), time(minute), time(minute.plus(1, ChronoUnit.MINUTES)));
+                INSERT INTO search_keyword_buckets(keyword_id, bucket_start, search_count)
+                SELECT keyword_id, ?, COUNT(*) FROM search_events
+                WHERE searched_at >= ? AND searched_at < ? GROUP BY keyword_id
+                """, time(minute), time(minute), time(minute.plus(1, ChronoUnit.MINUTES)));
         });
     }
 
@@ -137,7 +141,9 @@ WHERE searched_at >= ? AND searched_at < ? GROUP BY keyword_id
                     word,
                     suggestible,
                     time(at));
-            if (suggestible) dictionaryChanged();
+            if (suggestible) {
+                dictionaryChanged();
+            }
         } else if (suggestible && !matches.getFirst().suggestible()) {
             jdbc.update(
                     "UPDATE search_keywords SET suggestible = TRUE WHERE id = ?",
@@ -170,9 +176,9 @@ WHERE searched_at >= ? AND searched_at < ? GROUP BY keyword_id
     public void upsert(PostProjection post) {
         jdbc.update(
                 """
-MERGE INTO search_post_projections(post_id, title, normalized_title, author_id, created_at, visible)
-KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
-""",
+                    MERGE INTO search_post_projections(post_id, title, normalized_title, author_id, created_at, visible)
+                    KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
                 post.id(),
                 post.title(),
                 SearchNormalization.normalize(post.title()),
@@ -220,13 +226,17 @@ KEY(post_id) VALUES (?, ?, ?, ?, ?, ?)
 
     private Map<Long, Long> counts(Instant start, Instant end, Long keywordId) {
         Instant fullStart = start.truncatedTo(ChronoUnit.MINUTES);
-        if (fullStart.isBefore(start)) fullStart = fullStart.plus(1, ChronoUnit.MINUTES);
+        if (fullStart.isBefore(start)) {
+            fullStart = fullStart.plus(1, ChronoUnit.MINUTES);
+        }
         Instant fullEnd = end.truncatedTo(ChronoUnit.MINUTES);
-        if (!fullStart.isBefore(fullEnd)) return rawCounts(start, end, keywordId);
+        if (!fullStart.isBefore(fullEnd)) {
+            return rawCounts(start, end, keywordId);
+        }
         Map<Long, Long> counts = new HashMap<>(queryCounts("""
-SELECT keyword_id, SUM(search_count) AS total FROM search_keyword_buckets
-WHERE bucket_start >= ? AND bucket_start < ? %s GROUP BY keyword_id
-""", fullStart, fullEnd, keywordId));
+            SELECT keyword_id, SUM(search_count) AS total FROM search_keyword_buckets
+            WHERE bucket_start >= ? AND bucket_start < ? %s GROUP BY keyword_id
+            """, fullStart, fullEnd, keywordId));
         rawCounts(start, fullStart, keywordId).forEach((id, n) -> counts.merge(id, n, Long::sum));
         rawCounts(fullEnd, end, keywordId).forEach((id, n) -> counts.merge(id, n, Long::sum));
         return counts;
@@ -234,9 +244,9 @@ WHERE bucket_start >= ? AND bucket_start < ? %s GROUP BY keyword_id
 
     private Map<Long, Long> rawCounts(Instant start, Instant end, Long keywordId) {
         return queryCounts("""
-                SELECT keyword_id, COUNT(*) AS total FROM search_events
-                WHERE searched_at >= ? AND searched_at < ? %s GROUP BY keyword_id
-                """, start, end, keywordId);
+                            SELECT keyword_id, COUNT(*) AS total FROM search_events
+                            WHERE searched_at >= ? AND searched_at < ? %s GROUP BY keyword_id
+                            """, start, end, keywordId);
     }
 
     private Map<Long, Long> queryCounts(String sql, Instant start, Instant end, Long keywordId) {
@@ -293,8 +303,8 @@ WHERE bucket_start >= ? AND bucket_start < ? %s GROUP BY keyword_id
         }
         for (SearchDemoData.DemoDedupState state : data.states()) {
             jdbc.update("""
-INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
-""", ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));
+            INSERT INTO search_dedup_states(keyword_id, session_key, last_counted_at) VALUES (?, ?, ?)
+            """, ids.get(state.sourceKeywordId()), state.sessionKey(), time(state.lastCountedAt()));
         }
     }
 

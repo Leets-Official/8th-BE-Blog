@@ -15,7 +15,9 @@ public class SearchPostsService implements SearchPostsUseCase {
 
     @Override
     public SearchPostPage search(int page, int size, String input) {
-        if (page < 1 || size < 1 || size > 100) throw new InvalidSearchRequest();
+        if (page < 1 || size < 1 || size > 100) {
+            throw new InvalidSearchRequest();
+        }
         String keyword = SearchNormalization.normalize(input);
         return store.search(page, size, keyword.isEmpty() ? null : keyword);
     }

@@ -16,19 +16,21 @@ public class JpaUserProfileStore implements UserProfileStore {
 
     @Override
     public Optional<UserProfile> findById(UserId id) {
-        return users.findById(id.value())
-                .map(user -> new UserProfile(new UserId(user.getId()), user.getUsername(), user.getEmail()));
+        return users.findById(id.value()).map(JpaUserProfileStore::toProfile);
     }
 
     @Override
     public Optional<UserProfile> findByEmail(String email) {
-        return users.findByEmail(email)
-                .map(user -> new UserProfile(new UserId(user.getId()), user.getUsername(), user.getEmail()));
+        return users.findByEmail(email).map(JpaUserProfileStore::toProfile);
     }
 
     @Override
     public UserProfile create(String username, String email) {
         UserProfileJpaEntity saved = users.saveAndFlush(new UserProfileJpaEntity(username, email));
-        return new UserProfile(new UserId(saved.getId()), saved.getUsername(), saved.getEmail());
+        return toProfile(saved);
+    }
+
+    private static UserProfile toProfile(UserProfileJpaEntity user) {
+        return new UserProfile(new UserId(user.getId()), user.getUsername(), user.getEmail());
     }
 }

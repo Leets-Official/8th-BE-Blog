@@ -113,10 +113,12 @@ class KakaoApiTest {
                     .cookie(start.getCookie("kakao_browser"))
                     .param("state", start.getRedirectedUrl().split("state=")[1])
                     .param("code", code));
-            if (code.equals("duplicate"))
+            if (code.equals("duplicate")) {
                 result.andExpect(status().isConflict())
                         .andExpect(jsonPath("$.message").value("이미 가입된 계정이 있습니다. 기존 로그인 수단을 이용해 주세요."));
-            else result.andExpect(status().isBadRequest());
+            } else {
+                result.andExpect(status().isBadRequest());
+            }
         }
     }
 }

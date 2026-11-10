@@ -12,23 +12,30 @@ import com.leets_8th_be.kanghyeonwoo.shared.domain.UserId;
 public class ManageOwnCommentService implements ManageOwnCommentUseCase {
     private final CommentStore comments;
 
-    public ManageOwnCommentService(CommentStore c) {
-        comments = c;
+    public ManageOwnCommentService(CommentStore comments) {
+        this.comments = comments;
     }
 
-    private Comment own(CommentId id, UserId actor) {
-        var c = comments.findForUpdate(id).orElseThrow(CommentNotFound::new);
-        if (!c.authorId().equals(actor)) throw new PostAccessDenied();
-        if (c.deleted()) throw new CommentNotFound();
-        return c;
+    private Comment requireOwnedComment(CommentId id, UserId actor) {
+        var comment = comments.findForUpdate(id).orElseThrow(CommentNotFound::new);
+        if (!comment.authorId().equals(actor)) {
+            throw new PostAccessDenied();
+        }
+        if (comment.deleted()) {
+            throw new CommentNotFound();
+        }
+        return comment;
     }
 
     public CommentView update(CommentId id, UserId actor, String content) {
-        var c = own(id, actor);
-        return comments.save(new Comment(c.id(), c.authorId(), c.parentId(), content, c.state(), c.deleted()));
+        var comment = requireOwnedComment(id, actor);
+        Comment updated = new Comment(
+                comment.id(), comment.authorId(), comment.parentId(), content, comment.state(), comment.deleted());
+        return comments.save(updated);
     }
 
     public CommentView deleteOwn(CommentId id, UserId actor) {
-        return comments.save(own(id, actor).delete());
+        Comment comment = requireOwnedComment(id, actor);
+        return comments.save(comment.delete());
     }
 }

@@ -27,10 +27,16 @@ public class ReportPostService implements ReportPostUseCase {
 
     @Override
     public ReportView report(ReportPostCommand command) {
-        if (command.postId() < 1) throw new InvalidReportRequest();
-        if (!reporters.exists(command.reporterId())) throw new ReporterNotFound();
+        if (command.postId() < 1) {
+            throw new InvalidReportRequest();
+        }
+        if (!reporters.exists(command.reporterId())) {
+            throw new ReporterNotFound();
+        }
         var post = targets.find(ReportTargetKind.POST, command.postId()).orElseThrow(PostTargetNotFound::new);
-        if (post.deleted() || post.hidden()) throw new PostTargetNotFound();
+        if (post.deleted() || post.hidden()) {
+            throw new PostTargetNotFound();
+        }
         if (command.reporterId().equals(post.authorId())) {
             throw new com.leets_8th_be.kanghyeonwoo.report.application.exception.SelfReportForbidden();
         }

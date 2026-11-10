@@ -63,7 +63,9 @@ public class Report extends BaseTimeEntity {
     private LocalDateTime resolvedAt;
 
     public void resolve(ReportResolutionAction action, String reason, User processor, LocalDateTime resolvedAt) {
-        if (status != ReportStatus.PENDING) throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
+        if (status != ReportStatus.PENDING) {
+            throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
+        }
         this.status = ReportStatus.RESOLVED;
         this.action = action;
         this.resolutionReason = reason;

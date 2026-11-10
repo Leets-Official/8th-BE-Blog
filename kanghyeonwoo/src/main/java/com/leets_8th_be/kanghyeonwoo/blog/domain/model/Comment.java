@@ -9,18 +9,26 @@ public record Comment(
     }
 
     public String displayContent() {
-        if (deleted) return "삭제된 댓글입니다.";
-        if (state == CommentState.HIDDEN) return "숨김 처리된 댓글입니다.";
+        if (deleted) {
+            return "삭제된 댓글입니다.";
+        }
+        if (state == CommentState.HIDDEN) {
+            return "숨김 처리된 댓글입니다.";
+        }
         return content;
     }
 
     public Comment hide() {
-        if (state == CommentState.HIDDEN) return this;
+        if (state == CommentState.HIDDEN) {
+            return this;
+        }
         return new Comment(id, authorId, parentId, content, CommentState.HIDDEN, deleted);
     }
 
     public Comment delete() {
-        if (deleted) return this;
+        if (deleted) {
+            return this;
+        }
         return new Comment(id, authorId, parentId, content, state, true);
     }
 }

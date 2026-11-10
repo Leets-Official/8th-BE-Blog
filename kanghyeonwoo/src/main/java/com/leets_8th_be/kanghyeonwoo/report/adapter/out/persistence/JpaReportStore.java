@@ -52,12 +52,15 @@ public class JpaReportStore implements ReportStore {
     public ReportPage search(ReportSearchQuery query) {
         var pageable = PageRequest.of(query.page() - 1, query.size(), Sort.by(Sort.Direction.DESC, "createdAt", "id"));
         Specification<ReportJpaEntity> criteria = (root, q, cb) -> cb.conjunction();
-        if (query.status() != null)
+        if (query.status() != null) {
             criteria = criteria.and((root, q, cb) -> cb.equal(root.get("status"), query.status()));
-        if (query.target() != null)
+        }
+        if (query.target() != null) {
             criteria = criteria.and((root, q, cb) -> cb.equal(root.get("targetType"), query.target()));
-        if (query.targetId() != null)
+        }
+        if (query.targetId() != null) {
             criteria = criteria.and((root, q, cb) -> cb.equal(root.get("targetId"), query.targetId()));
+        }
         if (query.keyword() != null && !query.keyword().isBlank()) {
             String keyword = query.keyword().strip();
             criteria = criteria.and((root, q, cb) -> cb.or(

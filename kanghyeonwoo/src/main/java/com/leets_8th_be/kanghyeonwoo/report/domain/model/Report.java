@@ -62,7 +62,9 @@ public record Report(
     }
 
     public Report resolve(ReportAction action, String resolutionReason, UserId processorId, LocalDateTime resolvedAt) {
-        if (state != ReportState.PENDING) throw new ReportAlreadyResolved();
+        if (state != ReportState.PENDING) {
+            throw new ReportAlreadyResolved();
+        }
         if (action == null
                 || resolutionReason == null
                 || resolutionReason.isBlank()

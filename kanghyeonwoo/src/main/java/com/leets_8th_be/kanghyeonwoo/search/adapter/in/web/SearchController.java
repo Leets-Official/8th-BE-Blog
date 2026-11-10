@@ -9,6 +9,8 @@ import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchKeywordStat
 import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchSuggestionResponse;
 import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.SearchTrendResponse;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchKeywordStats;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchSuggestion;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchTrend;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchKeywordStatsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchSuggestionsUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.GetSearchTrendsUseCase;
@@ -47,18 +49,8 @@ public class SearchController {
             @io.swagger.v3.oas.annotations.Parameter(description = "검색어 ID", example = "1") @PathVariable("keywordId")
                     long id) {
         SearchKeywordStats result = statistics.stats(id);
-        return ResponseEntity.ok(ApiResponse.success(
-                ApiResponseCode.SUCCESS,
-                "검색어 통계 조회가 완료되었습니다.",
-                new SearchKeywordStatsResponse(
-                        result.keywordId(),
-                        result.keyword(),
-                        result.currentCount(),
-                        result.previousCount(),
-                        result.score(),
-                        result.hourlyCounts().stream()
-                                .map(hour -> new SearchHourlyCountResponse(hour.hour(), hour.count(), hour.current()))
-                                .toList())));
+        SearchKeywordStatsResponse response = toStatsResponse(result);
+        return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "검색어 통계 조회가 완료되었습니다.", response));
     }
 
     @Operation(summary = "최근 1시간의 급상승 검색어 상위 10개")
@@ -69,18 +61,9 @@ public class SearchController {
             useReturnTypeSchema = true)
     @GetMapping("/trends")
     public ResponseEntity<ApiResponse<List<SearchTrendResponse>>> trends() {
-        return ResponseEntity.ok(ApiResponse.success(
-                ApiResponseCode.SUCCESS,
-                "급상승 검색어 조회가 완료되었습니다.",
-                trends.trends().stream()
-                        .map(value -> new SearchTrendResponse(
-                                value.rank(),
-                                value.keywordId(),
-                                value.keyword(),
-                                value.currentCount(),
-                                value.previousCount(),
-                                value.score()))
-                        .toList()));
+        List<SearchTrendResponse> response =
+                trends.trends().stream().map(SearchController::toTrendResponse).toList();
+        return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "급상승 검색어 조회가 완료되었습니다.", response));
     }
 
     @Operation(summary = "철자가 비슷한 검색어 추천")
@@ -94,12 +77,37 @@ public class SearchController {
             @io.swagger.v3.oas.annotations.Parameter(description = "추천 기준 검색어 (2~50자)", example = "sprng")
                     @RequestParam("keyword")
                     String keyword) {
-        return ResponseEntity.ok(ApiResponse.success(
-                ApiResponseCode.SUCCESS,
-                "검색어 추천이 완료되었습니다.",
-                suggestions.suggest(keyword).stream()
-                        .map(value -> new SearchSuggestionResponse(
-                                value.keywordId(), value.keyword(), value.distance(), value.recentSearchCount()))
-                        .toList()));
+        List<SearchSuggestionResponse> response = suggestions.suggest(keyword).stream()
+                .map(SearchController::toSuggestionResponse)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "검색어 추천이 완료되었습니다.", response));
+    }
+
+    private static SearchKeywordStatsResponse toStatsResponse(SearchKeywordStats result) {
+        List<SearchHourlyCountResponse> hourlyCounts = result.hourlyCounts().stream()
+                .map(hour -> new SearchHourlyCountResponse(hour.hour(), hour.count(), hour.current()))
+                .toList();
+        return new SearchKeywordStatsResponse(
+                result.keywordId(),
+                result.keyword(),
+                result.currentCount(),
+                result.previousCount(),
+                result.score(),
+                hourlyCounts);
+    }
+
+    private static SearchTrendResponse toTrendResponse(SearchTrend trend) {
+        return new SearchTrendResponse(
+                trend.rank(),
+                trend.keywordId(),
+                trend.keyword(),
+                trend.currentCount(),
+                trend.previousCount(),
+                trend.score());
+    }
+
+    private static SearchSuggestionResponse toSuggestionResponse(SearchSuggestion suggestion) {
+        return new SearchSuggestionResponse(
+                suggestion.keywordId(), suggestion.keyword(), suggestion.distance(), suggestion.recentSearchCount());
     }
 }
