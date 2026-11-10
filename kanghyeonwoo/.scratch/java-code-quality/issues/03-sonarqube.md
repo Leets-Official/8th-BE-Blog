@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** resolved
+**Status:** ready-for-agent
 
 - [x] 인증 정보를 저장하지 않고 분석 설정과 실행 방법을 제공한다.
 - [ ] 서버 연결이 가능하면 분석 결과를 확인한다.

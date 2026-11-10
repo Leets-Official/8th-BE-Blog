@@ -8,5 +8,6 @@
             <property name="allowStaticMemberImports" value="true"/>
         </module>
         <module name="OneTopLevelClass"/>
+        <module name="TypeName"/>
     </module>
 </module>
