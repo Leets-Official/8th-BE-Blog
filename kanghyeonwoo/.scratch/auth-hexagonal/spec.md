@@ -1,6 +1,6 @@
 # Auth 헥사고날 리팩터링
 
-Status: Approved
+Status: Implemented
 
 기준 커밋: a6c98ad. 브랜치: 강현우/6주차.
 
@@ -16,3 +16,7 @@ Status: Approved
 - 카카오 state·브라우저 연결·일회용 코드·중복 계정·이메일 정책과 실제 REST 연결 유지.
 - 테스트 경계: 입력 포트의 격리 단위 테스트, 기존 MockMvc API 및 외부 REST 계약, ArchUnit 의존 검사.
 - 티켓별 검증 및 커밋. 마지막에 두 축 코드 리뷰 및 전체 ./gradlew check.
+
+## 검증 결과
+
+전체 `./gradlew clean check --console=plain` 성공. 테스트 130개, 실패·오류·건너뜀 0개. Standards/Spec 리뷰 각 지적 0건. 실제 카카오 로그인은 외부 앱 설정 후 확인한다.
