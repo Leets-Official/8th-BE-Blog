@@ -1,5 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService.Tokens;
+import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService.Exchange;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
@@ -9,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.net.URI;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -48,7 +51,7 @@ public class KakaoController {
                 .path("/api/v2/auth/kakao")
                 .maxAge(600)
                 .build();
-        return ResponseEntity.status(302)
+        return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .location(URI.create(start.url()))
                 .build();
@@ -69,8 +72,9 @@ public class KakaoController {
             @RequestParam String state,
             @RequestParam String code,
             @CookieValue(name = "kakao_browser", required = false) String browser) {
-        return ResponseEntity.status(302)
-                .location(URI.create(kakao.callback(state, browser, code)))
+        String redirectUrl = kakao.callback(state, browser, code);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(redirectUrl))
                 .build();
     }
 
@@ -97,9 +101,10 @@ public class KakaoController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/exchange")
-    public ApiResponse<?> exchange(
+    public ApiResponse<Exchange> exchange(
             @Valid @RequestBody Code request, @CookieValue(name = "kakao_browser", required = false) String browser) {
-        return ApiResponse.success(kakao.exchange(request.code(), browser));
+        Exchange exchange = kakao.exchange(request.code(), browser);
+        return ApiResponse.success(exchange);
     }
 
     @ApiErrorCodes({
@@ -113,8 +118,9 @@ public class KakaoController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/signup")
-    public ApiResponse<?> signup(
+    public ApiResponse<Tokens> signup(
             @Valid @RequestBody Signup request, @CookieValue(name = "kakao_browser", required = false) String browser) {
-        return ApiResponse.success(kakao.signup(request.signupToken(), browser, request.nickname()));
+        Tokens tokens = kakao.signup(request.signupToken(), browser, request.nickname());
+        return ApiResponse.success(tokens);
     }
 }

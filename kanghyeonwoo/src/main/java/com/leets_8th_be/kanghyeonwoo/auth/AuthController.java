@@ -1,5 +1,6 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
+import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService.Tokens;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
@@ -7,7 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,18 +50,20 @@ public class AuthController {
 
     public record Refresh(@NotBlank String refreshToken) {}
 
+    public record SignupResponse(long userId) {}
+
     @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.DUPLICATE_RESOURCE})
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody Signup request) {
-        return ResponseEntity.status(201)
-                .body(ApiResponse.success(
-                        ApiResponseCode.RESOURCE_CREATED,
-                        "회원가입이 완료되었습니다.",
-                        Map.of("userId", auth.signup(request.email(), request.password(), request.nickname()))));
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody Signup request) {
+        long userId = auth.signup(request.email(), request.password(), request.nickname());
+        SignupResponse response = new SignupResponse(userId);
+        ApiResponse<SignupResponse> body =
+                ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "회원가입이 완료되었습니다.", response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})
@@ -69,8 +72,9 @@ public class AuthController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/login")
-    public ApiResponse<?> login(@Valid @RequestBody Login request) {
-        return ApiResponse.success(auth.login(request.email(), request.password()));
+    public ApiResponse<Tokens> login(@Valid @RequestBody Login request) {
+        Tokens tokens = auth.login(request.email(), request.password());
+        return ApiResponse.success(tokens);
     }
 
     @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})
@@ -79,8 +83,9 @@ public class AuthController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/reissue")
-    public ApiResponse<?> reissue(@Valid @RequestBody Refresh request) {
-        return ApiResponse.success(auth.reissue(request.refreshToken()));
+    public ApiResponse<Tokens> reissue(@Valid @RequestBody Refresh request) {
+        Tokens tokens = auth.reissue(request.refreshToken());
+        return ApiResponse.success(tokens);
     }
 
     @ApiErrorCodes({ApiResponseCode.INVALID_INPUT_VALUE, ApiResponseCode.UNAUTHORIZED})
@@ -89,7 +94,7 @@ public class AuthController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/logout")
-    public ApiResponse<?> logout(@Valid @RequestBody Refresh request) {
+    public ApiResponse<Void> logout(@Valid @RequestBody Refresh request) {
         auth.logout(request.refreshToken());
         return ApiResponse.success(null);
     }

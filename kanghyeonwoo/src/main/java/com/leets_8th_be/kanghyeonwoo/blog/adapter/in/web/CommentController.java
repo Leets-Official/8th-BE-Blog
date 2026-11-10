@@ -30,6 +30,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Comment", description = "댓글 목록·본문 검색")
 @RequestMapping(ApiPaths.API_V2)
 public class CommentController {
+    private final GetCommentsUseCase getComments;
     private final CurrentUser currentUser;
     private final CreateCommentUseCase createComment;
     private final ManageOwnCommentUseCase ownComment;
@@ -65,13 +67,16 @@ public class CommentController {
             description = "성공",
             useReturnTypeSchema = true)
     @PostMapping("/posts/{postId}/comments")
-    public ResponseEntity<?> create(@PathVariable Long postId, @Valid @RequestBody CommentWrite request) {
+    public ResponseEntity<ApiResponse<CommentResponse>> create(
+            @PathVariable Long postId, @Valid @RequestBody CommentWrite request) {
         CommentId parentId = request.parentId() == null ? null : new CommentId(request.parentId());
         CreateCommentCommand command =
                 new CreateCommentCommand(new PostId(postId), currentUser.requireId(), parentId, request.content());
         CommentView result = createComment.create(command);
-        return ResponseEntity.status(201)
-                .body(ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "댓글이 등록되었습니다.", toResponse(result)));
+        CommentResponse response = toResponse(result);
+        ApiResponse<CommentResponse> body =
+                ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "댓글이 등록되었습니다.", response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @ApiErrorCodes({
@@ -86,9 +91,9 @@ public class CommentController {
             description = "성공",
             useReturnTypeSchema = true)
     @PatchMapping("/comments/{commentId}")
-    public ApiResponse<?> update(@PathVariable Long commentId, @Valid @RequestBody CommentWrite request) {
-        return ApiResponse.success(
-                toResponse(ownComment.update(new CommentId(commentId), currentUser.requireId(), request.content())));
+    public ApiResponse<CommentResponse> update(@PathVariable Long commentId, @Valid @RequestBody CommentWrite request) {
+        CommentView result = ownComment.update(new CommentId(commentId), currentUser.requireId(), request.content());
+        return ApiResponse.success(toResponse(result));
     }
 
     @ApiErrorCodes({
@@ -103,11 +108,10 @@ public class CommentController {
             description = "성공",
             useReturnTypeSchema = true)
     @DeleteMapping("/comments/{commentId}")
-    public ApiResponse<?> delete(@PathVariable Long commentId) {
-        return ApiResponse.success(toResponse(ownComment.deleteOwn(new CommentId(commentId), currentUser.requireId())));
+    public ApiResponse<CommentResponse> delete(@PathVariable Long commentId) {
+        CommentView result = ownComment.deleteOwn(new CommentId(commentId), currentUser.requireId());
+        return ApiResponse.success(toResponse(result));
     }
-
-    private final GetCommentsUseCase getComments;
 
     @GetMapping("/posts/{postId}/comments")
     @Operation(summary = "댓글 목록·본문 검색", description = "대댓글은 parentId로 연결합니다. 숨김·삭제 댓글은 목록에서 안내 문구로 표시하고 검색에서는 제외합니다.")
