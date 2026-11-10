@@ -4,7 +4,7 @@ import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.ACCESS_DE
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.leets_8th_be.kanghyeonwoo.user.application.port.in.AccountDirectory;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.AuthenticateAccessTokenUseCase;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -36,13 +36,13 @@ public class SecurityConfiguration {
 
     @Bean
     @ConditionalOnWebApplication(type = Type.SERVLET)
-    SecurityFilterChain security(HttpSecurity http, JwtTokens jwt, AccountDirectory accounts, ObjectMapper json)
+    SecurityFilterChain security(HttpSecurity http, AuthenticateAccessTokenUseCase authentication, ObjectMapper json)
             throws Exception {
         AuthenticationEntryPoint entryPoint =
                 (request, response, exception) -> JwtAuthenticationFilter.write(response, 401, UNAUTHORIZED, json);
         AccessDeniedHandler accessDeniedHandler =
                 (request, response, exception) -> JwtAuthenticationFilter.write(response, 403, ACCESS_DENIED, json);
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwt, accounts, json);
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(authentication, json);
 
         http.csrf(AbstractHttpConfigurer::disable);
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

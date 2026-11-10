@@ -1,6 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
-import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService.Tokens;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.Tokens;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.LoginUseCase;
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.SignupUseCase;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.model.EmailNormalization;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService auth;
     private final SignupUseCase signup;
+    private final LoginUseCase login;
 
-    public AuthController(AuthService auth, SignupUseCase signup) {
+    public AuthController(AuthService auth, SignupUseCase signup, LoginUseCase login) {
         this.signup = signup;
+        this.login = login;
         this.auth = auth;
     }
 
@@ -77,7 +80,7 @@ public class AuthController {
             useReturnTypeSchema = true)
     @PostMapping("/login")
     public ApiResponse<Tokens> login(@Valid @RequestBody Login request) {
-        Tokens tokens = auth.login(request.email(), request.password());
+        Tokens tokens = login.login(request.email(), request.password());
         return ApiResponse.success(tokens);
     }
 
@@ -88,7 +91,8 @@ public class AuthController {
             useReturnTypeSchema = true)
     @PostMapping("/reissue")
     public ApiResponse<Tokens> reissue(@Valid @RequestBody Refresh request) {
-        Tokens tokens = auth.reissue(request.refreshToken());
+        var legacy = auth.reissue(request.refreshToken());
+        Tokens tokens = new Tokens(legacy.accessToken(), legacy.refreshToken(), legacy.expiresIn());
         return ApiResponse.success(tokens);
     }
 
