@@ -1,9 +1,13 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.out.kakao;
 
-import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.OAUTH_UNAVAILABLE;
-import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.UNAUTHORIZED;
+import static com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationError.INVALID_CREDENTIALS;
+import static com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationError.PROVIDER_UNAVAILABLE;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.KakaoIdentity;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.KakaoIdentityProvider;
+import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
+import com.leets_8th_be.kanghyeonwoo.auth.domain.model.EmailNormalization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -13,14 +17,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-public class KakaoClient {
+public class KakaoClient implements KakaoIdentityProvider {
     private final String clientId;
     private final String secret;
     private final String callback;
-    private final String frontend;
     private final RestClient http;
 
     @Autowired
@@ -28,16 +30,14 @@ public class KakaoClient {
             @Value("${auth.kakao.client-id:}") String id,
             @Value("${auth.kakao.client-secret:}") String secret,
             @Value("${auth.kakao.callback:}") String callback,
-            @Value("${auth.kakao.frontend:}") String frontend,
             RestClient.Builder builder) {
-        this(id, secret, callback, frontend, configured(builder));
+        this(id, secret, callback, configured(builder));
     }
 
-    KakaoClient(String id, String secret, String callback, String frontend, RestClient http) {
+    public KakaoClient(String id, String secret, String callback, RestClient http) {
         this.clientId = id;
         this.secret = secret;
         this.callback = callback;
-        this.frontend = frontend;
         this.http = http;
     }
 
@@ -48,33 +48,10 @@ public class KakaoClient {
         return builder.requestFactory(factory).build();
     }
 
-    public String authorize(String state) {
-        if (clientId.isBlank() || callback.isBlank() || frontend.isBlank()) {
-            throw new AuthFailure(OAUTH_UNAVAILABLE);
-        }
-        return UriComponentsBuilder.fromUriString("https://kauth.kakao.com/oauth/authorize")
-                .queryParam("response_type", "code")
-                .queryParam("client_id", clientId)
-                .queryParam("redirect_uri", callback)
-                .queryParam("state", state)
-                .build()
-                .encode()
-                .toUriString();
-    }
-
-    public String frontend(String code) {
-        return UriComponentsBuilder.fromUriString(frontend)
-                .queryParam("code", code)
-                .build()
-                .encode()
-                .toUriString();
-    }
-
-    public record Identity(String id, String email) {}
-
-    public Identity identity(String code) {
+    @Override
+    public KakaoIdentity identity(String code) {
         if (clientId.isBlank() || callback.isBlank()) {
-            throw new AuthFailure(OAUTH_UNAVAILABLE);
+            throw new AuthenticationFailure(PROVIDER_UNAVAILABLE);
         }
         var form = new LinkedMultiValueMap<String, String>();
         form.add("grant_type", "authorization_code");
@@ -92,7 +69,7 @@ public class KakaoClient {
                     .retrieve()
                     .body(JsonNode.class);
             if (token == null || !token.path("access_token").isTextual()) {
-                throw new AuthFailure(UNAUTHORIZED);
+                throw new AuthenticationFailure(INVALID_CREDENTIALS);
             }
             var user = http.get()
                     .uri("https://kapi.kakao.com/v2/user/me")
@@ -102,20 +79,21 @@ public class KakaoClient {
             if (user == null
                     || !user.path("id").canConvertToLong()
                     || user.path("id").asLong() <= 0) {
-                throw new AuthFailure(UNAUTHORIZED);
+                throw new AuthenticationFailure(INVALID_CREDENTIALS);
             }
             var account = user.path("kakao_account");
             String email = null;
             if (account.path("is_email_valid").asBoolean()
                     && account.path("is_email_verified").asBoolean()
                     && account.path("email").isTextual()) {
-                email = AuthService.email(account.path("email").asText());
+                email = EmailNormalization.normalize(account.path("email").asText());
             }
-            return new Identity(user.get("id").asText(), email);
+            return new KakaoIdentity(user.get("id").asText(), email);
         } catch (RestClientResponseException e) {
-            throw new AuthFailure(e.getStatusCode().is4xxClientError() ? UNAUTHORIZED : OAUTH_UNAVAILABLE);
+            throw new AuthenticationFailure(
+                    e.getStatusCode().is4xxClientError() ? INVALID_CREDENTIALS : PROVIDER_UNAVAILABLE);
         } catch (ResourceAccessException e) {
-            throw new AuthFailure(OAUTH_UNAVAILABLE);
+            throw new AuthenticationFailure(PROVIDER_UNAVAILABLE);
         }
     }
 }

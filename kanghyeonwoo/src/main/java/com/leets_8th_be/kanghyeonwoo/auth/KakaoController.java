@@ -1,7 +1,12 @@
 package com.leets_8th_be.kanghyeonwoo.auth;
 
-import com.leets_8th_be.kanghyeonwoo.auth.application.AuthenticationService.Tokens;
-import com.leets_8th_be.kanghyeonwoo.auth.application.KakaoAuthenticationService.Exchange;
+import com.leets_8th_be.kanghyeonwoo.auth.adapter.in.web.KakaoRedirects;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.Exchange;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.Tokens;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.CompleteKakaoLoginUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.ExchangeKakaoCodeUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.SignupWithKakaoUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.StartKakaoLoginUseCase;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
@@ -9,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.net.URI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -25,10 +29,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2/auth/kakao")
 public class KakaoController {
-    private final KakaoAuthService kakao;
+    private final StartKakaoLoginUseCase startLogin;
+    private final CompleteKakaoLoginUseCase completeLogin;
+    private final ExchangeKakaoCodeUseCase exchangeCode;
+    private final SignupWithKakaoUseCase signup;
+    private final KakaoRedirects redirects;
 
-    public KakaoController(KakaoAuthService kakao) {
-        this.kakao = kakao;
+    public KakaoController(
+            StartKakaoLoginUseCase startLogin,
+            CompleteKakaoLoginUseCase completeLogin,
+            ExchangeKakaoCodeUseCase exchangeCode,
+            SignupWithKakaoUseCase signup,
+            KakaoRedirects redirects) {
+        this.startLogin = startLogin;
+        this.completeLogin = completeLogin;
+        this.exchangeCode = exchangeCode;
+        this.signup = signup;
+        this.redirects = redirects;
     }
 
     @ApiErrorCodes({
@@ -43,7 +60,8 @@ public class KakaoController {
             useReturnTypeSchema = true)
     @GetMapping("/start")
     public ResponseEntity<Void> start(HttpServletRequest req) {
-        var start = kakao.start();
+        redirects.requireConfigured();
+        var start = startLogin.start();
         var cookie = ResponseCookie.from("kakao_browser", start.browser())
                 .httpOnly(true)
                 .secure(req.isSecure())
@@ -53,7 +71,7 @@ public class KakaoController {
                 .build();
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .location(URI.create(start.url()))
+                .location(redirects.authorizationUrl(start.state()))
                 .build();
     }
 
@@ -72,9 +90,9 @@ public class KakaoController {
             @RequestParam String state,
             @RequestParam String code,
             @CookieValue(name = "kakao_browser", required = false) String browser) {
-        String redirectUrl = kakao.callback(state, browser, code);
+        String exchange = completeLogin.complete(state, browser, code);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(redirectUrl))
+                .location(redirects.completionUrl(exchange))
                 .build();
     }
 
@@ -103,7 +121,7 @@ public class KakaoController {
     @PostMapping("/exchange")
     public ApiResponse<Exchange> exchange(
             @Valid @RequestBody Code request, @CookieValue(name = "kakao_browser", required = false) String browser) {
-        Exchange exchange = kakao.exchange(request.code(), browser);
+        Exchange exchange = exchangeCode.exchange(request.code(), browser);
         return ApiResponse.success(exchange);
     }
 
@@ -120,7 +138,7 @@ public class KakaoController {
     @PostMapping("/signup")
     public ApiResponse<Tokens> signup(
             @Valid @RequestBody Signup request, @CookieValue(name = "kakao_browser", required = false) String browser) {
-        Tokens tokens = kakao.signup(request.signupToken(), browser, request.nickname());
+        Tokens tokens = signup.signup(request.signupToken(), browser, request.nickname());
         return ApiResponse.success(tokens);
     }
 }

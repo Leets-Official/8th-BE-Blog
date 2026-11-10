@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.KakaoIdentity;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.KakaoIdentityProvider;
 import jakarta.servlet.http.Cookie;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
+@SpringBootTest(
+        properties = {
+            "auth.kakao.client-id=test-app",
+            "auth.kakao.callback=http://localhost/api/v2/auth/kakao/callback",
+            "auth.kakao.frontend=https://frontend.example/callback"
+        })
 @AutoConfigureMockMvc
 class KakaoApiTest {
     @Autowired
@@ -25,15 +32,11 @@ class KakaoApiTest {
     ObjectMapper json;
 
     @MockitoBean
-    KakaoClient client;
+    KakaoIdentityProvider client;
 
     @Test
     void newMemberCompletesSignupAndExchangeCannotBeReplayed() throws Exception {
-        when(client.authorize(anyString()))
-                .thenAnswer(i -> "https://kauth.kakao.com/oauth/authorize?state=" + i.getArgument(0));
-        when(client.identity("valid-code")).thenReturn(new KakaoClient.Identity("12345", "kakao@example.com"));
-        when(client.frontend(anyString()))
-                .thenAnswer(i -> "https://frontend.example/callback?code=" + i.getArgument(0));
+        when(client.identity("valid-code")).thenReturn(new KakaoIdentity("12345", "kakao@example.com"));
         var start = mvc.perform(get("/api/v2/auth/kakao/start"))
                 .andExpect(status().isFound())
                 .andReturn()
@@ -96,16 +99,14 @@ class KakaoApiTest {
 
     @Test
     void duplicateEmailWarnsToUseExistingLoginAndMissingEmailCannotSignup() throws Exception {
-        when(client.authorize(anyString()))
-                .thenAnswer(i -> "https://kauth.kakao.com/oauth/authorize?state=" + i.getArgument(0));
         mvc.perform(
                         post("/api/v2/auth/signup")
                                 .contentType("application/json")
                                 .content(
                                         "{\"email\":\"existing@example.com\",\"password\":\"password123\",\"nickname\":\"existing-user\"}"))
                 .andExpect(status().isCreated());
-        when(client.identity("duplicate")).thenReturn(new KakaoClient.Identity("duplicate-id", "existing@example.com"));
-        when(client.identity("missing")).thenReturn(new KakaoClient.Identity("missing-id", null));
+        when(client.identity("duplicate")).thenReturn(new KakaoIdentity("duplicate-id", "existing@example.com"));
+        when(client.identity("missing")).thenReturn(new KakaoIdentity("missing-id", null));
         for (String code : List.of("duplicate", "missing")) {
             var start = mvc.perform(get("/api/v2/auth/kakao/start"))
                     .andExpect(status().isFound())

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
+import com.leets_8th_be.kanghyeonwoo.auth.adapter.out.kakao.KakaoClient;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.KakaoIdentity;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -16,12 +18,7 @@ class KakaoClientTest {
     void exchangesAuthorizationCodeAndFetchesVerifiedIdentity() {
         var builder = RestClient.builder();
         var server = MockRestServiceServer.bindTo(builder).build();
-        var client = new KakaoClient(
-                "app-id",
-                "app-secret",
-                "https://api.example/callback",
-                "https://web.example/callback",
-                builder.build());
+        var client = new KakaoClient("app-id", "app-secret", "https://api.example/callback", builder.build());
         server.expect(requestTo("https://kauth.kakao.com/oauth/token"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().string(Matchers.containsString("grant_type=authorization_code")))
@@ -32,8 +29,7 @@ class KakaoClientTest {
                 .andRespond(withSuccess(
                         "{\"id\":12345,\"kakao_account\":{\"email\":\"USER@EXAMPLE.COM\",\"is_email_valid\":true,\"is_email_verified\":true}}",
                         MediaType.APPLICATION_JSON));
-        assertThat(client.identity("authorization-code"))
-                .isEqualTo(new KakaoClient.Identity("12345", "user@example.com"));
+        assertThat(client.identity("authorization-code")).isEqualTo(new KakaoIdentity("12345", "user@example.com"));
         server.verify();
     }
 }
