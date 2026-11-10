@@ -1,5 +1,8 @@
 package com.leets_8th_be.kanghyeonwoo.auth.domain.model;
 
+import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationError;
+import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
+import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.RefreshTokenReused;
 import java.time.Instant;
 
 public final class AuthenticationSession {
@@ -48,5 +51,25 @@ public final class AuthenticationSession {
 
     public void revoke() {
         revoked = true;
+    }
+
+    public void requireOwner(long ownerId) {
+        if (userId != ownerId) {
+            throw new AuthenticationFailure(AuthenticationError.INVALID_CREDENTIALS);
+        }
+    }
+
+    public void requireUsable(long ownerId, Instant now) {
+        requireOwner(ownerId);
+        if (revoked || expiresAt.isBefore(now)) {
+            throw new AuthenticationFailure(AuthenticationError.INVALID_CREDENTIALS);
+        }
+    }
+
+    public void requireRefreshHash(String hash) {
+        if (!TokenFingerprint.matches(refreshHash, hash)) {
+            revoke();
+            throw new RefreshTokenReused();
+        }
     }
 }

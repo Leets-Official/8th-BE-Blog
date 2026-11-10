@@ -4,8 +4,10 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] 기존 API 계약 및 토큰 정책 보존
-- [ ] 관련 단위·통합 검사 통과
-- [ ] 변경 검증 후 커밋
+- [x] 기존 API 계약 및 토큰 정책 보존
+- [x] 관련 단위·통합 검사 통과
+- [x] 변경 검증 후 커밋
+
+검증: SessionUseCaseTest, AuthApiTest, AuthBoundaryTest 통과. 재사용 예외만 rollback 대상에서 제외해 폐기를 커밋한다.

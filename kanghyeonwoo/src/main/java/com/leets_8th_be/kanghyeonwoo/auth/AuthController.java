@@ -2,6 +2,8 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 
 import com.leets_8th_be.kanghyeonwoo.auth.application.model.Tokens;
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.LoginUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.LogoutUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.ReissueTokenUseCase;
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.SignupUseCase;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.model.EmailNormalization;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiErrorCodes;
@@ -21,14 +23,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2/auth")
 public class AuthController {
-    private final AuthService auth;
+    private final ReissueTokenUseCase reissue;
+    private final LogoutUseCase logout;
     private final SignupUseCase signup;
     private final LoginUseCase login;
 
-    public AuthController(AuthService auth, SignupUseCase signup, LoginUseCase login) {
+    public AuthController(SignupUseCase signup, LoginUseCase login, ReissueTokenUseCase reissue, LogoutUseCase logout) {
         this.signup = signup;
         this.login = login;
-        this.auth = auth;
+        this.reissue = reissue;
+        this.logout = logout;
     }
 
     public record Signup(
@@ -91,8 +95,7 @@ public class AuthController {
             useReturnTypeSchema = true)
     @PostMapping("/reissue")
     public ApiResponse<Tokens> reissue(@Valid @RequestBody Refresh request) {
-        var legacy = auth.reissue(request.refreshToken());
-        Tokens tokens = new Tokens(legacy.accessToken(), legacy.refreshToken(), legacy.expiresIn());
+        Tokens tokens = reissue.reissue(request.refreshToken());
         return ApiResponse.success(tokens);
     }
 
@@ -103,7 +106,7 @@ public class AuthController {
             useReturnTypeSchema = true)
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@Valid @RequestBody Refresh request) {
-        auth.logout(request.refreshToken());
+        logout.logout(request.refreshToken());
         return ApiResponse.success(null);
     }
 }
