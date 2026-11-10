@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.out.persistence;
 
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.OAuthGrantStore;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.model.OAuthGrant;
@@ -8,9 +8,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class JpaOAuthGrantStore implements OAuthGrantStore {
-    private final OAuthTickets repository;
+    private final OAuthGrantJpaRepository repository;
 
-    public JpaOAuthGrantStore(OAuthTickets repository) {
+    public JpaOAuthGrantStore(OAuthGrantJpaRepository repository) {
         this.repository = repository;
     }
 
@@ -23,8 +23,8 @@ public class JpaOAuthGrantStore implements OAuthGrantStore {
     public void save(OAuthGrant grant) {
         var row = repository
                 .findById(grant.hash())
-                .orElseGet(() ->
-                        new OAuthTicket(grant.hash(), grant.purpose().value(), grant.browserHash(), grant.expiresAt()));
+                .orElseGet(() -> new OAuthGrantJpaEntity(
+                        grant.hash(), grant.purpose().value(), grant.browserHash(), grant.expiresAt()));
         row.kakaoId = grant.kakaoId();
         row.email = grant.email();
         row.userId = grant.userId();
@@ -37,7 +37,7 @@ public class JpaOAuthGrantStore implements OAuthGrantStore {
         repository.flush();
     }
 
-    private static OAuthGrant toGrant(OAuthTicket row) {
+    private static OAuthGrant toGrant(OAuthGrantJpaEntity row) {
         return new OAuthGrant(
                 row.hash,
                 OAuthPurpose.fromValue(row.kind),

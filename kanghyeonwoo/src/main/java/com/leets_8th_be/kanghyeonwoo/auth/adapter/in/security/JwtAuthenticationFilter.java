@@ -1,10 +1,8 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.in.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.AuthenticateAccessTokenUseCase;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationError;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
-import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,11 +17,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticateAccessTokenUseCase authentication;
-    private final ObjectMapper json;
+    private final SecurityErrorResponseWriter errors;
 
-    public JwtAuthenticationFilter(AuthenticateAccessTokenUseCase authentication, ObjectMapper json) {
+    public JwtAuthenticationFilter(AuthenticateAccessTokenUseCase authentication, SecurityErrorResponseWriter errors) {
         this.authentication = authentication;
-        this.json = json;
+        this.errors = errors;
     }
 
     @Override
@@ -44,17 +42,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.setContext(context);
             } catch (AuthenticationFailure failure) {
                 SecurityContextHolder.clearContext();
-                write(response, 401, ApiResponseCode.UNAUTHORIZED, json);
+                errors.write(response, ApiResponseCode.UNAUTHORIZED);
                 return;
             }
         }
         chain.doFilter(request, response);
-    }
-
-    static void write(HttpServletResponse response, int status, ApiResponseCode code, ObjectMapper json)
-            throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-        json.writeValue(response.getOutputStream(), ApiResponse.fail(code, code.getDefaultMessage()));
     }
 }

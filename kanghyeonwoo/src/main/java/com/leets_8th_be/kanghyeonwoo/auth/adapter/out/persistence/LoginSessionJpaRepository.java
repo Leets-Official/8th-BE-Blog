@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.out.persistence;
 
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-interface OAuthTickets extends JpaRepository<OAuthTicket, String> {
+interface LoginSessionJpaRepository extends JpaRepository<LoginSessionJpaEntity, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select t from OAuthTicket t where t.hash=:hash")
-    Optional<OAuthTicket> lock(@Param("hash") String hash);
+    @Query("select s from LoginSession s where s.id=:id")
+    Optional<LoginSessionJpaEntity> lock(@Param("id") String id);
 }

@@ -4,8 +4,10 @@
 
 **Blocked by:** 02, 03, 04, 05
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] 기존 API 계약 및 토큰 정책 보존
 - [ ] 관련 단위·통합 검사 통과
 - [ ] 변경 검증 후 커밋
+
+진행: 기존 구조 제거와 경계·API·Swagger·PMD 검사 통과. 최종 코드 리뷰와 전체 check 대기.

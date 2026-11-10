@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.in.web;
 
 import com.leets_8th_be.kanghyeonwoo.auth.application.model.Tokens;
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.LoginUseCase;

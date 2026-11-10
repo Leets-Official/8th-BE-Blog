@@ -327,27 +327,10 @@ class HexagonalBoundaryTest {
     void authenticationCoreDoesNotDependOnFrameworksOrConcreteAdapters() {
         classes()
                 .that()
-                .resideInAnyPackage(ROOT + ".auth.application..")
+                .resideInAnyPackage(ROOT + ".auth.domain..", ROOT + ".auth.application..")
                 .should()
                 .onlyDependOnClassesThat()
-                .resideOutsideOfPackages(
-                        "org.springframework..",
-                        "jakarta.persistence..",
-                        "jakarta.servlet..",
-                        "io.jsonwebtoken..",
-                        ROOT + ".user..",
-                        ROOT + ".blog..",
-                        ROOT + ".report..",
-                        ROOT + ".search..")
-                .check(applicationClasses());
-        classes()
-                .that()
-                .resideInAnyPackage(ROOT + ".auth.application..")
-                .should()
-                .onlyDependOnClassesThat()
-                .haveNameNotMatching(
-                        ROOT.replace(".", "\\.")
-                                + "\\.auth\\.(AuthService|KakaoAuthService|JwtTokens|LoginSessions|OAuthTickets|KakaoClient|AuthenticationAdapters|KakaoAdapters)")
+                .resideInAnyPackage("java..", ROOT + ".auth.domain..", ROOT + ".auth.application..")
                 .check(applicationClasses());
     }
 

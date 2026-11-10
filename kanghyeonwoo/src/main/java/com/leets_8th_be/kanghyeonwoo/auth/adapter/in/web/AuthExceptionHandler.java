@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.in.web;
 
 import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponse;
@@ -10,7 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "com.leets_8th_be.kanghyeonwoo.auth")
+@RestControllerAdvice(basePackageClasses = {AuthController.class, KakaoController.class})
 @Order(-100)
 public class AuthExceptionHandler {
     @ExceptionHandler(AuthenticationFailure.class)
@@ -22,11 +22,6 @@ public class AuthExceptionHandler {
             case PROVIDER_UNAVAILABLE -> ApiResponseCode.OAUTH_UNAVAILABLE;
         };
         return ResponseEntity.status(code.getHttpStatus()).body(ApiResponse.fail(code, failure.getMessage()));
-    }
-
-    @ExceptionHandler(AuthFailure.class)
-    ResponseEntity<ApiResponse<Void>> failure(AuthFailure e) {
-        return ResponseEntity.status(e.code.getHttpStatus()).body(ApiResponse.fail(e.code, e.getMessage()));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

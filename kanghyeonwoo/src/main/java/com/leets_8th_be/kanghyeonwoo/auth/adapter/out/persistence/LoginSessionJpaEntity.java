@@ -1,4 +1,4 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.out.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -6,9 +6,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
-@Entity
+@Entity(name = "LoginSession")
 @Table(name = "auth_login_sessions")
-class LoginSession {
+class LoginSessionJpaEntity {
     @Id
     String id;
 
@@ -20,9 +20,9 @@ class LoginSession {
     Instant expiresAt;
     boolean revoked;
 
-    protected LoginSession() {}
+    protected LoginSessionJpaEntity() {}
 
-    LoginSession(String id, long userId) {
+    LoginSessionJpaEntity(String id, long userId) {
         this.id = id;
         this.userId = userId;
     }

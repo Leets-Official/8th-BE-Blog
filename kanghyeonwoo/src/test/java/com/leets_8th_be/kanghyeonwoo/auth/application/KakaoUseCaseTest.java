@@ -1,17 +1,30 @@
 package com.leets_8th_be.kanghyeonwoo.auth.application;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.leets_8th_be.kanghyeonwoo.auth.application.model.*;
-import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.*;
-import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.*;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.AuthenticationAccount;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.Exchange;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.KakaoIdentity;
+import com.leets_8th_be.kanghyeonwoo.auth.application.model.Tokens;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.CompleteKakaoLoginUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.ExchangeKakaoCodeUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.IssueSessionUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.SignupWithKakaoUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.in.StartKakaoLoginUseCase;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.AccountPort;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.KakaoIdentityProvider;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.OAuthGrantStore;
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.OpaqueTokenGenerator;
 import com.leets_8th_be.kanghyeonwoo.auth.application.usecase.KakaoLoginService;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.model.OAuthGrant;
-import java.time.*;
-import java.util.*;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class KakaoUseCaseTest {

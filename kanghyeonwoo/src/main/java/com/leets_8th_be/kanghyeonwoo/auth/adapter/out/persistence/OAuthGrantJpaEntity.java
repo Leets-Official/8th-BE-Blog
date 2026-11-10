@@ -1,13 +1,13 @@
-package com.leets_8th_be.kanghyeonwoo.auth;
+package com.leets_8th_be.kanghyeonwoo.auth.adapter.out.persistence;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
-@Entity
+@Entity(name = "OAuthTicket")
 @Table(name = "auth_oauth_tickets")
-class OAuthTicket {
+class OAuthGrantJpaEntity {
     @Id
     String hash;
 
@@ -18,9 +18,9 @@ class OAuthTicket {
     Long userId;
     Instant expiresAt;
 
-    protected OAuthTicket() {}
+    protected OAuthGrantJpaEntity() {}
 
-    OAuthTicket(String hash, String kind, String browserHash, Instant expiresAt) {
+    OAuthGrantJpaEntity(String hash, String kind, String browserHash, Instant expiresAt) {
         this.hash = hash;
         this.kind = kind;
         this.browserHash = browserHash;

@@ -3,6 +3,8 @@ package com.leets_8th_be.kanghyeonwoo.auth;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.TokenProvider;
+import com.leets_8th_be.kanghyeonwoo.auth.domain.model.TokenType;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +71,7 @@ class AuthApiTest extends AuthApiSupport {
     }
 
     @Autowired
-    JwtTokens jwt;
+    TokenProvider jwt;
 
     @Test
     void badPasswordUnknownEmailExpiredAndTamperedTokensAreRejected() throws Exception {
@@ -81,7 +83,7 @@ class AuthApiTest extends AuthApiSupport {
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
         }
-        String expired = jwt.issue(1, "access", "session", Duration.ofSeconds(-10));
+        String expired = jwt.issue(1, TokenType.ACCESS, "session", Duration.ofSeconds(-10));
         String token = tokens.get("accessToken").asText();
         for (String invalid : List.of(expired, token.substring(0, token.lastIndexOf('.') + 1) + "invalid")) {
             mvc.perform(get("/api/v2/health").header("Authorization", "Bearer " + invalid))

@@ -12,6 +12,7 @@ import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.AccountPort;
 import com.leets_8th_be.kanghyeonwoo.auth.application.port.out.PasswordHasher;
 import com.leets_8th_be.kanghyeonwoo.auth.application.usecase.LoginService;
 import com.leets_8th_be.kanghyeonwoo.auth.domain.exception.AuthenticationFailure;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,7 @@ class LoginUseCaseTest {
         when(accounts.byEmail("legacy@example.com"))
                 .thenReturn(Optional.of(new AuthenticationAccount(2, null, null, "USER")));
         LoginUseCase login = new LoginService(accounts, passwords, sessions);
-        for (String email : java.util.List.of("unknown@example.com", "known@example.com", "legacy@example.com")) {
+        for (String email : List.of("unknown@example.com", "known@example.com", "legacy@example.com")) {
             assertThatThrownBy(() -> login.login(email, "wrong-password"))
                     .isInstanceOf(AuthenticationFailure.class)
                     .hasMessage("인증에 실패했습니다.");
