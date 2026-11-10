@@ -150,13 +150,14 @@ public class ReportController {
             @Parameter(description = "사유·제목 스냅샷·본문 스냅샷 검색어", example = "욕설")
                     @RequestParam(name = "keyword", required = false)
                     String keyword) {
-        ReportPage result = getReportsUseCase.getReports(new ReportSearchQuery(
+        ReportSearchQuery query = new ReportSearchQuery(
                 page,
                 size,
                 status == null ? null : ReportState.valueOf(status.name()),
                 targetType == null ? null : ReportTarget.valueOf(targetType.name()),
                 targetId,
-                keyword));
+                keyword);
+        ReportPage result = getReportsUseCase.getReports(query);
         PageResponse<ReportResponse> response = new PageResponse<>(
                 result.items().stream().map(ReportController::toReportResponse).toList(),
                 result.page(),
@@ -184,11 +185,12 @@ public class ReportController {
     public ResponseEntity<ApiResponse<ReportResolveResponse>> resolve(
             @Parameter(description = "처리할 신고 ID", example = "1") @PathVariable("reportId") Long reportId,
             @Valid @RequestBody ReportResolveRequest request) {
-        ReportResolutionView result = resolveReportUseCase.resolve(new ResolveReportCommand(
+        ResolveReportCommand command = new ResolveReportCommand(
                 new ReportId(reportId),
                 currentUser.requireId(),
                 ReportAction.valueOf(request.action().name()),
-                request.resolutionReason()));
+                request.resolutionReason());
+        ReportResolutionView result = resolveReportUseCase.resolve(command);
         ReportResolveResponse response = toResolveResponse(result);
         return ResponseEntity.ok(ApiResponse.success("신고 처리가 완료되었습니다.", response));
     }

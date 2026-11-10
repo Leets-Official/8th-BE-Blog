@@ -78,6 +78,6 @@ set +a
 ./gradlew check           # 포맷 검사 + PMD + 전체 테스트
 ```
 
-Spotless 8.11.0과 Palantir Java Format 2.102.0을 사용하며, PMD 7.10.0 규칙은 `config/pmd/ruleset.xml`에 있다. PMD는 잘못된 null 검사, 리소스 누수, equals/hashCode 불일치, finally 반환, 잘못된 반복문·switch, 불필요한 import를 검사한다. 정적 분석 통과는 런타임 오류가 없다는 보장은 아니다.
+Spotless 8.11.0과 Palantir Java Format 2.102.0을 사용하며, PMD 7.10.0 규칙은 `config/pmd/ruleset.xml`에 있다. PMD는 잘못된 null 검사, 리소스 누수, equals/hashCode 불일치, finally 반환, 잘못된 반복문·switch, 불필요한 import·지역변수 및 제어문 중괄호를 검사한다. 정적 분석 통과는 런타임 오류가 없다는 보장은 아니다.
 
 기존 `javaFormat`과 `javaFormatCheck` 명령도 각각 `spotlessApply`, `spotlessCheck`의 별칭으로 유지한다. IDE에서도 Spotless와 같은 포맷을 사용해 저장 시 서로 다른 규칙으로 재정렬되지 않게 한다.

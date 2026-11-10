@@ -4,6 +4,7 @@ import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.INVALID_I
 import static com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode.TYPE_MISMATCH;
 
 import com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto.PostSummaryResponse;
+import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPost;
 import com.leets_8th_be.kanghyeonwoo.search.application.model.SearchPostPage;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.RecordSearchUseCase;
 import com.leets_8th_be.kanghyeonwoo.search.application.port.in.SearchPostsUseCase;
@@ -54,13 +55,16 @@ public class SearchPostController {
         }
         PageResponse<PostSummaryResponse> response = new PageResponse<>(
                 result.items().stream()
-                        .map(post ->
-                                new PostSummaryResponse(post.id(), post.title(), post.authorId(), post.createdAt()))
+                        .map(SearchPostController::toSummaryResponse)
                         .toList(),
                 result.page(),
                 result.size(),
                 result.totalElements(),
                 result.totalPages());
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "게시글 목록 조회가 완료되었습니다.", response));
+    }
+
+    private static PostSummaryResponse toSummaryResponse(SearchPost post) {
+        return new PostSummaryResponse(post.id(), post.title(), post.authorId(), post.createdAt());
     }
 }

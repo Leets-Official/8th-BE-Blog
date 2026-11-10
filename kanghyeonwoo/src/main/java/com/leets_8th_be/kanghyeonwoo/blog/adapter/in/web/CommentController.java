@@ -132,8 +132,10 @@ public class CommentController {
                     int size,
             @Parameter(description = "댓글 본문 검색어", example = "질문") @RequestParam(name = "keyword", required = false)
                     String keyword) {
-        CommentPage result = getComments.getComments(new CommentSearchQuery(new PostId(postId), page, size, keyword));
-        return ResponseEntity.ok(ApiResponse.success("댓글 조회가 완료되었습니다.", toResponse(result)));
+        CommentSearchQuery query = new CommentSearchQuery(new PostId(postId), page, size, keyword);
+        CommentPage result = getComments.getComments(query);
+        PageResponse<CommentResponse> response = toResponse(result);
+        return ResponseEntity.ok(ApiResponse.success("댓글 조회가 완료되었습니다.", response));
     }
 
     private static PageResponse<CommentResponse> toResponse(CommentPage page) {

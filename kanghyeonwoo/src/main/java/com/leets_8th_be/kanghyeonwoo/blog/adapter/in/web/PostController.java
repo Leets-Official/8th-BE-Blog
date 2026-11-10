@@ -61,11 +61,14 @@ public class PostController {
             useReturnTypeSchema = true)
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
-        PostView post = createPost.create(
-                new CreatePostCommand(request.getTitle(), request.getContent(), currentUser.requireId()));
+        CreatePostCommand command =
+                new CreatePostCommand(request.getTitle(), request.getContent(), currentUser.requireId());
+        PostView post = createPost.create(command);
+        PostResponse response = toCreateResponse(post);
+        ApiResponse<PostResponse> body =
+                ApiResponse.success(ApiResponseCode.RESOURCE_CREATED, "게시글이 성공적으로 등록되었습니다.", response);
         return ResponseEntity.status(ApiResponseCode.RESOURCE_CREATED.getHttpStatus())
-                .body(ApiResponse.success(
-                        ApiResponseCode.RESOURCE_CREATED, "게시글이 성공적으로 등록되었습니다.", toCreateResponse(post)));
+                .body(body);
     }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID(postId)로 특정 게시글의 상세 정보를 조회합니다.")
@@ -78,8 +81,8 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostById(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId) {
         PostView post = getPost.get(new PostId(postId));
-        return ResponseEntity.ok(
-                ApiResponse.success(ApiResponseCode.SUCCESS, "게시글 조회가 완료되었습니다.", toDetailResponse(post)));
+        PostDetailResponse response = toDetailResponse(post);
+        return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "게시글 조회가 완료되었습니다.", response));
     }
 
     @Operation(summary = "게시글 수정", description = "게시글 작성자 본인만 제목과 내용을 수정할 수 있습니다.")
@@ -92,8 +95,9 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDetailResponse>> updatePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId,
             @Valid @RequestBody PostUpdateRequest request) {
-        PostView updated = updatePost.update(new UpdatePostCommand(
-                new PostId(postId), currentUser.requireId(), request.getTitle(), request.getContent()));
+        UpdatePostCommand command = new UpdatePostCommand(
+                new PostId(postId), currentUser.requireId(), request.getTitle(), request.getContent());
+        PostView updated = updatePost.update(command);
         PostDetailResponse response = toDetailResponse(updated);
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "게시글이 성공적으로 수정되었습니다.", response));
     }
@@ -107,7 +111,8 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable("postId") Long postId) {
-        PostId deletedId = deletePost.delete(new DeletePostCommand(new PostId(postId), currentUser.requireId()));
+        DeletePostCommand command = new DeletePostCommand(new PostId(postId), currentUser.requireId());
+        PostId deletedId = deletePost.delete(command);
         PostDeleteResponse response = new PostDeleteResponse(deletedId.value());
         return ResponseEntity.ok(ApiResponse.success(ApiResponseCode.SUCCESS, "게시글이 성공적으로 삭제되었습니다.", response));
     }
