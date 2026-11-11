@@ -26,6 +26,14 @@ public class ApiException extends RuntimeException {
         return new ApiException(HttpStatus.CONFLICT, "AUTH_409_1", "이미 가입된 이메일입니다.");
     }
 
+    public static ApiException duplicateNickname() {
+        return new ApiException(HttpStatus.CONFLICT, "AUTH_409_2", "이미 사용 중인 닉네임입니다.");
+    }
+
+    public static ApiException invalidRefreshToken() {
+        return new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_401_3", "유효하지 않거나 만료된 Refresh Token입니다.");
+    }
+
     public static ApiException passwordTooLong() {
         return new ApiException(HttpStatus.BAD_REQUEST, "AUTH_400_1", "비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.");
     }

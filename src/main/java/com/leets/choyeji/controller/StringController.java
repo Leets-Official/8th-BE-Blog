@@ -1,5 +1,7 @@
 package com.leets.choyeji.controller;
 
+import com.leets.choyeji.config.ApiErrorResponses;
+import static com.leets.choyeji.config.SwaggerError.INVALID_REQUEST;
 import com.leets.choyeji.dto.StringRepeatRequest;
 import com.leets.choyeji.dto.StringRepeatResponse;
 import com.leets.choyeji.service.StringService;
@@ -19,6 +21,7 @@ public class StringController {
     private final StringService stringService;
 
     @Operation(summary = "문자열 두 번 반환", description = "입력한 문자열을 string_one과 string_two에 각각 반환합니다.")
+    @ApiErrorResponses({INVALID_REQUEST})
     @PostMapping(value = "/repeat", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public StringRepeatResponse repeat(@RequestBody StringRepeatRequest request) {

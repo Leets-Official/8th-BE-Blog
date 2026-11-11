@@ -3,6 +3,13 @@ package com.leets.choyeji;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.auth.JwtTokenService;
+import com.leets.choyeji.auth.RefreshTokenService;
+import com.leets.choyeji.entity.RefreshToken;
+import com.leets.choyeji.repository.RefreshTokenRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import com.leets.choyeji.exception.ApiException;
 import com.leets.choyeji.repository.CommentRepository;
 import com.leets.choyeji.repository.MemberRepository;
@@ -45,12 +52,117 @@ class LoginApiIntegrationTest {
     @Autowired PostRepository posts;
     @Autowired CommentRepository comments;
     @Autowired JwtMemberResolver resolver;
+    @Autowired RefreshTokenRepository refreshTokens;
 
     @BeforeEach
     void setUp() {
+        refreshTokens.deleteAll();
         comments.deleteAll();
         posts.deleteAll();
         members.deleteAll();
+    }
+
+    @Test
+    void assignmentRoutesIssueTokensAndRefreshRotatesBoth() throws Exception {
+        JsonNode original = loginWithRefreshToken();
+        String raw = original.path("refreshToken").asText();
+        assertThat(raw).isNotBlank();
+        assertThat(original.path("refreshExpiresIn").asLong()).isEqualTo(1209600);
+        assertThat(refreshTokens.findById(RefreshTokenService.hash(raw))).isPresent();
+        assertThat(refreshTokens.findById(raw)).isEmpty();
+        String response = mvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("refreshToken", raw))))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        JsonNode renewed = mapper.readTree(response).path("data");
+        assertThat(renewed.path("refreshToken").asText()).isNotEqualTo(raw);
+        assertThat(renewed.path("accessToken").asText()).isNotEqualTo(original.path("accessToken").asText());
+        assertThat(resolver.resolve("Bearer " + renewed.path("accessToken").asText()))
+                .isEqualTo(members.findFirstByEmailOrderByIdAsc("yeji@example.com").orElseThrow().getId());
+        refresh(raw, 401);
+        refresh(renewed.path("refreshToken").asText(), 200);
+        assertThat(refreshTokens.count()).isEqualTo(1);
+    }
+
+    @Test
+    void expiredUnknownAndAccessTokensCannotRefresh() throws Exception {
+        JsonNode original = loginWithRefreshToken();
+        String raw = original.path("refreshToken").asText();
+        var saved = refreshTokens.findById(RefreshTokenService.hash(raw)).orElseThrow();
+        refreshTokens.saveAndFlush(new RefreshToken(saved.getTokenHash(), saved.getMemberId(), Instant.now().minusSeconds(1)));
+        refresh(raw, 401);
+        refresh("unknown", 401);
+        refresh(original.path("accessToken").asText(), 401);
+    }
+
+    @Test
+    void missingOrInvalidRefreshInputReturns400() throws Exception {
+        for (String body : new String[]{"{}", "{", "{\"refreshToken\":\" \"}",
+                mapper.writeValueAsString(Map.of("refreshToken", "a".repeat(513)))}) {
+            mvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void expiredAccessTokenHeaderDoesNotPreventRefresh() throws Exception {
+        String raw = loginWithRefreshToken().path("refreshToken").asText();
+        mvc.perform(post("/auth/refresh")
+                        .header("Authorization", signedToken(SECRET, Instant.now().minusSeconds(120)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("refreshToken", raw))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void refreshTokenCannotAuthenticateAndDeletedMemberCannotRefresh() throws Exception {
+        JsonNode original = loginWithRefreshToken();
+        String raw = original.path("refreshToken").asText();
+        mvc.perform(post("/posts").header("Authorization", "Bearer " + raw)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"제목\",\"content\":\"내용\"}"))
+                .andExpect(status().isUnauthorized());
+        members.deleteAll();
+        refresh(raw, 401);
+        mvc.perform(post("/posts").header("Authorization", "Bearer " + original.path("accessToken").asText())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"제목\",\"content\":\"내용\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void concurrentRefreshAllowsOnlyOneWinner() throws Exception {
+        String raw = loginWithRefreshToken().path("refreshToken").asText();
+        String body = mapper.writeValueAsString(Map.of("refreshToken", raw));
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            CountDownLatch start = new CountDownLatch(1);
+            java.util.concurrent.Callable<Integer> task = () -> {
+                if (!start.await(10, TimeUnit.SECONDS)) throw new IllegalStateException("시작 시간 초과");
+                return mvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON).content(body))
+                        .andReturn().getResponse().getStatus();
+            };
+            var first = executor.submit(task);
+            var second = executor.submit(task);
+            start.countDown();
+            assertThat(new Integer[]{first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS)})
+                    .containsExactlyInAnyOrder(200, 401);
+            assertThat(refreshTokens.count()).isEqualTo(1);
+        }
+    }
+
+    private JsonNode loginWithRefreshToken() throws Exception {
+        mvc.perform(post("/auth").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("email", "yeji@example.com",
+                                "password", "password123", "nickname", "예지"))))
+                .andExpect(status().isOk());
+        String response = mvc.perform(post("/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(body("yeji@example.com", "password123")))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return mapper.readTree(response).path("data");
+    }
+
+    private void refresh(String token, int status) throws Exception {
+        var result = mvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("refreshToken", token))))
+                .andExpect(status().is(status));
+        if (status == 401) result.andExpect(jsonPath("$.code").value("AUTH_401_3"));
     }
 
     @Test

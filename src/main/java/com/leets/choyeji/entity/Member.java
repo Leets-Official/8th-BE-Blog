@@ -16,7 +16,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "member", uniqueConstraints = @UniqueConstraint(name = "uk_member_email", columnNames = "email"))
+@Table(name = "member", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_member_email", columnNames = "email"),
+        @UniqueConstraint(name = "uk_member_nickname", columnNames = "nickname")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseTimeEntity {

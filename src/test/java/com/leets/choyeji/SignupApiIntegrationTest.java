@@ -61,11 +61,38 @@ class SignupApiIntegrationTest {
     }
 
     @Test
-    void duplicateEmailReturns409AndNicknameCanBeReused() throws Exception {
+    void duplicateEmailAndNicknameReturn409() throws Exception {
         signup("yeji@example.com", "예지", 200);
         signup(" YEJI@EXAMPLE.COM ", "다른닉네임", 409);
-        signup("other@example.com", "예지", 200);
+        mvc.perform(post("/auth/signup").contentType(MediaType.APPLICATION_JSON)
+                        .content(body("other@example.com", "password123", " 예지 ")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("AUTH_409_2"));
+        signup("other@example.com", "다른닉네임", 200);
         assertThat(members.count()).isEqualTo(2);
+    }
+
+    @Test
+    void concurrentDuplicateNicknameCreatesOnlyOneMember() throws Exception {
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            CountDownLatch start = new CountDownLatch(1);
+            var first = executor.submit(() -> {
+                start.await();
+                return mvc.perform(post("/auth").contentType(MediaType.APPLICATION_JSON)
+                        .content(body("first@example.com", "password123", "같은닉네임")))
+                        .andReturn().getResponse().getStatus();
+            });
+            var second = executor.submit(() -> {
+                start.await();
+                return mvc.perform(post("/auth").contentType(MediaType.APPLICATION_JSON)
+                        .content(body("second@example.com", "password123", "같은닉네임")))
+                        .andReturn().getResponse().getStatus();
+            });
+            start.countDown();
+            assertThat(new Integer[]{first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS)})
+                    .containsExactlyInAnyOrder(200, 409);
+            assertThat(members.count()).isEqualTo(1);
+        }
     }
 
     @Test
