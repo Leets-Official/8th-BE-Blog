@@ -54,9 +54,6 @@ public class ErrorResponse {
         @Schema(description = "오류가 발생한 필드")
         private String field;
 
-        @Schema(description = "거부된 입력값")
-        private String rejectedValue;
-
         @Schema(description = "오류 사유")
         private String reason;
     }
