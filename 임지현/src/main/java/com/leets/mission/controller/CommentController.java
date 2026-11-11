@@ -5,6 +5,7 @@ import com.leets.mission.dto.comment.CommentResponse;
 import com.leets.mission.global.exception.CustomException;
 import com.leets.mission.global.exception.ErrorCode;
 import com.leets.mission.global.exception.ErrorResponse;
+import com.leets.mission.global.security.MemberPrincipal;
 import com.leets.mission.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -135,15 +137,10 @@ public class CommentController {
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest request,
-            @Parameter(
-                    description = "요청 회원 ID",
-                    example = "1",
-                    required = true
-            )
-            @RequestHeader(value = "X-Member-Id") Long memberId
+            @AuthenticationPrincipal MemberPrincipal principal
     ) {
         CommentResponse response =
-                commentService.createComment(postId, request, memberId);
+                commentService.createComment(postId, request, principal.memberId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
