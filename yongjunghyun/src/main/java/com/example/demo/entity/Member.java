@@ -5,8 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +15,7 @@ import java.util.List;
 @Table(name = "member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,14 +44,6 @@ public class Member {
 
     private LocalDateTime deletedAt;    // null이면 활성 회원
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();
 
@@ -69,5 +59,14 @@ public class Member {
         this.tel = tel;
         this.birthDate = birthDate;
         this.gender = gender;
+    }
+
+    // 연관관계 편의 메서드: Post/Comment 생성자에서만 호출 (같은 패키지에서만 접근 가능)
+    void addPost(Post post) {
+        this.posts.add(post);
+    }
+
+    void addComment(Comment comment) {
+        this.comments.add(comment);
     }
 }
