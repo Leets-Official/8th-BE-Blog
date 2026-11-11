@@ -15,6 +15,9 @@ public record SignupRequest(
         @Size(max = 50, message = "닉네임은 50자 이하로 입력해주세요.") String nickname
 ) {
     public SignupRequest {
+        if (nickname != null) {
+            nickname = nickname.strip();
+        }
         if (email != null) {
             email = email.strip().toLowerCase(Locale.ROOT);
         }

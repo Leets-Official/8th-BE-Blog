@@ -3,6 +3,7 @@ package com.leets.choyeji.auth;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -34,6 +35,7 @@ public class JwtTokenService {
     public String issue(Long memberId) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(memberId.toString())
                 .claim(memberIdClaim, memberId.toString())
                 .issuedAt(now)
