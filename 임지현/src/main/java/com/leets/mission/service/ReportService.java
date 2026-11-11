@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataIntegrityViolationException;
 
 
 @Service
@@ -93,8 +94,15 @@ public class ReportService {
                 .comment(comment)
                 .reason(request.reason())
                 .build();
-
-        return ReportResponse.from(reportRepository.save(report));
+        try {
+            Report savedReport = reportRepository.saveAndFlush(report);
+            return ReportResponse.from(savedReport);
+        } catch (DataIntegrityViolationException e) {
+            if (isDuplicateReportViolation(e)) {
+                throw new CustomException(ErrorCode.DUPLICATE_REPORT);
+            }
+            throw e;
+        }
     }
 
     public Page<ReportResponse> getReports(
@@ -119,6 +127,21 @@ public class ReportService {
         if (admin.getRole() != MemberRole.ROLE_ADMIN) {
             throw new CustomException(ErrorCode.ADMIN_ACCESS_DENIED);
         }
+    }
+
+    private boolean isDuplicateReportViolation(DataIntegrityViolationException exception) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            if (cause instanceof org.hibernate.exception.ConstraintViolationException violation) {
+                String constraintName = violation.getConstraintName();
+                return "uk_report_reporter_post".equalsIgnoreCase(constraintName)
+                        || "uk_report_reporter_comment".equalsIgnoreCase(constraintName);
+            }
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 
     @Transactional
