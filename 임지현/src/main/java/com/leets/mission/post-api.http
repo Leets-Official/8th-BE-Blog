@@ -1,8 +1,8 @@
 ### 환경 변수 및 공통 설정
 @baseUrl = http://localhost:8080
 @contentType = application/json
-@authorId = 1
-@nonAuthorId = 2
+@authorAccessToken = REPLACE_WITH_AUTHOR_ACCESS_TOKEN
+@nonAuthorAccessToken = REPLACE_WITH_NON_AUTHOR_ACCESS_TOKEN
 
 
 ### 1. 성공 케이스
@@ -11,7 +11,7 @@
 # @name createPost
 POST {{baseUrl}}/posts
 Content-Type: {{contentType}}
-X-Member-Id: {{authorId}}
+Authorization: Bearer {{authorAccessToken}}
 
 {
   "title": "게시글 제목",
@@ -57,7 +57,7 @@ GET {{baseUrl}}/posts/{{createdPostId}}
 ### 1-4. 게시글 수정 (200 OK)
 PATCH {{baseUrl}}/posts/{{createdPostId}}
 Content-Type: {{contentType}}
-X-Member-Id: {{authorId}}
+Authorization: Bearer {{authorAccessToken}}
 
 {
   "title": "수정된 게시글 제목",
@@ -77,7 +77,7 @@ X-Member-Id: {{authorId}}
 # - 동일 작성자(Member 1)가 3초 이내 동일 제목으로 연속 작성 시 발생
 POST {{baseUrl}}/posts
 Content-Type: {{contentType}}
-X-Member-Id: {{authorId}}
+Authorization: Bearer {{authorAccessToken}}
 
 {
   "title": "수정된 게시글 제목",
@@ -94,7 +94,7 @@ X-Member-Id: {{authorId}}
 ### 2-2. [400 Bad Request] 필수 입력값 누락 검증 (@Valid)
 POST {{baseUrl}}/posts
 Content-Type: {{contentType}}
-X-Member-Id: {{authorId}}
+Authorization: Bearer {{authorAccessToken}}
 
 {
   "title": "",
@@ -177,7 +177,7 @@ Content-Type: {{contentType}}
 ### 2-9. [403 Forbidden] 작성자가 아닌 타인의 수정 시도 검증
 PATCH {{baseUrl}}/posts/{{createdPostId}}
 Content-Type: {{contentType}}
-X-Member-Id: {{nonAuthorId}}
+Authorization: Bearer {{nonAuthorAccessToken}}
 
 {
   "title": "타인의 수정 시도",
@@ -193,7 +193,7 @@ X-Member-Id: {{nonAuthorId}}
 
 ### 2-10. 게시글 삭제 - Soft Delete (204 No Content)
 DELETE {{baseUrl}}/posts/{{createdPostId}}
-X-Member-Id: {{authorId}}
+Authorization: Bearer {{authorAccessToken}}
 
 > {%
     client.test("204 No Content - 게시글 삭제 성공", function() {
