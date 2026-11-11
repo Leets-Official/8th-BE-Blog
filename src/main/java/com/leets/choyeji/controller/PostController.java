@@ -2,7 +2,7 @@ package com.leets.choyeji.controller;
 
 import com.leets.choyeji.config.ApiErrorResponses;
 import static com.leets.choyeji.config.SwaggerError.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.dto.ApiResponse;
 import com.leets.choyeji.dto.PostListResponse;
 import com.leets.choyeji.dto.PostRequest;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final JwtMemberResolver jwtMemberResolver;
 
     @Operation(summary = "게시글 조회")
     @ApiErrorResponses({INVALID_REQUEST, POST_NOT_FOUND})
@@ -42,9 +43,9 @@ public class PostController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ApiResponse<PostResponse> create(
-            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody PostRequest request) {
-        return ApiResponse.success(postService.create(memberId, request));
+        return ApiResponse.success(postService.create(jwtMemberResolver.resolve(authorization), request));
     }
 
     @Operation(summary = "게시글 수정")
@@ -52,9 +53,9 @@ public class PostController {
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{postId}")
     public ApiResponse<PostUpdateResponse> update(@PathVariable Long postId,
-            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody PostRequest request) {
-        return ApiResponse.success(postService.update(memberId, postId, request));
+        return ApiResponse.success(postService.update(jwtMemberResolver.resolve(authorization), postId, request));
     }
 
     @Operation(summary = "게시글 삭제")
@@ -62,9 +63,9 @@ public class PostController {
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> delete(
-            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId) {
-        postService.delete(memberId, postId);
+        postService.delete(jwtMemberResolver.resolve(authorization), postId);
         return ApiResponse.success(null);
     }
 }

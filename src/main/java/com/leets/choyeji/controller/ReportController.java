@@ -2,7 +2,7 @@ package com.leets.choyeji.controller;
 
 import com.leets.choyeji.config.ApiErrorResponses;
 import static com.leets.choyeji.config.SwaggerError.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.leets.choyeji.auth.JwtMemberResolver;
 import com.leets.choyeji.dto.ApiResponse;
 import com.leets.choyeji.dto.ReportRequest;
 import com.leets.choyeji.dto.ReportResponse;
@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,14 +24,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReportController {
     private final ReportService reportService;
+    private final JwtMemberResolver jwtMemberResolver;
 
     @Operation(summary = "게시글 신고")
     @ApiErrorResponses({INVALID_REQUEST, REPORT_INPUT, UNAUTHORIZED, POST_NOT_FOUND, DUPLICATE_REPORT})
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ApiResponse<ReportResponse> create(@PathVariable Long postId,
-            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody ReportRequest request) {
-        return ApiResponse.success(reportService.create(memberId, postId, request));
+        return ApiResponse.success(reportService.create(jwtMemberResolver.resolve(authorization), postId, request));
     }
 }

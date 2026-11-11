@@ -1,6 +1,6 @@
 package com.leets.choyeji.service;
 
-import com.leets.choyeji.auth.RefreshTokenService;
+import com.leets.choyeji.auth.JwtTokenService;
 import com.leets.choyeji.dto.LoginRequest;
 import com.leets.choyeji.dto.LoginResponse;
 import com.leets.choyeji.dto.SignupRequest;
@@ -22,9 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenService refreshTokenService;
+    private final JwtTokenService jwtTokenService;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         if (request.password().getBytes(StandardCharsets.UTF_8).length > 72) {
             throw ApiException.loginFailed();
@@ -34,7 +34,8 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
             throw ApiException.loginFailed();
         }
-        return refreshTokenService.issue(member.getId());
+        return new LoginResponse(jwtTokenService.issue(member.getId()), "Bearer",
+                JwtTokenService.ACCESS_TOKEN_TTL_SECONDS);
     }
 
     @Transactional
@@ -44,9 +45,6 @@ public class AuthService {
         }
         if (memberRepository.existsByEmail(request.email())) {
             throw ApiException.duplicateEmail();
-        }
-        if (memberRepository.existsByNickname(request.nickname())) {
-            throw ApiException.duplicateNickname();
         }
         Member member = new Member(passwordEncoder.encode(request.password()), request.nickname(), request.email());
         try {
@@ -58,11 +56,6 @@ public class AuthService {
                         && violation.getConstraintName() != null
                         && violation.getConstraintName().toLowerCase(Locale.ROOT).contains("uk_member_email")) {
                     throw ApiException.duplicateEmail();
-                }
-                if (cause instanceof ConstraintViolationException violation
-                        && violation.getConstraintName() != null
-                        && violation.getConstraintName().toLowerCase(Locale.ROOT).contains("uk_member_nickname")) {
-                    throw ApiException.duplicateNickname();
                 }
             }
             throw exception;

@@ -1,4 +1,4 @@
--- MySQL: matches Member, RefreshToken, Post, Comment, Report and BaseTimeEntity.
+-- MySQL: matches Member, Post, Comment, Report and BaseTimeEntity.
 -- Timestamps are populated by JPA lifecycle callbacks.
 CREATE DATABASE IF NOT EXISTS `leets`
     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -14,15 +14,7 @@ CREATE TABLE IF NOT EXISTS `member` (
     `created_at` DATETIME(6) NOT NULL,
     `updated_at` DATETIME(6) NULL,
     PRIMARY KEY (`member_id`),
-    CONSTRAINT `uk_member_email` UNIQUE (`email`),
-    CONSTRAINT `uk_member_nickname` UNIQUE (`nickname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `refresh_token` (
-    `token_hash` VARCHAR(64) NOT NULL,
-    `member_id` BIGINT NOT NULL,
-    `expires_at` DATETIME(6) NOT NULL,
-    PRIMARY KEY (`token_hash`)
+    CONSTRAINT `uk_member_email` UNIQUE (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `post` (
