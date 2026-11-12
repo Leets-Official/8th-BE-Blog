@@ -1,0 +1,125 @@
+### 인증 API 공통 설정
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+
+### 1. 회원가입 성공
+# 한 번 가입한 뒤 다시 실행하면 이메일 또는 닉네임 중복으로 409가 반환됩니다.
+POST {{baseUrl}}/auth
+Content-Type: {{contentType}}
+
+{
+  "email": "new-user@test.com",
+  "password": "password123",
+  "nickname": "새회원"
+}
+
+
+### 2. 이메일 중복 확인 (409 예상)
+POST {{baseUrl}}/auth
+Content-Type: {{contentType}}
+
+{
+  "email": "author@test.com",
+  "password": "password123",
+  "nickname": "중복아닌닉네임"
+}
+
+
+### 3. 닉네임 중복 확인 (409 예상)
+POST {{baseUrl}}/auth
+Content-Type: {{contentType}}
+
+{
+  "email": "new-nickname-check@test.com",
+  "password": "password123",
+  "nickname": "작성자닉네임"
+}
+
+
+### 4. 작성자 로그인 (local 프로필 계정)
+# 응답의 토큰을 HTTP Client 전역 변수로 저장합니다.
+# @name loginAuthor
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "author@test.com",
+  "password": "password123"
+}
+
+> {%
+    client.test("작성자 로그인 성공", function () {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.global.set("authorAccessToken", response.body.accessToken);
+    client.global.set("authorRefreshToken", response.body.refreshToken);
+%}
+
+
+### 5. 다른 일반 회원 로그인 (local 프로필 계정)
+# @name loginOther
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "other@test.com",
+  "password": "password123"
+}
+
+> {%
+    client.test("일반 회원 로그인 성공", function () {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.global.set("otherAccessToken", response.body.accessToken);
+    client.global.set("otherRefreshToken", response.body.refreshToken);
+%}
+
+
+### 6. 관리자 로그인 (local 프로필 계정)
+# @name loginAdmin
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@test.com",
+  "password": "password123"
+}
+
+> {%
+    client.test("관리자 로그인 성공", function () {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.global.set("adminAccessToken", response.body.accessToken);
+    client.global.set("adminRefreshToken", response.body.refreshToken);
+%}
+
+
+### 7. 작성자 Refresh Token으로 재발급
+# 먼저 위의 '작성자 로그인' 요청을 실행해 authorRefreshToken을 설정하세요.
+# 재발급 시 기존 Refresh Token은 교체되며, 응답 처리기가 새 토큰으로 갱신합니다.
+# @name refreshAuthorToken
+POST {{baseUrl}}/auth/refresh
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "{{authorRefreshToken}}"
+}
+
+> {%
+    client.test("토큰 재발급 성공", function () {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.global.set("authorAccessToken", response.body.accessToken);
+    client.global.set("authorRefreshToken", response.body.refreshToken);
+%}
+
+
+### 8. 잘못된 로그인 정보 (401 예상)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "author@test.com",
+  "password": "wrong-password"
+}
