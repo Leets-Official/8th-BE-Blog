@@ -36,24 +36,18 @@ public class GlobalExceptionHandler {
         return toResponse(ErrorCode.BAD_REQUEST);
     }
 
-    // 어떤 칸이 어떤 규칙을 어겼는지 보고 에러 코드를 고른다
+    // DTO의 검증 어노테이션 message에 적어 둔 ErrorCode 이름으로 에러 코드를 찾는다.
+    // 예: @NotBlank(message = "POST_TITLE_EMPTY") → ErrorCode.POST_TITLE_EMPTY
+    // 새 기능이 생겨도 여기는 고칠 필요 없이, DTO에 message만 적으면 된다.
     private ErrorCode toErrorCode(FieldError fieldError) {
-        if (fieldError == null) {
+        if (fieldError == null || fieldError.getDefaultMessage() == null) {
             return ErrorCode.BAD_REQUEST;
         }
-        String field = fieldError.getField();      // 예: "title"
-        String rule = fieldError.getCode();        // 예: "NotBlank", "Size"
-
-        if (field.equals("title") && "Size".equals(rule)) {
-            return ErrorCode.POST_TITLE_TOO_LONG;
+        try {
+            return ErrorCode.valueOf(fieldError.getDefaultMessage());
+        } catch (IllegalArgumentException e) {   // message에 ErrorCode 이름이 아닌 값이 적힌 경우
+            return ErrorCode.BAD_REQUEST;
         }
-        if (field.equals("title")) {
-            return ErrorCode.POST_TITLE_EMPTY;
-        }
-        if (field.equals("content")) {
-            return ErrorCode.POST_CONTENT_EMPTY;
-        }
-        return ErrorCode.BAD_REQUEST;
     }
 
     private ResponseEntity<ApiResponse<Void>> toResponse(ErrorCode errorCode) {

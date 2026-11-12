@@ -23,12 +23,13 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
 
-    // US-1 목록 조회
+    // US-1 목록 조회 (page는 팀 설계대로 1부터 받는다)
     public List<PostSummaryResponse> getPosts(int page, int size) {
-        if (page < 0 || size < 1) {
+        if (page < 1 || size < 1) {
             throw new CustomException(ErrorCode.INVALID_PAGE);
         }
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        // Spring의 PageRequest는 0부터 세기 때문에 1을 빼서 넘긴다 (page=1 → 0번째 페이지)
+        PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return postRepository.findAll(pageRequest).stream()
                 .map(PostSummaryResponse::from)
                 .toList();
