@@ -6,6 +6,7 @@ import com.leets.mission.global.exception.CustomException;
 import com.leets.mission.global.exception.ErrorCode;
 import com.leets.mission.global.exception.ErrorResponse;
 import com.leets.mission.service.ReportService;
+import com.leets.mission.global.security.MemberPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Tag(name = "신고", description = "게시글 또는 댓글 신고 API")
 @RestController
@@ -67,10 +69,10 @@ public class ReportController {
     })
     public ResponseEntity<ReportResponse> createReport(
             @Valid @RequestBody ReportCreateRequest request,
-            @Parameter(description = "요청 회원 ID", example = "1", required = true)
-            @RequestHeader(value = "X-Member-Id") Long memberId
-    ){
-        ReportResponse response = reportService.createReport(request, memberId);
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
+        ReportResponse response =
+                reportService.createReport(request, principal.memberId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

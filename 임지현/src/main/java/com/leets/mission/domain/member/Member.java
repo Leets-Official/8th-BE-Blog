@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
 import java.time.LocalDate;
 
 @Entity
@@ -19,31 +20,22 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(nullable = false, name = "email", unique = true, length = 255)
     private String email;
 
-    /**
-     * [확장성 설계] 소셜 로그인(OAuth) 도입 가능성을 고려하여 Nullable 허용.
-     * - 현 단계: 필드 선언 및 기본 빌더 매핑만 진행.
-     * - 추후 구현: Spring Security 및 PasswordEncoder(BCrypt) 기반 암호화/검증 로직 적용 예정.
-     */
-    @Column(name = "password", length = 255)
+
+    @Column(nullable = false, name = "password", length = 255)
     private String password;
 
-    @Column(name = "nickname", nullable = false, length = 50)
+    @Column(nullable = false, name = "nickname", length = 50)
     private String nickname;
 
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(name = "name", length = 50)
     private String name;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    /**
-     * [확장성 설계] 사용자 권한 분리 (ROLE_USER, ROLE_ADMIN).
-     * - 현 단계: Enum 필드 선언 및 기본값(ROLE_USER) 매핑.
-     * - 추후 구현: Security Interceptor / Method Security 기반 권한 인가 로직 적용 예정.
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private MemberRole role;

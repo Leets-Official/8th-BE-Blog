@@ -1,14 +1,12 @@
 package com.leets.mission.global.exception;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.http.HttpStatus;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,14 +26,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
-        List<ErrorResponse.FieldErrorDetail> fieldErrors = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> ErrorResponse.FieldErrorDetail.builder()
-                        .field(error.getField())
-                        .rejectedValue(error.getRejectedValue() != null ? error.getRejectedValue().toString() : "")
-                        .reason(error.getDefaultMessage())
-                        .build())
-                .toList();
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException e
+    ) {
+        List<ErrorResponse.FieldErrorDetail> fieldErrors =
+                e.getBindingResult().getFieldErrors().stream()
+                        .map(error -> ErrorResponse.FieldErrorDetail.builder()
+                                .field(error.getField())
+                                .reason(error.getDefaultMessage())
+                                .build())
+                        .toList();
 
         return ResponseEntity
                 .badRequest()
@@ -68,7 +68,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ApiResponse(
             responseCode = "500",
             description = "INTERNAL_SERVER_ERROR",

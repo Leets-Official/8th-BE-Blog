@@ -8,6 +8,7 @@ import com.leets.mission.global.exception.CustomException;
 import com.leets.mission.global.exception.ErrorCode;
 import com.leets.mission.global.exception.ErrorResponse;
 import com.leets.mission.service.PostService;
+import com.leets.mission.global.security.MemberPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.net.URI;
 import java.util.Set;
@@ -179,14 +181,9 @@ public class PostController {
     })
     public ResponseEntity<Void> createPost(
             @Valid @RequestBody PostCreateRequest request,
-            @Parameter(
-                    description = "요청 회원 ID",
-                    example = "1",
-                    required = true
-            )
-            @RequestHeader(value = "X-Member-Id") Long memberId
+            @AuthenticationPrincipal MemberPrincipal principal
     ) {
-        Long createdPostId = postService.createPost(request, memberId);
+        Long createdPostId = postService.createPost(request, principal.memberId());
         URI location = URI.create("/posts/" + createdPostId);
 
         return ResponseEntity.created(location).build();
@@ -244,14 +241,9 @@ public class PostController {
             @Parameter(description = "수정할 게시글 ID", example = "1")
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest request,
-            @Parameter(
-                    description = "요청 회원 ID",
-                    example = "1",
-                    required = true
-            )
-            @RequestHeader(value = "X-Member-Id") Long memberId
+            @AuthenticationPrincipal MemberPrincipal principal
     ) {
-        PostResponse response = postService.updatePost(postId, request, memberId);
+        PostResponse response = postService.updatePost(postId, request, principal.memberId());
         return ResponseEntity.ok(response);
     }
 
@@ -302,14 +294,9 @@ public class PostController {
     public ResponseEntity<Void> deletePost(
             @Parameter(description = "삭제할 게시글 ID", example = "1")
             @PathVariable Long postId,
-            @Parameter(
-                    description = "요청 회원 ID",
-                    example = "1",
-                    required = true
-            )
-            @RequestHeader(value = "X-Member-Id") Long memberId
+            @AuthenticationPrincipal MemberPrincipal principal
     ) {
-        postService.deletePost(postId, memberId);
+        postService.deletePost(postId, principal.memberId());
         return ResponseEntity.noContent().build();
     }
 }

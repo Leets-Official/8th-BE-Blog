@@ -6,6 +6,7 @@ import com.leets.mission.dto.report.ReportDecisionRequest;
 import com.leets.mission.global.exception.CustomException;
 import com.leets.mission.global.exception.ErrorCode;
 import com.leets.mission.global.exception.ErrorResponse;
+import com.leets.mission.global.security.MemberPrincipal;
 import com.leets.mission.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -63,10 +65,7 @@ public class AdminReportController {
             )
     })
     public ResponseEntity<Page<ReportResponse>> getReports(
-            @Parameter(
-                    description = "조회할 신고 상태",
-                    example = "PENDING"
-            )
+            @Parameter(description = "조회할 신고 상태", example = "PENDING")
             @RequestParam(defaultValue = "PENDING") ReportStatus status,
 
             @Parameter(description = "페이지 번호, 1부터 시작", example = "1")
@@ -75,8 +74,7 @@ public class AdminReportController {
             @Parameter(description = "페이지 크기 (1~50)", example = "10")
             @RequestParam(defaultValue = "10") int size,
 
-            @Parameter(description = "요청 회원 ID", example = "1", required = true)
-            @RequestHeader("X-Member-Id") Long memberId
+            @AuthenticationPrincipal MemberPrincipal principal
     ){
         if (page < 1) {
             throw new CustomException(ErrorCode.INVALID_PAGE_NUMBER);
@@ -93,7 +91,7 @@ public class AdminReportController {
         );
 
         return ResponseEntity.ok(
-                reportService.getReports(memberId, status, pageable)
+                reportService.getReports(principal.memberId(), status, pageable)
         );
     }
 
@@ -143,13 +141,14 @@ public class AdminReportController {
     public ResponseEntity<ReportResponse> processReport(
             @Parameter(description = "처리할 신고 ID", example = "1")
             @PathVariable Long reportId,
+
             @Valid @RequestBody ReportDecisionRequest request,
-            @Parameter(description = "관리자 회원 ID", example = "3", required = true)
-            @RequestHeader("X-Member-Id") Long memberId
+
+            @AuthenticationPrincipal MemberPrincipal principal
     ){
 
         return ResponseEntity.ok(
-                reportService.processReport(reportId, request, memberId)
+                reportService.processReport(reportId, request, principal.memberId())
         );
     }
 }
