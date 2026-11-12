@@ -5,10 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +13,7 @@ import java.util.List;
 @Table(name = "post")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Post {
+public class Post extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,14 +25,6 @@ public class Post {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
@@ -49,6 +38,12 @@ public class Post {
         this.title = title;
         this.content = content;
         this.member = member;
+        member.addPost(this);           // 양방향: Member 쪽 목록에도 함께 추가
+    }
+
+    // 연관관계 편의 메서드: Comment 생성자에서만 호출
+    void addComment(Comment comment) {
+        this.comments.add(comment);
     }
     public void update(String title, String content) {
         if (title != null) {
