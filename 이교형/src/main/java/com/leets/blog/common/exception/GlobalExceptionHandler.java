@@ -11,7 +11,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -38,15 +37,9 @@ public class GlobalExceptionHandler {
         return toResponse(errorCode);
     }
 
-    // 숫자 자리에 문자가 들어온 경우 (/posts/abc, ?page=abc, X-Member-Id: abc)
+    // 숫자 자리에 문자가 들어온 경우 (/posts/abc, ?page=abc)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
-        return toResponse(resolveBindError(e.getParameter()));
-    }
-
-    // 필수 헤더가 없는 경우 (X-Member-Id 누락 등)
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMissingHeader(MissingRequestHeaderException e) {
         return toResponse(resolveBindError(e.getParameter()));
     }
 
