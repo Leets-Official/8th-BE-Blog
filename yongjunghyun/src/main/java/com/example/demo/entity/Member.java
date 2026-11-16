@@ -28,6 +28,9 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, length = 30)
     private String name;
 
+    @Column(nullable = false, unique = true, length = 20)
+    private String nickname;            // 6주차: 화면에 보이는 이름, 중복 불가
+
     @Column(nullable = false, length = 255)
     private String password;            // 해시된 값을 저장한다
 
@@ -51,10 +54,11 @@ public class Member extends BaseTimeEntity {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Member(String email, String name, String password,
+    public Member(String email, String name, String nickname, String password,
                   String tel, LocalDate birthDate, String gender) {
         this.email = email;
         this.name = name;
+        this.nickname = nickname;
         this.password = password;
         this.tel = tel;
         this.birthDate = birthDate;
