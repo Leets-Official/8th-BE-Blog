@@ -1,11 +1,11 @@
 package org.example._thbe.global.restdocs;
 
-import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
-import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
+import static com.epages.restdocs.apispec.ResourceDocumentation.*;
 import static com.epages.restdocs.apispec.Schema.schema;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 
+import com.epages.restdocs.apispec.HeaderDescriptorWithType;
 import com.epages.restdocs.apispec.ParameterDescriptorWithType;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import java.util.ArrayList;
@@ -34,6 +34,7 @@ public final class ApiSpec {
     private final String description;
     private final List<ParameterDescriptorWithType> pathParams = new ArrayList<>();
     private final List<ParameterDescriptorWithType> queryParams = new ArrayList<>();
+    private final List<HeaderDescriptorWithType> requestHeaders = new ArrayList<>();
     private String requestSchema;
     private FieldDescriptor[] requestFields = new FieldDescriptor[0];
 
@@ -62,6 +63,12 @@ public final class ApiSpec {
         this.requestFields = fields;
         return this;
     }
+
+    public ApiSpec authRequired() {
+        requestHeaders.add(headerWithName("Authorization").description("Bearer {accessToken}"));
+        return this;
+    }
+
 
 
 
@@ -98,6 +105,9 @@ public final class ApiSpec {
                 .responseSchema(schema(responseSchema))
                 .responseFields(responseFields);
 
+        if (!requestHeaders.isEmpty()) {
+            builder.requestHeaders(requestHeaders.toArray(new HeaderDescriptorWithType[0]));
+        }
         if (!pathParams.isEmpty()) {
             builder.pathParameters(pathParams.toArray(new ParameterDescriptorWithType[0]));
         }
