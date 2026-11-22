@@ -84,11 +84,12 @@ public class PostService {
         return new PostDeleteResponse(post.getId());
     }
 
-    // 게시글 숨김 (ACTIVE → HIDDEN): 회원(401) → 관리자(403) → 게시글 ID(400) → 게시글 존재(404) → 이미 숨김(409)
+    // 게시글 숨김 (ACTIVE → HIDDEN): 탈퇴한 관리자(401) → 게시글 존재(404) → 이미 숨김(409)
+    // 로그인(401)·관리자(403) 확인은 SecurityConfig에서 컨트롤러 도달 전에 처리
     // 동시에 숨김·수정이 겹치면 @Version 충돌로 나중 요청이 409(CONCURRENT_UPDATE)
     @Transactional
     public PostHideResponse hidePost(Long memberId, Long postId) {
-        memberReader.getAdmin(memberId);
+        memberReader.getActiveMember(memberId);
         Post post = postReader.getPostIncludingHidden(postId);
         post.hide();
         return PostHideResponse.from(post);

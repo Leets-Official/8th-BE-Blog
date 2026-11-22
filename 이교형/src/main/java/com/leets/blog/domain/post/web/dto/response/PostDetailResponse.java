@@ -38,11 +38,11 @@ public record PostDetailResponse(
             @Schema(description = "회원 ID", example = "1")
             Long memberId,
 
-            @Schema(description = "이름", example = "홍길동")
-            String name
+            @Schema(description = "닉네임", example = "길동이")
+            String nickname
     ) {
         public static MemberInfo from(Member member) {
-            return new MemberInfo(member.getId(), member.getName());
+            return new MemberInfo(member.getId(), member.getNickname());
         }
     }
 

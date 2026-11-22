@@ -14,7 +14,7 @@ public record PostSummaryResponse(
         @Schema(description = "제목", example = "새 게시글")
         String title,
 
-        @Schema(description = "작성자 이름", example = "홍길동")
+        @Schema(description = "작성자 닉네임", example = "길동이")
         String author,
 
         @Schema(description = "작성 시각", example = "2026-11-02T15:00:00")

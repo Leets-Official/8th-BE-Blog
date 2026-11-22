@@ -21,13 +21,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -61,51 +61,47 @@ public class PostController {
 
     @Operation(summary = "게시글 생성", description = "게시글을 작성합니다.")
     @ApiErrorCodes({ErrorCode.REQUIRED_FIELD_MISSING, ErrorCode.TITLE_LENGTH_EXCEED, ErrorCode.CONTENT_LENGTH_EXCEED,
-            ErrorCode.UNAUTHORIZED})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+            ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN, ErrorCode.EXPIRED_TOKEN})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> createPost(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid PostCreateRequest request) {
         return ApiResponse.createdEntity(postService.createPost(memberId, request));
     }
 
     @Operation(summary = "게시글 수정", description = "본인이 작성한 게시글을 수정합니다. 바꿀 필드(title, content)만 보내면 됩니다.")
     @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.REQUIRED_FIELD_MISSING, ErrorCode.TITLE_LENGTH_EXCEED,
-            ErrorCode.CONTENT_LENGTH_EXCEED, ErrorCode.UNAUTHORIZED, ErrorCode.POST_ACCESS_DENIED,
-            ErrorCode.POST_NOT_FOUND, ErrorCode.CONCURRENT_UPDATE})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+            ErrorCode.CONTENT_LENGTH_EXCEED, ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN, ErrorCode.EXPIRED_TOKEN,
+            ErrorCode.POST_ACCESS_DENIED, ErrorCode.POST_NOT_FOUND, ErrorCode.CONCURRENT_UPDATE})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId,
             @RequestBody @Valid PostUpdateRequest request) {
         return ApiResponse.okEntity(postService.updatePost(memberId, postId, request));
     }
 
     @Operation(summary = "게시글 삭제", description = "본인이 작성한 게시글을 삭제합니다.")
-    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.UNAUTHORIZED, ErrorCode.POST_ACCESS_DENIED,
-            ErrorCode.POST_NOT_FOUND, ErrorCode.CONCURRENT_UPDATE})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN, ErrorCode.EXPIRED_TOKEN,
+            ErrorCode.POST_ACCESS_DENIED, ErrorCode.POST_NOT_FOUND, ErrorCode.CONCURRENT_UPDATE})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
         return ApiResponse.okEntity(postService.deletePost(memberId, postId));
     }
 
     @Operation(summary = "게시글 숨김 (관리자)", description = "게시글을 숨김(HIDDEN) 처리합니다. 숨긴 글은 목록·상세 조회, 댓글, 신고에서 제외됩니다. 이미 숨긴 글은 409입니다.")
-    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.UNAUTHORIZED, ErrorCode.ADMIN_ONLY, ErrorCode.POST_NOT_FOUND,
-            ErrorCode.ALREADY_HIDDEN, ErrorCode.CONCURRENT_UPDATE})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+    @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN, ErrorCode.EXPIRED_TOKEN,
+            ErrorCode.ADMIN_ONLY, ErrorCode.POST_NOT_FOUND, ErrorCode.ALREADY_HIDDEN, ErrorCode.CONCURRENT_UPDATE})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @PatchMapping("/{postId}/hide")
     public ResponseEntity<ApiResponse<PostHideResponse>> hidePost(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId) {
         return ApiResponse.okEntity(postService.hidePost(memberId, postId));
     }

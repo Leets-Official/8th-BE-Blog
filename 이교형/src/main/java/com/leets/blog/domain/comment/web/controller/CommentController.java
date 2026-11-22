@@ -18,13 +18,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,13 +38,12 @@ public class CommentController {
 
     @Operation(summary = "댓글 작성", description = "게시글에 댓글을 작성합니다. 삭제·숨김된 글에는 작성할 수 없습니다.")
     @ApiErrorCodes({ErrorCode.INVALID_POST_ID, ErrorCode.REQUIRED_FIELD_MISSING, ErrorCode.COMMENT_LENGTH_EXCEED,
-            ErrorCode.UNAUTHORIZED, ErrorCode.POST_NOT_FOUND})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+            ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN, ErrorCode.EXPIRED_TOKEN, ErrorCode.POST_NOT_FOUND})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_POST_ID) Long postId,
             @RequestBody @Valid CommentRequest request) {
         return ApiResponse.createdEntity(commentService.createComment(memberId, postId, request));
@@ -63,25 +62,24 @@ public class CommentController {
 
     @Operation(summary = "댓글 수정", description = "본인이 작성한 댓글을 수정합니다.")
     @ApiErrorCodes({ErrorCode.INVALID_COMMENT_ID, ErrorCode.REQUIRED_FIELD_MISSING, ErrorCode.COMMENT_LENGTH_EXCEED,
-            ErrorCode.UNAUTHORIZED, ErrorCode.COMMENT_ACCESS_DENIED, ErrorCode.COMMENT_NOT_FOUND})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+            ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN, ErrorCode.EXPIRED_TOKEN, ErrorCode.COMMENT_ACCESS_DENIED,
+            ErrorCode.COMMENT_NOT_FOUND})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @PatchMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> updateComment(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_COMMENT_ID) Long commentId,
             @RequestBody @Valid CommentRequest request) {
         return ApiResponse.okEntity(commentService.updateComment(memberId, commentId, request));
     }
 
     @Operation(summary = "댓글 삭제", description = "본인이 작성한 댓글을 삭제합니다.")
-    @ApiErrorCodes({ErrorCode.INVALID_COMMENT_ID, ErrorCode.UNAUTHORIZED, ErrorCode.COMMENT_ACCESS_DENIED,
-            ErrorCode.COMMENT_NOT_FOUND})
-    @SecurityRequirement(name = SwaggerConfig.MEMBER_ID)
+    @ApiErrorCodes({ErrorCode.INVALID_COMMENT_ID, ErrorCode.UNAUTHORIZED, ErrorCode.INVALID_TOKEN,
+            ErrorCode.EXPIRED_TOKEN, ErrorCode.COMMENT_ACCESS_DENIED, ErrorCode.COMMENT_NOT_FOUND})
+    @SecurityRequirement(name = SwaggerConfig.BEARER)
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<CommentDeleteResponse>> deleteComment(
-            @Parameter(hidden = true)
-            @RequestHeader("X-Member-Id") @BindErrorCode(ErrorCode.UNAUTHORIZED) Long memberId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @PathVariable @BindErrorCode(ErrorCode.INVALID_COMMENT_ID) Long commentId) {
         return ApiResponse.okEntity(commentService.deleteComment(memberId, commentId));
     }
