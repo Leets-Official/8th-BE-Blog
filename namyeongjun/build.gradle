@@ -40,6 +40,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
     testImplementation 'org.springframework.security:spring-security-test'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -51,11 +52,13 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-
+tasks.named('bootJar') {
+    dependsOn 'openapi3'
+}
 
 // 추가: openapi3 명세 생성 설정
 openapi3 {
-    servers = [ { url = 'http://localhost:8080' } ]
+    servers = [ { url = '/' } ]
     title = '8th-BE API'
     description = '8th-BE API 명세'
     version = '0.0.1'
