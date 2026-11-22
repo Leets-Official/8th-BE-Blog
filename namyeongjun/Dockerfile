@@ -4,7 +4,7 @@ COPY gradlew build.gradle settings.gradle ./
 COPY gradle gradle
 RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
 COPY src src
-RUN ./gradlew bootJar -x test --no-daemon
+RUN ./gradlew bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre
 COPY --from=builder /app/build/libs/*.jar app.jar
