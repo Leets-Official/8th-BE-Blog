@@ -1,6 +1,7 @@
 package org.example._thbe.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example._thbe.domain.auth.dto.AuthLoginRequest;
 import org.example._thbe.domain.auth.dto.AuthLoginResponse;
@@ -28,7 +29,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Void>> createMember(@RequestBody MemberCreateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> createMember(@RequestBody @Valid MemberCreateRequest request) {
         authService.createMember(request);
         return ApiResponse.success(SuccessCode.COMMON_CREATED);
     }
