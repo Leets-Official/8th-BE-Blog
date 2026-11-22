@@ -12,6 +12,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
@@ -33,14 +34,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         res.setStatus(code.getStatus().value());
         res.setContentType(MediaType.APPLICATION_JSON_VALUE);
         res.setCharacterEncoding("UTF-8");
-        objectMapper
-                .writeValue(
-                        res.getWriter(),
-                        Map.of("isSuccess",false,
-                                "code", code.getCode(),
-                                "message", code.getMessage(),
-                                "data", null
-                        )
-                );
+        Map<String,Object> body = new LinkedHashMap<>();
+
+        body.put("isSuccess",false);
+        body.put("code",code.getCode());
+        body.put("message",code.getMessage());
+        body.put("data",null);
+        objectMapper.writeValue(res.getWriter(),
+                body
+        );
     }
 }

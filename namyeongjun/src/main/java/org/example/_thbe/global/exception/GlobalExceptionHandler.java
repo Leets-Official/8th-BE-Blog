@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.example._thbe.global.code.ErrorCode;
 import org.example._thbe.global.common.ApiResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +18,15 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception e, HttpServletRequest request) {
+        log.warn("[Exception] {} {} - {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                e.getMessage());
+
+        return ApiResponse.failure(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e, HttpServletRequest request) {

@@ -11,6 +11,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
@@ -25,12 +26,15 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(code.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
+
+        Map<String,Object> body = new LinkedHashMap<>();
+
+        body.put("isSuccess",false);
+        body.put("code",code.getCode());
+        body.put("message",code.getMessage());
+        body.put("data",null);
         objectMapper.writeValue(response.getWriter(),
-                Map.of("isSuccess",false,
-                        "code", code.getCode(),
-                        "message", code.getMessage(),
-                            "data", null
-                )
+                body
         );
     }
 }
