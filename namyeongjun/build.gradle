@@ -15,6 +15,10 @@ java {
     }
 }
 
+jar {
+    enabled = false
+}
+
 repositories {
     mavenCentral()
 }
@@ -68,6 +72,18 @@ tasks.matching { it.name == 'openapi3' }.configureEach {
         def f = file('build/resources/main/static/docs/openapi3.yaml')
         def text = f.getText('UTF-8')
         text = text.replaceAll(/(?m)^(\s+)("?)([A-Za-z0-9_\-]+)__[^":\r\n]*\2:\s*$/, '$1$2$3$2:')
+
+        if (!text.contains('securitySchemes:')) {
+            text = text.replaceFirst(/(?m)^components:\s*$/,
+                    'security:\n' +
+                            '  - bearerAuth: []\n' +
+                            'components:\n' +
+                            '  securitySchemes:\n' +
+                            '    bearerAuth:\n' +
+                            '      type: http\n' +
+                            '      scheme: bearer\n' +
+                            '      bearerFormat: JWT')
+        }
         f.setText(text, 'UTF-8')
     }
 }

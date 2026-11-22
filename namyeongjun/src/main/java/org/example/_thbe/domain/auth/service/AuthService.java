@@ -35,6 +35,11 @@ public class AuthService {
             throw new CustomException(MemberErrorCode.EMAIL_ALREADY_EXIST);
         }
 
+        if(memberRepository.existsByNickname(request.name())) {
+            throw new CustomException(MemberErrorCode.EMAIL_ALREADY_EXIST);
+        }
+
+
 
         Member member = Member.create(
                 request.name(),
