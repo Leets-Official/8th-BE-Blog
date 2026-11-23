@@ -78,7 +78,7 @@ public class PostService {
                 () -> new ApiException(404, "POST_NOT_FOUND", "해당 게시글을 찾을 수 없습니다."));
     }
 
-    // 과제용 사용자 전달 방식이며 실제 인증이 아닙니다.
+    // Controller에서 전달한 인증된 회원이 현재도 유효한지 확인합니다.
     private Member currentMember(String userId) {
         long id;
         try {

@@ -11,8 +11,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
-@RestControllerAdvice(assignableTypes = {PostController.class, ModerationController.class})
+@RestControllerAdvice(assignableTypes = {PostController.class, ModerationController.class, AuthController.class})
 public class ApiExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
@@ -31,6 +32,12 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleApi(ApiException exception) {
         return ResponseEntity.status(exception.status).body(
                 ApiResponse.failure(exception.status, exception.code, exception.getMessage()));
+    }
+
+    // 인증 요청의 필수값과 형식 오류를 기존 오류 응답으로 통일합니다.
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException exception) {
+        return handleApi(new ApiException(400, "INVALID_REQUEST", "필수 입력값의 형식과 길이를 확인해주세요."));
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, HttpMediaTypeNotSupportedException.class})
@@ -63,7 +70,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception exception, HttpServletRequest request) {
-        log.error("게시글 API 처리 실패: {} {}", request.getMethod(), request.getRequestURI(), exception);
+        log.error("API 처리 실패: {} {}", request.getMethod(), request.getRequestURI(), exception);
         return ResponseEntity.internalServerError().body(
                 ApiResponse.failure(500, "INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다."));
     }

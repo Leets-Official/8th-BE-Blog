@@ -1,14 +1,45 @@
--- Existing tables are preserved. Schema changes require a separate migration.
+-- 기존 테이블과 데이터는 유지하고, 인증에 필요한 회원 정보만 확장합니다.
 CREATE TABLE IF NOT EXISTS `member` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(50) NOT NULL,
     `age` TINYINT NULL,
     `email` VARCHAR(50) NOT NULL,
     `password` VARCHAR(255) NOT NULL,
+    `role` VARCHAR(10) NOT NULL DEFAULT 'USER',
+    `refresh_token_hash` VARCHAR(64) NULL,
+    `refresh_expires_at` DATETIME(6) NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at` DATETIME NULL COMMENT '논리 삭제 시각 (NULL이면 미삭제)'
+    `deleted_at` DATETIME NULL COMMENT '논리 삭제 시각 (NULL이면 미삭제)',
+    UNIQUE KEY `uk_member_email` (`email`),
+    UNIQUE KEY `uk_member_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 기존 DB에도 한 번만 적용합니다. 기존 중복 이메일·닉네임이 있으면 먼저 정리해야 합니다.
+SET @auth_ddl = IF(EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'member' AND column_name = 'role'), 'SELECT 1', 'ALTER TABLE member ADD COLUMN role VARCHAR(10) NOT NULL DEFAULT ''USER''');
+PREPARE auth_migration FROM @auth_ddl;
+EXECUTE auth_migration;
+DEALLOCATE PREPARE auth_migration;
+
+SET @auth_ddl = IF(EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'member' AND column_name = 'refresh_token_hash'), 'SELECT 1', 'ALTER TABLE member ADD COLUMN refresh_token_hash VARCHAR(64) NULL');
+PREPARE auth_migration FROM @auth_ddl;
+EXECUTE auth_migration;
+DEALLOCATE PREPARE auth_migration;
+
+SET @auth_ddl = IF(EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'member' AND column_name = 'refresh_expires_at'), 'SELECT 1', 'ALTER TABLE member ADD COLUMN refresh_expires_at DATETIME(6) NULL');
+PREPARE auth_migration FROM @auth_ddl;
+EXECUTE auth_migration;
+DEALLOCATE PREPARE auth_migration;
+
+SET @auth_ddl = IF(EXISTS(SELECT 1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'member' AND index_name = 'uk_member_email'), 'SELECT 1', 'ALTER TABLE member ADD CONSTRAINT uk_member_email UNIQUE (email)');
+PREPARE auth_migration FROM @auth_ddl;
+EXECUTE auth_migration;
+DEALLOCATE PREPARE auth_migration;
+
+SET @auth_ddl = IF(EXISTS(SELECT 1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'member' AND index_name = 'uk_member_name'), 'SELECT 1', 'ALTER TABLE member ADD CONSTRAINT uk_member_name UNIQUE (name)');
+PREPARE auth_migration FROM @auth_ddl;
+EXECUTE auth_migration;
+DEALLOCATE PREPARE auth_migration;
 
 CREATE TABLE IF NOT EXISTS `post` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,

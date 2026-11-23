@@ -6,8 +6,10 @@ import com.example.demo.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/posts")
@@ -35,25 +37,29 @@ public class PostController {
     }
 
     @PostMapping
-    @Operation(summary = "게시글 작성", description = "X-User-Id 작성자 식별자와 제목·내용을 받아 게시글을 생성합니다.")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "게시글 작성", description = "로그인한 회원의 게시글을 생성합니다.")
     public ResponseEntity<ApiResponse<PostDto.Saved>> create(
-            @Parameter(description = "작성자 사용자 ID", example = "1") @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @Parameter(hidden = true) Principal principal,
             @RequestBody PostDto.Request request) {
-        return ResponseEntity.status(201).body(ApiResponse.success("201", postService.create(userId, request)));
+        // 사용자 입력 헤더 대신 Security가 인증한 회원 ID를 전달합니다.
+        return ResponseEntity.status(201).body(ApiResponse.success("201", postService.create(principal.getName(), request)));
     }
 
     @PatchMapping("/{post_id}")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "게시글 수정")
     public ApiResponse<PostDto.Saved> update(@Parameter(description = "게시글 ID", example = "1") @PathVariable("post_id") long postId,
-            @Parameter(description = "작성자 사용자 ID", example = "1") @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @Parameter(hidden = true) Principal principal,
             @RequestBody PostDto.Request request) {
-        return ApiResponse.success("200", postService.update(postId, userId, request));
+        return ApiResponse.success("200", postService.update(postId, principal.getName(), request));
     }
 
     @DeleteMapping("/{post_id}")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "게시글 삭제")
     public ApiResponse<PostDto.Deleted> delete(@Parameter(description = "게시글 ID", example = "1") @PathVariable("post_id") long postId,
-            @Parameter(description = "작성자 사용자 ID", example = "1") @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        return ApiResponse.success("200", postService.delete(postId, userId));
+            @Parameter(hidden = true) Principal principal) {
+        return ApiResponse.success("200", postService.delete(postId, principal.getName()));
     }
 }
