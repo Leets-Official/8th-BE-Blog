@@ -1,17 +1,33 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import com.leets_8th_be.kanghyeonwoo.exception.CustomException;
 import com.leets_8th_be.kanghyeonwoo.shared.web.ApiResponseCode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "reports", uniqueConstraints = @UniqueConstraint(
-        name = "uk_report_reporter_target", columnNames = {"reporter_id", "target_type", "target_id"}))
+@Table(
+        name = "reports",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_report_reporter_target",
+                        columnNames = {"reporter_id", "target_type", "target_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Report extends BaseTimeEntity {
@@ -59,7 +75,9 @@ public class Report extends BaseTimeEntity {
     private LocalDateTime resolvedAt;
 
     public void resolve(ReportResolutionAction action, String reason, User processor, LocalDateTime resolvedAt) {
-        if (status != ReportStatus.PENDING) throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
+        if (status != ReportStatus.PENDING) {
+            throw new CustomException(ApiResponseCode.REPORT_ALREADY_RESOLVED);
+        }
         this.status = ReportStatus.RESOLVED;
         this.action = action;
         this.resolutionReason = reason;
@@ -68,8 +86,13 @@ public class Report extends BaseTimeEntity {
     }
 
     @Builder
-    public Report(String reason, User reporter, ReportTargetType targetType, Long targetId,
-                  String targetTitleSnapshot, String targetContentSnapshot) {
+    public Report(
+            String reason,
+            User reporter,
+            ReportTargetType targetType,
+            Long targetId,
+            String targetTitleSnapshot,
+            String targetContentSnapshot) {
         this.reason = reason;
         this.reporter = reporter;
         this.targetType = targetType;

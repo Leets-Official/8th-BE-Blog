@@ -8,6 +8,7 @@ import com.leets_8th_be.kanghyeonwoo.blog.domain.model.CommentId;
 
 public class GetCommentTargetService implements GetCommentTargetUseCase {
     private final CommentStore comments;
+
     public GetCommentTargetService(CommentStore comments) {
         this.comments = comments;
     }

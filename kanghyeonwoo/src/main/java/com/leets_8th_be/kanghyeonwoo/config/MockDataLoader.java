@@ -10,7 +10,9 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 public class MockDataLoader {
     public static void main(String[] args) {
         try (var context = new SpringApplicationBuilder(KanghyeonwooApplication.class)
-                .web(WebApplicationType.NONE).profiles("mock-data").run(args)) {
+                .web(WebApplicationType.NONE)
+                .profiles("mock-data")
+                .run(args)) {
             log.info("목 데이터 저장 완료: {}", context.getEnvironment().getProperty("spring.datasource.url"));
         }
     }

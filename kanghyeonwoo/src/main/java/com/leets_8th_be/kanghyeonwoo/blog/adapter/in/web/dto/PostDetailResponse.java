@@ -1,11 +1,10 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.in.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Schema(description = "게시글 상세 조회 응답 DTO")
 @Getter
@@ -30,5 +29,4 @@ public class PostDetailResponse {
 
     @Schema(description = "최종 수정 일시", example = "2026-10-29T12:00:00")
     private LocalDateTime updatedAt;
-
 }

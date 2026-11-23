@@ -1,23 +1,26 @@
 package com.leets_8th_be.kanghyeonwoo.util;
 
-import com.leets_8th_be.kanghyeonwoo.search.domain.BkTree;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.leets_8th_be.kanghyeonwoo.search.domain.BkTree;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThat;
 
 class BkTreeTest {
     @Test
     void findsAllNearbyWordsRegardlessOfInsertionOrder() {
-        for (List<String> words : List.of(List.of("book", "books", "boo", "boon", "cook", "cake"),
+        for (List<String> words : List.of(
+                List.of("book", "books", "boo", "boon", "cook", "cake"),
                 List.of("cake", "cook", "boon", "boo", "books", "book"))) {
             BkTree tree = new BkTree();
             long id = 1;
-            for (String word : words) tree.add(id++, word);
-            assertThat(tree.find("book", 1)).extracting(BkTree.Match::keyword)
+            for (String word : words) {
+                tree.add(id++, word);
+            }
+            assertThat(tree.find("book", 1))
+                    .extracting(BkTree.Match::keyword)
                     .containsExactlyInAnyOrder("books", "boo", "boon", "cook");
-            assertThat(tree.find("bok", 1)).extracting(BkTree.Match::keyword)
-                    .containsExactlyInAnyOrder("book", "boo");
+            assertThat(tree.find("bok", 1)).extracting(BkTree.Match::keyword).containsExactlyInAnyOrder("book", "boo");
             assertThat(tree.find("zzzzz", 1)).isEmpty();
         }
     }

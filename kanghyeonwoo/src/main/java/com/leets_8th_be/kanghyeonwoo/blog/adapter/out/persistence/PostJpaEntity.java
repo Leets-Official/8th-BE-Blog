@@ -1,7 +1,7 @@
 package com.leets_8th_be.kanghyeonwoo.blog.adapter.out.persistence;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,11 +9,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.OneToMany;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +47,7 @@ class PostJpaEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommentJpaEntity> comments = new ArrayList<>();
 
-    protected PostJpaEntity() {
-    }
+    protected PostJpaEntity() {}
 
     private PostJpaEntity(String title, String content, Long userId) {
         this.title = title;
@@ -73,13 +71,33 @@ class PostJpaEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    Long getId() { return id; }
-    Visibility getStatus() { return status; }
-    String getTitle() { return title; }
-    String getContent() { return content; }
-    Long getUserId() { return userId; }
-    LocalDateTime getCreatedAt() { return createdAt; }
-    LocalDateTime getUpdatedAt() { return updatedAt; }
+    Long getId() {
+        return id;
+    }
+
+    Visibility getStatus() {
+        return status;
+    }
+
+    String getTitle() {
+        return title;
+    }
+
+    String getContent() {
+        return content;
+    }
+
+    Long getUserId() {
+        return userId;
+    }
+
+    LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 
     void updateContent(String title, String content) {
         this.title = title;
@@ -94,5 +112,9 @@ class PostJpaEntity {
         status = Visibility.DELETED;
     }
 
-    enum Visibility { ACTIVE, HIDDEN, DELETED }
+    enum Visibility {
+        ACTIVE,
+        HIDDEN,
+        DELETED
+    }
 }

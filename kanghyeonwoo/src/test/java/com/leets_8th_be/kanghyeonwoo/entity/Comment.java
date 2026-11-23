@@ -1,13 +1,24 @@
 package com.leets_8th_be.kanghyeonwoo.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "comments")
@@ -55,11 +66,7 @@ public class Comment extends BaseTimeEntity {
     }
 
     public static Comment create(String content, User user, Post post) {
-        return Comment.builder()
-                .content(content)
-                .user(user)
-                .post(post)
-                .build();
+        return Comment.builder().content(content).user(user).post(post).build();
     }
 
     void assignPost(Post post) {

@@ -1,11 +1,10 @@
 package com.leets_8th_be.kanghyeonwoo.search.adapter.in.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Schema(description = "게시글 목록 요약 응답 DTO")
 @Getter
@@ -24,5 +23,4 @@ public class PostSummaryResponse {
 
     @Schema(description = "작성 일시")
     private LocalDateTime createdAt;
-
 }

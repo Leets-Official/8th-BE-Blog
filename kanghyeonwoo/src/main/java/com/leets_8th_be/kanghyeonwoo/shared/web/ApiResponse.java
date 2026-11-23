@@ -38,8 +38,4 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> fail(ApiResponseCode code, String message) {
         return new ApiResponse<>(false, code, message, null);
     }
-
-    public static <T> ApiResponse<T> fail(ApiResponseCode code, String message, T data) {
-        return new ApiResponse<>(false, code, message, data);
-    }
 }

@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum ApiResponseCode {
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    OAUTH_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "카카오 로그인 설정 또는 연결을 확인해 주세요."),
     SUCCESS(HttpStatus.OK, "요청이 성공적으로 처리되었습니다."),
     RESOURCE_CREATED(HttpStatus.CREATED, "리소스가 성공적으로 생성되었습니다."),
 

@@ -1,9 +1,9 @@
 package com.leets_8th_be.kanghyeonwoo.shared.adapter.out.persistence;
 
-import java.util.Locale;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
+import java.util.Locale;
 import org.hibernate.query.criteria.JpaExpression;
 
 public final class TextSearch {
@@ -15,7 +15,11 @@ public final class TextSearch {
     }
 
     private static String containsPattern(String keyword) {
-        return "%" + keyword.toLowerCase(Locale.ROOT).replace("!", "!!")
-                .replace("%", "!%").replace("_", "!_") + "%";
+        return "%"
+                + keyword.toLowerCase(Locale.ROOT)
+                        .replace("!", "!!")
+                        .replace("%", "!%")
+                        .replace("_", "!_")
+                + "%";
     }
 }

@@ -1,0 +1,53 @@
+services:
+  app:
+    build:
+      context: .
+      target: app
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx256m -XX:ActiveProcessorCount=2
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://db:9092//var/lib/blog/blog
+      SPRING_DATASOURCE_PASSWORD: ${BLOG_DB_PASSWORD:?BLOG_DB_PASSWORD를 설정하세요}
+      SPRING_JPA_SHOW_SQL: 'false'
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET을 설정하세요}
+    ports:
+      - '8080:8080'
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - database
+    restart: unless-stopped
+
+  db:
+    build:
+      context: .
+      target: h2
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx96m -XX:ActiveProcessorCount=2
+      BLOG_DB_PASSWORD: ${BLOG_DB_PASSWORD:?BLOG_DB_PASSWORD를 설정하세요}
+    command:
+      - sh
+      - -ec
+      - |
+        java -cp /opt/h2.jar org.h2.tools.RunScript \
+          -url jdbc:h2:file:/var/lib/blog/blog -user sa -password "$$BLOG_DB_PASSWORD" -script /dev/null
+        exec java -cp /opt/h2.jar org.h2.tools.Server \
+          -tcp -tcpPort 9092 -tcpAllowOthers -ifExists -baseDir /var/lib/blog
+    healthcheck:
+      test: ['CMD-SHELL', 'bash -c "</dev/tcp/127.0.0.1/9092"']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    volumes:
+      - blog-db:/var/lib/blog
+    networks:
+      - database
+    restart: unless-stopped
+
+networks:
+  database:
+    internal: true
+
+volumes:
+  blog-db:
