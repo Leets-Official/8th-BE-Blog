@@ -10,10 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-public class ReportController {
+public class ReportController implements ReportControllerDocs {
 
     private final ReportService reportService;
 
+    @Override
     @PostMapping("/post/{postId}/report")
     public ApiResponse<ReportResDTO.PostReportResponse> reportPost(@PathVariable Long postId,
                                                   @RequestBody ReportReqDTO.PostReportRequest request){
@@ -22,6 +23,7 @@ public class ReportController {
                 GeneralSuccessCode.SUCCESS_CODE,reportService.postReport(postId,request));
     }
 
+    @Override
     @PostMapping("/comment/{commentId}/report")
     public ApiResponse<ReportResDTO.CommentReportResponse> reportComment(@PathVariable Long commentId,
                                                                    @RequestBody ReportReqDTO.CommentReportRequest request){
@@ -30,6 +32,7 @@ public class ReportController {
                 GeneralSuccessCode.SUCCESS_CODE,reportService.commentReport(commentId,request));
     }
 
+    @Override
     @PatchMapping("/post/{postId}/report/{reporterId}/status")
     public ApiResponse<ReportResDTO.PostReportStatusResponse> updatePostReportStatus(@PathVariable Long postId,
                                                                                      @PathVariable Long reporterId,

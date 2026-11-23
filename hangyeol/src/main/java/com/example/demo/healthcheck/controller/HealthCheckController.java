@@ -12,15 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Getter
 @RequiredArgsConstructor
 @RestController
-public class HealthCheckController {
+public class HealthCheckController implements HealthCheckControllerDocs {
 
     final private HealthCheckService healthCheckService;
 
+    @Override
     @GetMapping("/health")
     public String isWorking() {
         return "Server is working!";
     }
 
+    @Override
     @PostMapping("/string/repeat")
     public HealthCheckDto.RepeatStringResponse repeat(@RequestBody HealthCheckDto.RepeatStringRequest text){
         return healthCheckService.repeatString(text.text());
