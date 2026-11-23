@@ -3,6 +3,9 @@ package com.leets.blog.controller;
 import com.leets.blog.dto.report.ReportCreateRequest;
 import com.leets.blog.dto.report.ReportResponse;
 import com.leets.blog.service.ReportService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,16 +19,18 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Profile("mysql")
 @RequiredArgsConstructor
-@Tag(name = "신고", description = "신고 접수 및 처리 상태 변경. userId는 인증 대신 사용하는 과제용 식별값입니다.")
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "신고", description = "로그인한 사용자의 신고 접수 및 처리 상태 변경")
 public class ReportController {
     private final ReportService reportService;
 
     @PostMapping("/post/{postId}/reports")
-    @Operation(summary = "게시글 신고", description = "실제로 존재하는 사용자와 게시글 ID가 필요합니다. PENDING 상태로 접수하며, 처리 완료 후에도 동일 사용자의 동일 게시글 중복 신고는 409로 응답합니다.")
+    @Operation(summary = "게시글 신고", description = "로그인한 사용자를 신고자로 저장합니다. PENDING 상태로 접수하며, 처리 완료 후에도 동일 사용자의 동일 게시글 중복 신고는 409로 응답합니다.")
     @ApiResponse(responseCode = "201", description = "신고 접수")
     public ResponseEntity<ReportResponse> reportPost(@Parameter(description = "신고할 게시글 ID", example = "1") @PathVariable Long postId,
-                                                     @RequestBody ReportCreateRequest request) {
-        ReportResponse response = reportService.reportPost(postId, request);
+                                                     @RequestBody ReportCreateRequest request,
+                                                     @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
+        ReportResponse response = reportService.reportPost(postId, new ReportCreateRequest(Long.valueOf(jwt.getSubject()), request.reason()));
         return ResponseEntity.created(URI.create("/reports/" + response.id())).body(response);
     }
 
@@ -33,8 +38,9 @@ public class ReportController {
     @Operation(summary = "댓글 신고", description = "PENDING 상태로 접수합니다. 동일 사용자의 동일 댓글 중복 신고는 409로 응답합니다. 삭제된 댓글과 접근할 수 없는 게시글의 댓글은 신고할 수 없습니다.")
     @ApiResponse(responseCode = "201", description = "신고 접수")
     public ResponseEntity<ReportResponse> reportComment(@Parameter(description = "신고할 댓글 ID", example = "1") @PathVariable Long commentId,
-                                                        @RequestBody ReportCreateRequest request) {
-        ReportResponse response = reportService.reportComment(commentId, request);
+                                                        @RequestBody ReportCreateRequest request,
+                                                     @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
+        ReportResponse response = reportService.reportComment(commentId, new ReportCreateRequest(Long.valueOf(jwt.getSubject()), request.reason()));
         return ResponseEntity.created(URI.create("/reports/" + response.id())).body(response);
     }
 
