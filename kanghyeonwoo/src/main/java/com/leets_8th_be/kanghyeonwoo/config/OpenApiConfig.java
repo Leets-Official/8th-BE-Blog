@@ -51,7 +51,7 @@ public class OpenApiConfig {
                                         """)
                         .version("2.0.0")
                         .contact(new Contact().name("강현우").email("wooddang@example.com")))
-                .servers(List.of(new Server().url("http://localhost:8080").description("로컬 개발 서버")));
+                .servers(List.of(new Server().url("/").description("현재 서버")));
     }
 
     @Bean

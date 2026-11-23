@@ -55,6 +55,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
+}
+
 // Uses BLOG_DB_URL when set; otherwise adds fixtures to the existing local data/blog database.
 tasks.register('seedMockData', JavaExec) {
     group = 'application'
