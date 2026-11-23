@@ -13,7 +13,7 @@ AWS EC2 인스턴스를 만들고, Docker로 nginx 컨테이너를 실행해 브
 
 | 항목 | 설정 |
 |---|---|
-| AMI | Ubuntu Server 24.04 LTS (x86) |
+| AMI | Ubuntu Server 26.04 LTS (x86) |
 | 인스턴스 유형 | t3.micro |
 | 리전 | 아시아 태평양(시드니) ap-southeast-2 |
 | 키 페어 | RSA, `.pem` |
