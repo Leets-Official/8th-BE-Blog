@@ -2,7 +2,8 @@ spring:
   application:
     name: 8th-be-blog
   datasource:
-    url: jdbc:mysql://localhost:3306/blog?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    # 로컬은 기본값(localhost), 배포 서버는 DB_URL 환경 변수로 덮어씀
+    url: ${DB_URL:jdbc:mysql://localhost:3306/blog?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -20,4 +21,4 @@ jwt:
 kakao:
   client-id: ${KAKAO_CLIENT_ID:}              # REST API 키 (없으면 앱은 뜨지만 카카오 로그인만 실패)
   client-secret: ${KAKAO_CLIENT_SECRET:}      # [보안] Client Secret을 켰을 때만 필요
-  redirect-uri: http://localhost:8080/auth/kakao/callback   # 카카오 디벨로퍼스에 등록한 값과 똑같아야 함
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/auth/kakao/callback}

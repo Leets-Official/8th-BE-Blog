@@ -1,0 +1,11 @@
+# 환경 변수 파일 (DB 비밀번호, JWT 비밀키 등)
+.env*
+
+# Gradle 빌드
+.gradle/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
