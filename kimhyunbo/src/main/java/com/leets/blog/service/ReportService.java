@@ -28,18 +28,18 @@ public class ReportService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public ReportResponse reportPost(Long postId, ReportCreateRequest request) {
+    public ReportResponse reportPost(Long postId, Long memberId, ReportCreateRequest request) {
         // 숨김 처리된 게시글은 없는 글로 보고 신고할 수 없다.
         postRepository.findByIdAndStatus(postId, PostStatus.ACTIVE)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        return createReport(ReportTargetType.POST, postId, request);
+        return createReport(ReportTargetType.POST, postId, memberId, request);
     }
 
     @Transactional
-    public ReportResponse reportComment(Long commentId, ReportCreateRequest request) {
+    public ReportResponse reportComment(Long commentId, Long memberId, ReportCreateRequest request) {
         commentRepository.findByIdAndDeletedAtIsNull(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        return createReport(ReportTargetType.COMMENT, commentId, request);
+        return createReport(ReportTargetType.COMMENT, commentId, memberId, request);
     }
 
     @Transactional
@@ -53,8 +53,9 @@ public class ReportService {
         return ReportResponse.from(report);
     }
 
-    private ReportResponse createReport(ReportTargetType targetType, Long targetId, ReportCreateRequest request) {
-        Member reporter = memberRepository.findById(request.reporterId())
+    private ReportResponse createReport(ReportTargetType targetType, Long targetId, Long memberId,
+                                        ReportCreateRequest request) {
+        Member reporter = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (reportRepository.existsByReporterIdAndTargetTypeAndTargetId(reporter.getId(), targetType, targetId)) {

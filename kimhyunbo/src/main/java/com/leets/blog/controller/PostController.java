@@ -8,9 +8,11 @@ import com.leets.blog.dto.post.PostUpdateRequest;
 import com.leets.blog.global.response.ApiResponse;
 import com.leets.blog.global.response.SuccessCode;
 import com.leets.blog.global.swagger.ApiErrorCodes;
+import com.leets.blog.global.swagger.SwaggerConfig;
 import com.leets.blog.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -18,6 +20,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,6 +40,7 @@ import static com.leets.blog.global.exception.ErrorCode.POST_ALREADY_HIDDEN;
 import static com.leets.blog.global.exception.ErrorCode.POST_FORBIDDEN;
 import static com.leets.blog.global.exception.ErrorCode.POST_NOT_FOUND;
 import static com.leets.blog.global.exception.ErrorCode.TYPE_MISMATCH;
+import static com.leets.blog.global.exception.ErrorCode.UNAUTHORIZED;
 
 @Tag(name = "게시글", description = "게시글 작성, 조회, 수정, 삭제, 숨김 API")
 @RestController
@@ -69,40 +73,48 @@ public class PostController {
         return respond(SuccessCode.POST_FOUND, postService.getPost(postId));
     }
 
-    @Operation(summary = "게시글 작성", description = "새 게시글을 작성합니다. 작성된 게시글은 ACTIVE 상태로 생성됩니다.")
-    @ApiErrorCodes({INVALID_INPUT, MEMBER_NOT_FOUND})
+    @Operation(summary = "게시글 작성",
+            description = "로그인한 회원이 새 게시글을 작성합니다. 작성된 게시글은 ACTIVE 상태로 생성됩니다.")
+    @SecurityRequirement(name = SwaggerConfig.BEARER_AUTH)
+    @ApiErrorCodes({INVALID_INPUT, UNAUTHORIZED, MEMBER_NOT_FOUND})
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<ApiResponse<PostDetailResponse>> createPost(@Valid @RequestBody PostCreateRequest request) {
-        return respond(SuccessCode.POST_CREATED, postService.createPost(request));
+    public ResponseEntity<ApiResponse<PostDetailResponse>> createPost(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Valid @RequestBody PostCreateRequest request) {
+        return respond(SuccessCode.POST_CREATED, postService.createPost(memberId, request));
     }
 
     @Operation(summary = "게시글 수정", description = "작성자 본인만 제목과 본문을 수정할 수 있습니다.")
-    @ApiErrorCodes({INVALID_INPUT, POST_FORBIDDEN, POST_NOT_FOUND})
+    @SecurityRequirement(name = SwaggerConfig.BEARER_AUTH)
+    @ApiErrorCodes({INVALID_INPUT, UNAUTHORIZED, POST_FORBIDDEN, POST_NOT_FOUND})
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> updatePost(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest request) {
-        return respond(SuccessCode.POST_UPDATED, postService.updatePost(postId, request));
+        return respond(SuccessCode.POST_UPDATED, postService.updatePost(postId, memberId, request));
     }
 
     @Operation(summary = "게시글 삭제", description = "작성자 본인만 삭제할 수 있습니다. 게시글에 달린 댓글도 함께 삭제됩니다.")
-    @ApiErrorCodes({INVALID_INPUT, POST_FORBIDDEN, POST_NOT_FOUND})
+    @SecurityRequirement(name = SwaggerConfig.BEARER_AUTH)
+    @ApiErrorCodes({UNAUTHORIZED, POST_FORBIDDEN, POST_NOT_FOUND})
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDeleteResponse>> deletePost(
-            @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
-            @Parameter(description = "요청한 회원 ID (작성자 본인인지 확인)", example = "101") @RequestParam Long authorId) {
-        return respond(SuccessCode.POST_DELETED, postService.deletePost(postId, authorId));
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId) {
+        return respond(SuccessCode.POST_DELETED, postService.deletePost(postId, memberId));
     }
 
     @Operation(summary = "게시글 숨김",
             description = "작성자 본인이 게시글을 숨깁니다. 상태가 ACTIVE에서 HIDDEN으로 바뀌고, 이후 목록/상세 조회에서 보이지 않습니다. 이미 숨긴 글은 409를 반환합니다.")
-    @ApiErrorCodes({INVALID_INPUT, POST_FORBIDDEN, POST_NOT_FOUND, POST_ALREADY_HIDDEN})
+    @SecurityRequirement(name = SwaggerConfig.BEARER_AUTH)
+    @ApiErrorCodes({UNAUTHORIZED, POST_FORBIDDEN, POST_NOT_FOUND, POST_ALREADY_HIDDEN})
     @PatchMapping("/{postId}/hide")
     public ResponseEntity<ApiResponse<PostDetailResponse>> hidePost(
-            @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
-            @Parameter(description = "요청한 회원 ID (작성자 본인인지 확인)", example = "101") @RequestParam Long authorId) {
-        return respond(SuccessCode.POST_HIDDEN, postService.hidePost(postId, authorId));
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId) {
+        return respond(SuccessCode.POST_HIDDEN, postService.hidePost(postId, memberId));
     }
 
     private <T> ResponseEntity<ApiResponse<T>> respond(SuccessCode successCode, T data) {
