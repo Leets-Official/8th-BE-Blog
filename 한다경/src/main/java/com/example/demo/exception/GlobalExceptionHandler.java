@@ -1,6 +1,8 @@
 package com.example.demo.exception;
 
 import com.example.demo.dto.response.ErrorResponse;
+import jakarta.persistence.OptimisticLockException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,6 +19,12 @@ import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler({OptimisticLockingFailureException.class, OptimisticLockException.class})
+    public ErrorResponse handleConcurrentModification() {
+        return toErrorResponse(ErrorCode.CONCURRENT_MODIFICATION);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(

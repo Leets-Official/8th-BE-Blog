@@ -111,7 +111,7 @@ public class PostService {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED);
         }
 
-        if (post.isPrivate() && post.isOwnedBy(userId)) {
+        if (post.isPrivate() && !post.isOwnedBy(userId)) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED);
         }
     }
@@ -123,7 +123,7 @@ public class PostService {
     }
 
     private void validatePostOwner(Post post, Long userId) {
-        if (post.isOwnedBy(userId)) {
+        if (!post.isOwnedBy(userId)) {
             throw new BusinessException(ErrorCode.POST_ACCESS_DENIED);
         }
     }

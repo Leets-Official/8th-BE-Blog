@@ -14,6 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 public class Comment extends SoftDeletableEntity {
 
+    @Version
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -40,4 +45,8 @@ public class Comment extends SoftDeletableEntity {
 
     @OneToMany(mappedBy = "comment")
     private List<Report> reports = new ArrayList<>();
+
+    public void hide() {
+        this.isHidden = true;
+    }
 }
