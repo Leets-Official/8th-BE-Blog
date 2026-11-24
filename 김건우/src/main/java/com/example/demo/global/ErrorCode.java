@@ -27,7 +27,16 @@ public enum ErrorCode {
     NOT_POST_OWNER(HttpStatus.FORBIDDEN, "COMMENT_403_1", "게시글 작성자만 댓글을 채택할 수 있습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT_404_1", "존재하지 않는 댓글입니다."),
     COMMENT_ALREADY_ACCEPTED(HttpStatus.CONFLICT, "COMMENT_409_1", "이미 채택된 댓글입니다."),
-    ANOTHER_COMMENT_ACCEPTED(HttpStatus.CONFLICT, "COMMENT_409_2", "이미 채택된 댓글이 있는 게시글입니다.");
+    ANOTHER_COMMENT_ACCEPTED(HttpStatus.CONFLICT, "COMMENT_409_2", "이미 채택된 댓글이 있는 게시글입니다."),
+
+    // 6주차: 회원 / 인증
+    PASSWORD_TOO_LONG(HttpStatus.BAD_REQUEST, "AUTH_400_1", "비밀번호는 UTF-8 기준 72바이트 이하여야 합니다."),
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_401_1", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_401_2", "인증이 필요합니다. 유효한 Access Token을 보내주세요."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_401_3", "유효하지 않은 Refresh Token입니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "COMMON_403_2", "접근 권한이 없습니다."),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "USER_409_1", "이미 가입된 이메일입니다."),
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "USER_409_2", "이미 사용 중인 닉네임입니다.");
 
     private final HttpStatus status;
     private final String code;

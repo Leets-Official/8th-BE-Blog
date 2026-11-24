@@ -13,3 +13,9 @@ springdoc:
     operations-sorter: method       # 같은 태그 안에서 GET -> POST -> PUT ... 순서로 정렬
     tags-sorter: alpha
     display-request-duration: true
+
+# [6주차] JWT 설정. secret 은 환경변수 JWT_SECRET 으로 주입한다. (32바이트 이상, 코드/깃에 올리지 않기)
+jwt:
+  secret: ${JWT_SECRET}
+  access-ttl-seconds: 600        # Access Token 10분
+  refresh-ttl-seconds: 604800    # Refresh Token 7일

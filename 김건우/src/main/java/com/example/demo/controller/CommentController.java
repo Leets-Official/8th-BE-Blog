@@ -13,14 +13,17 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Comment", description = "댓글 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/posts/{postId}/comments")
@@ -45,8 +48,9 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CommentRequest request) {
-        return ApiResponse.success(SuccessCode.COMMENT_CREATED, commentService.createComment(postId, request));
+        return ApiResponse.success(SuccessCode.COMMENT_CREATED, commentService.createComment(postId, userId, request));
     }
 
     // 댓글 채택: 액션형
@@ -54,12 +58,9 @@ public class CommentController {
             description = "게시글 작성자가 댓글 하나를 채택합니다. 게시글당 채택은 1개만 가능하며, "
                     + "작성자 본인의 댓글은 채택할 수 없습니다. 이미 채택된 댓글이 있으면 다른 댓글을 채택할 수 없습니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "userId 누락 또는 본인 댓글 채택",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "본인 댓글 채택",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                            examples = {
-                                    @ExampleObject(name = "COMMON_400_1", summary = "userId 누락", value = SwaggerErrorExamples.INVALID_PARAM),
-                                    @ExampleObject(name = "COMMENT_400_1", summary = "본인 댓글 채택", value = SwaggerErrorExamples.SELF_ACCEPT_NOT_ALLOWED)
-                            })),
+                            examples = @ExampleObject(name = "COMMENT_400_1", value = SwaggerErrorExamples.SELF_ACCEPT_NOT_ALLOWED))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "게시글 작성자가 아님",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(name = "COMMENT_403_1", value = SwaggerErrorExamples.NOT_POST_OWNER))),
@@ -80,7 +81,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<CommentResponse>> acceptComment(
             @Parameter(description = "게시글 ID", example = "1") @PathVariable Long postId,
             @Parameter(description = "채택할 댓글 ID", example = "1") @PathVariable Long commentId,
-            @Parameter(description = "요청자 ID (게시글 작성자와 같아야 함)", example = "1") @RequestParam Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
         return ApiResponse.success(SuccessCode.COMMENT_ACCEPTED,
                 commentService.acceptComment(postId, commentId, userId));
     }

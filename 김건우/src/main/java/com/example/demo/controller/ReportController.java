@@ -13,14 +13,17 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Report", description = "신고 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 public class ReportController {
@@ -53,8 +56,9 @@ public class ReportController {
     @PostMapping("/posts/{postId}/reports")
     public ResponseEntity<ApiResponse<ReportResponse>> createReport(
             @Parameter(description = "신고할 게시글 ID", example = "1") @PathVariable Long postId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ReportRequest request) {
-        return ApiResponse.success(SuccessCode.REPORT_CREATED, reportService.createReport(postId, request));
+        return ApiResponse.success(SuccessCode.REPORT_CREATED, reportService.createReport(postId, userId, request));
     }
 
     // 신고 처리 완료: 상태 전이 + 검증을 묶은 행위 -> 액션형
