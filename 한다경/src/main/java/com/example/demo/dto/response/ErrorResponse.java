@@ -1,5 +1,6 @@
 package com.example.demo.dto.response;
 
+import com.example.demo.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,8 +26,12 @@ public class ErrorResponse {
     @Schema(description = "필드별 검증 오류. 오류가 없으면 응답에서 생략합니다.")
     private final List<ValidationError> errors;
 
-    public ErrorResponse(int status, String code, String message) {
-        this(status, code, message, List.of());
+    public static ErrorResponse from(ErrorCode error) {
+        return from(error, List.of());
+    }
+
+    public static ErrorResponse from(ErrorCode error, List<ValidationError> errors) {
+        return new ErrorResponse(error.getStatusValue(), error.getCode(), error.getMessage(), errors);
     }
 
     @Getter

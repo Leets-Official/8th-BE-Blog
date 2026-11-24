@@ -12,6 +12,12 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByIdAndDeletedAtIsNull(Long id);
 
+    Optional<Member> findByEmailAndDeletedAtIsNull(String email);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByName(String name);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from Member m where m.id = :id and m.deletedAt is null")
     Optional<Member> findActiveForUpdate(@Param("id") Long id);

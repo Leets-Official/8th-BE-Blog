@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequiredArgsConstructor
 public class ReportController implements ReportControllerDocs {
@@ -18,22 +20,22 @@ public class ReportController implements ReportControllerDocs {
     @Override
     @PostMapping("/posts/{postId}/reports")
     @ResponseStatus(HttpStatus.CREATED)
-    public ReportResponse reportPost(@PathVariable Long postId, @RequestHeader("X-User-Id") Long userId,
+    public ReportResponse reportPost(@PathVariable Long postId, Principal principal,
                                      @Valid @RequestBody ReportCreateRequest request) {
-        return reports.reportPost(postId, userId, request);
+        return reports.reportPost(postId, Long.valueOf(principal.getName()), request);
     }
 
     @Override
     @PostMapping("/comments/{commentId}/reports")
     @ResponseStatus(HttpStatus.CREATED)
-    public ReportResponse reportComment(@PathVariable Long commentId, @RequestHeader("X-User-Id") Long userId,
+    public ReportResponse reportComment(@PathVariable Long commentId, Principal principal,
                                         @Valid @RequestBody ReportCreateRequest request) {
-        return reports.reportComment(commentId, userId, request);
+        return reports.reportComment(commentId, Long.valueOf(principal.getName()), request);
     }
 
     @Override
     @PostMapping("/reports/{reportId}/approve")
-    public ReportResponse approve(@PathVariable Long reportId, @RequestHeader("X-User-Id") Long userId) {
-        return reports.approve(reportId, userId);
+    public ReportResponse approve(@PathVariable Long reportId, Principal principal) {
+        return reports.approve(reportId, Long.valueOf(principal.getName()));
     }
 }

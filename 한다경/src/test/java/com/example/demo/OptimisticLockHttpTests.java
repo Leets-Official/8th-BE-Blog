@@ -31,7 +31,7 @@ class OptimisticLockHttpTests {
         when(service.updatePost(eq(1L), eq(2L), any())).thenThrow(conflict);
         var mvc = MockMvcBuilders.standaloneSetup(new PostController(service))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
-        mvc.perform(put("/posts/1").header("X-User-Id", 2)
+        mvc.perform(put("/posts/1").principal(() -> "2")
                         .contentType("application/json")
                         .content("{\"title\":\"title\",\"content\":\"content\"}"))
                 .andExpect(status().isConflict())
@@ -48,7 +48,7 @@ class OptimisticLockHttpTests {
         when(service.approve(1L, 2L)).thenThrow(conflict);
         var mvc = MockMvcBuilders.standaloneSetup(new ReportController(service))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
-        mvc.perform(post("/reports/1/approve").header("X-User-Id", 2))
+        mvc.perform(post("/reports/1/approve").principal(() -> "2"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONCURRENT_MODIFICATION"));
     }
