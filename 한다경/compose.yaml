@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql -h 127.0.0.1 -u"$${MYSQL_USER}" "$${MYSQL_DATABASE}" -e "SELECT 1"'
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  app:
+    image: leets-blog
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+
+volumes:
+  mysql-data:
