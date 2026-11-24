@@ -31,7 +31,7 @@ class OptimisticLockHttpTests {
         when(service.updatePost(eq(1L), eq(2L), any())).thenThrow(conflict);
         var mvc = MockMvcBuilders.standaloneSetup(new PostController(service))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
-        mvc.perform(put("/post/1").header("X-User-Id", 2)
+        mvc.perform(put("/posts/1").header("X-User-Id", 2)
                         .contentType("application/json")
                         .content("{\"title\":\"title\",\"content\":\"content\"}"))
                 .andExpect(status().isConflict())

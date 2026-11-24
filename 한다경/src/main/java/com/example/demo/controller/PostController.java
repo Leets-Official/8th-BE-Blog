@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.controller.docs.PostControllerDocs;
+
 import com.example.demo.dto.request.PostCreateRequest;
 import com.example.demo.dto.request.PostUpdateRequest;
 import com.example.demo.dto.response.PostListResponse;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class PostController {
+public class PostController implements PostControllerDocs {
 
     private final PostService postService;
 
@@ -26,12 +28,14 @@ public class PostController {
         this.postService = postService;
     }
 
-    @GetMapping("/post/list")
+    @Override
+    @GetMapping("/posts")
     public PostListResponse findPosts() {
         return postService.findPosts();
     }
 
-    @GetMapping("/post/{postId}")
+    @Override
+    @GetMapping("/posts/{postId}")
     public PostResponse findPost(
             @PathVariable Long postId,
             @RequestHeader(value = "X-User-Id", required = false) Long userId
@@ -39,7 +43,8 @@ public class PostController {
         return postService.findPost(postId, userId);
     }
 
-    @PostMapping("/post")
+    @Override
+    @PostMapping("/posts")
     public ResponseEntity<PostResponse> createPost(
             @RequestHeader("X-User-Id") Long userId,
             @Valid @RequestBody PostCreateRequest request
@@ -49,7 +54,8 @@ public class PostController {
                 .body(postService.createPost(userId, request));
     }
 
-    @PutMapping("/post/{postId}")
+    @Override
+    @PutMapping("/posts/{postId}")
     public PostResponse updatePost(
             @PathVariable Long postId,
             @RequestHeader("X-User-Id") Long userId,
@@ -58,7 +64,8 @@ public class PostController {
         return postService.updatePost(postId, userId, request);
     }
 
-    @DeleteMapping("/post/{postId}")
+    @Override
+    @DeleteMapping("/posts/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
             @RequestHeader("X-User-Id") Long userId
