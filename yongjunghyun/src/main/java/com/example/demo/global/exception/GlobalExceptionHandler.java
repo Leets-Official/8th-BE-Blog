@@ -1,6 +1,7 @@
 package com.example.demo.global.exception;
 
 import com.example.demo.global.response.ApiResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -26,7 +27,7 @@ public class GlobalExceptionHandler {
         return toResponse(toErrorCode(fieldError));
     }
 
-    // 3) JSON 형식이 깨졌거나, X-Member-Id 헤더가 없거나, 숫자 자리에 글자가 온 경우
+    // 3) JSON 형식이 깨졌거나, 필요한 헤더가 없거나, 숫자 자리에 글자가 온 경우
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
             MissingRequestHeaderException.class,
@@ -34,6 +35,12 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(Exception e) {
         return toResponse(ErrorCode.BAD_REQUEST);
+    }
+
+    // 4) 중복 검사를 통과했는데 그 사이 다른 요청이 같은 값을 먼저 저장한 경우 (DB unique 제약이 막아 줌)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(DataIntegrityViolationException e) {
+        return toResponse(ErrorCode.DUPLICATE_RESOURCE);
     }
 
     // DTO의 검증 어노테이션 message에 적어 둔 ErrorCode 이름으로 에러 코드를 찾는다.
